@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import oafext.logging.OafLogger;
+import oracle.jbo.Key;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
 
@@ -69,6 +70,15 @@ public class ViewRowMocker {
             }
         }
 
+
+        Mockito.doAnswer(new Answer<Key>() {
+            @Override
+            public Key answer(final InvocationOnMock invocation) throws Throwable
+            {
+                final Key key = Mockito.spy(new Key(new Object[] { mockRow.getAttribute(0) }));
+                return key;
+            }
+        }).when(mockRow).getKey();
 
         Mockito.doAnswer(new Answer<Object>() {
             @Override
