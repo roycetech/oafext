@@ -140,6 +140,9 @@ public class CustomAmFixture {
         CustomAmFixture.VOI_RCLN_MAP.clear();
 
         //new
+        for (final Object o : CustomAmFixture.VOI_MOCKVO_MAP.values()) {
+            Mockito.reset(o);
+        }
         CustomAmFixture.MROW_VOI_MAP.clear();
         CustomAmFixture.VOI_MOCKVO_MAP.clear();
         CustomAmFixture.ROWSET_ITER_MAP.clear();
@@ -429,12 +432,13 @@ public class CustomAmFixture {
                 @Override
                 public Row[] answer(final InvocationOnMock invocation) throws Throwable
                 {
-                    final ViewObject mockViewObject = (ViewObject) invocation.getMock();
+                    final RowSet mockViewObject = (RowSet) invocation.getMock();
                     final String voInstance = mockViewObject.getName();
                     final List<Row> rowList = CustomAmFixture.VOI_MROWLST_MAP.get(voInstance);
-                    Row[] retval = new Row[0];
-                    // conditionally redefine.
-                    if (rowList != null) {
+                    Row[] retval;
+                    if (rowList == null) {
+                        retval = new Row[0];
+                    } else {
                         retval = rowList.toArray(new Row[rowList.size()]);
                     }
                     return retval;
@@ -444,6 +448,7 @@ public class CustomAmFixture {
             final RowSet mockRowSet = Mockito.mock(RowSet.class);
             Mockito.when(mockVo.getRowSet()).thenReturn(mockRowSet);
             Mockito.when(mockRowSet.getAllRowsInRange()).thenAnswer(ansRetAllRow);
+            Mockito.when(mockRowSet.getName()).thenReturn(voInstance);
 
             // Mock getAllRowsInRange().
             Mockito.when(mockVo.getAllRowsInRange()).thenAnswer(ansRetAllRow);
@@ -537,6 +542,7 @@ public class CustomAmFixture {
 
         }
     }
+
     /**
      * 
      * @param pAppModuleDef
@@ -546,11 +552,12 @@ public class CustomAmFixture {
     private final void processAppModule(final String pAppModuleDef, final String parentInstName)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        final String path = "/" + pAppModuleDef.replaceAll("\\.", "/") + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             ignoreDtd(docBuilder);
 
-
+            /*
             final String projectPath = new File(".").getAbsolutePath();
             final StringBuilder pathBuilder = new StringBuilder(128);
             pathBuilder.append(projectPath.substring(0, projectPath.length() - 2));
@@ -560,9 +567,11 @@ public class CustomAmFixture {
             pathBuilder.append(pAppModuleDef.replaceAll("\\.", "/"));
             pathBuilder.append(".xml");
             final String appDefFilename = pathBuilder.toString();
+            */
 
-            getLogger().info("App Def Filename: " + appDefFilename);
-            final Document document = docBuilder.parse(new File(appDefFilename));
+            getLogger().info("App Def Filename: " + path);
+
+            final Document document = docBuilder.parse(this.getClass().getResourceAsStream(path));
             final Element root = document.getDocumentElement();
             final String amType = root.getAttribute(Attribute.OBJECT_IMPL_CLASS);
             AMDEF_CLS_MAP.put(pAppModuleDef, (Class<? extends OAApplicationModuleImpl>) Class.forName(amType));
@@ -582,8 +591,6 @@ public class CustomAmFixture {
                 final Node childNode = nodes.item(i);
                 final String nodeName = childNode.getNodeName();
                 if (NodeName.VIEW_OBJECT.equals(nodeName)) {
-
-
                     final Element elem = (Element) childNode;
                     final String voInstName = elem.getAttribute(Attribute.NAME);
                     final String voDef = elem.getAttribute(Attribute.VO_DEF);
@@ -607,14 +614,13 @@ public class CustomAmFixture {
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         Class<?>[] retval = null; //NOPMD: null default, conditionally redefine. 
+        final String appDefFilename = "/" + voDef.replaceAll("\\.", "/") + ".xml";
         String implClass = null; //NOPMD: null default, conditionally redefine.
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             ignoreDtd(docBuilder);
-            String projectPath = new File(".").getAbsolutePath();
-            projectPath = projectPath.substring(0, projectPath.length() - 2) + FILE_SEP + "build";
-            final String appDefFilename = projectPath + File.separator + voDef.replaceAll("\\.", "/") + ".xml";
-            final Document document = docBuilder.parse(new File(appDefFilename));
+
+            final Document document = docBuilder.parse(this.getClass().getResourceAsStream(appDefFilename));
             final Element root = document.getDocumentElement();
 
             @SuppressWarnings("unchecked")
