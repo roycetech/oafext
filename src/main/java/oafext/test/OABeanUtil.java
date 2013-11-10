@@ -24,7 +24,7 @@ public class OABeanUtil {
             className = "oracle.apps.fnd.framework.webui.beans.table." + string;
         } else if (listTable.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.table." + string;
-        } else if (listNav.contains(string)) {
+        } else if (LIST_NAV.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.nav." + string;
 
         }
@@ -44,7 +44,7 @@ public class OABeanUtil {
         return retval;
     }
 
-    static final List<String> listNav = Arrays.asList(new String[] {
+    static final List<String> LIST_NAV = Arrays.asList(new String[] {
             "OAApplicationSwitcherBean",
             "OABreadCrumbsBean",
             "OABrowseMenuBean",
