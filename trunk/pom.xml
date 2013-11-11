@@ -18,6 +18,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -37,7 +38,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
 
 	<dependencies>
 
@@ -220,80 +220,88 @@
 		</dependency>
 
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfbinding</artifactId>
 			<version>1</version>
 		</dependency>
+
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfcm</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfm</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfmweb</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfs</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfshare</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>adfs-jazn</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jct</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jctejb</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jdomorcl</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jimdomains</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jmt</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jmtejb</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>bc4jsyscat</artifactId>
 			<version>1</version>
 		</dependency>
 		<dependency>
-			<groupId>oaf-bc4j</groupId>
+			<groupId>oaf-bc4j-lib</groupId>
 			<artifactId>collections</artifactId>
 			<version>1</version>
 		</dependency>
+
+		<dependency>
+			<groupId>ph.rye</groupId>
+			<artifactId>common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 
 	</dependencies>
 </project>
