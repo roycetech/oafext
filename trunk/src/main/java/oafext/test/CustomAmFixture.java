@@ -21,6 +21,7 @@ import oracle.jbo.Row;
 import oracle.jbo.RowSet;
 import oracle.jbo.RowSetIterator;
 import oracle.jbo.ViewObject;
+import oracle.jbo.server.ViewObjectImpl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -394,6 +395,17 @@ public class CustomAmFixture {
             Mockito.doReturn(appModule).when(mockVo).getApplicationModule();
             Mockito.when(mockVo.getName()).thenReturn(voInstance);
 
+            Mockito.doAnswer(new Answer<Class<? extends Row>>() {
+
+                public Class<? extends Row> answer(
+                        final InvocationOnMock invocation) throws Throwable
+                {
+                    return CustomAmFixture.VOI_ROWCLS_MAP.get(voInstance);
+                }
+            })
+                .when((ViewObjectImpl) mockVo)
+                .getRowClass();
+
             // Mock setCurrentRow(Row).
             Mockito.doAnswer(new Answer<Object>() {
 
@@ -627,7 +639,7 @@ public class CustomAmFixture {
                     {
                         final int attrIdx = (Integer) invocation.getArguments()[0];
                         AttributeDef mockAttrDef = null; //NOPMD: null default, conditionally redefine.
-                        if (attrIdx > 0) {
+                        if (attrIdx > -1) {
                             final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
                                 .get(voInstance);
                             final List<String> attrList = CustomAmFixture.VOT_ATTRLST_MAP
