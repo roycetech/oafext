@@ -91,9 +91,6 @@ public class CustomAmFixture {
     /** rtfc. */
     static final int MAX_PATH_LEN = 128;
 
-    /** Application Module Implementation class. */
-    private static Class<? extends OAApplicationModuleImpl> appModuleClass;
-
     /**
      * Mock Row to View Object Instance Name Map. (Not sure if this is a good
      * idea.)
@@ -117,13 +114,14 @@ public class CustomAmFixture {
     public CustomAmFixture(final String pAppModuleDef) {
         synchronized (lock) {
             if (initialized.get(pAppModuleDef) == null) {
+                OafLogger.getInstance().info("pAppModuleDef: " + pAppModuleDef);
+
                 processAppModule(pAppModuleDef, null);
                 initialized.put(pAppModuleDef, Boolean.TRUE);
-                CustomAmFixture.appModuleClass = AMDEF_CLS_MAP
-                    .get(pAppModuleDef);
-                this.mockAppModule = Mockito
-                    .mock(CustomAmFixture.appModuleClass);
             }
+            final Class<? extends OAApplicationModuleImpl> appModuleClass = AMDEF_CLS_MAP
+                .get(pAppModuleDef);
+            this.mockAppModule = Mockito.mock(appModuleClass);
         }
 
     }
@@ -854,11 +852,10 @@ public class CustomAmFixture {
                 .getMethod(methName, new Class[0])
                 .invoke(object, new Object[0]);
         } catch (final Exception e) {
-            getLogger().error(e);
+            getLogger().error(e.getMessage() + ", methName: " + methName, e);
         }
         return retval;
     }
-
 
     public OAApplicationModuleImpl getMockAppModule()
     {
