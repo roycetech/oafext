@@ -112,6 +112,7 @@ public class CustomAmFixture {
     static {
         // Eclipse compatibility mode. 
         OafLogger.getInstance().setDeployedMode(true);
+        OafLogger.getInstance().setDefaultLevel(OafLogger.Level.OFF);
     }
 
     /**
