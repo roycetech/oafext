@@ -123,6 +123,10 @@ public class OafLogger {
     /** Original stream used to toggle blocking of System.out.println. */
     private static final PrintStream ORIG_STREAM = System.out;
 
+    /** Original stream used to toggle blocking of System.out.println. */
+    private static final PrintStream ORIG_ERR_STREAM = System.err;
+
+
     /** Empty stream used to block System.out.println. */
     private static final PrintStream EMPTY_STREAM = new PrintStream(
         new OutputStream() {
@@ -264,6 +268,7 @@ public class OafLogger {
 
                 if (!ENABLE_SYSOUT) {
                     System.setOut(EMPTY_STREAM);
+                    System.setErr(EMPTY_STREAM);
                 }
 
                 INSTANCE.print("Completed configuring from " + RESOURCE_NAME
@@ -1327,7 +1332,12 @@ public class OafLogger {
     private void print(final String message, final int level)
     {
         if (Level.ERROR == level || Level.WARN == level) {
+            System.setErr(ORIG_ERR_STREAM);
             System.err.println(padSpace(LOG_PREFIX[level - 1]) + " " + message);
+            if (!ENABLE_SYSOUT) {
+                System.setErr(EMPTY_STREAM);
+            }
+
         } else {
             System.setOut(ORIG_STREAM);
             System.out.println(padSpace(LOG_PREFIX[level - 1]) + " " + message);
