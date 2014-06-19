@@ -5,8 +5,6 @@ import java.util.List;
 
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 
-import com.sun.java.util.collections.UnsupportedOperationException;
-
 public class OABeanUtil {
 
     @SuppressWarnings("unchecked")
@@ -17,9 +15,11 @@ public class OABeanUtil {
         if (list1.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans." + string;
         } else if (messageList.contains(string)) {
-            className = "oracle.apps.fnd.framework.webui.beans.message." + string;
+            className = "oracle.apps.fnd.framework.webui.beans.message."
+                    + string;
         } else if (layoutList.contains(string)) {
-            className = "oracle.apps.fnd.framework.webui.beans.layout." + string;
+            className = "oracle.apps.fnd.framework.webui.beans.layout."
+                    + string;
         } else if (listTable.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.table." + string;
         } else if (listTable.contains(string)) {

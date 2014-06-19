@@ -35,7 +35,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.java.util.collections.UnsupportedOperationException;
 
 /**
  * Used for integration test of controller to MDS Objects. Full UNIT type of
@@ -143,27 +142,31 @@ public class MdsFixtureLight {
         }
 
         CUSTOM_BEANS.add(webBeanId);
-        final Map<String, OAWebBean> map = MDS_TO_ID2WB_MMAP.get(mdsPath);
+        final Map<String, OAWebBean> map = MDS_TO_ID2WB_MMAP.get(this.mdsPath);
         map.put(webBeanId, webBean);
-        mockWebBeanBehavior(webBean, webBeanId, mdsPath);
+        mockWebBeanBehavior(webBean, webBeanId, this.mdsPath);
     }
 
     /** @param pMdsPath e.g. "/xxx/oracle/apps/xx/somemodule/webui/SomepagePG". */
     public MdsFixtureLight(final String pMdsPath) {
-        mdsPath = pMdsPath;
+        this.mdsPath = pMdsPath;
         synchronized (lock) {
             if (!initialized) {
-                MDS_TO_ID2EL_MMAP.put(mdsPath, new HashMap<String, Element>());
-                MDS_TO_ID2WB_MMAP.put(pMdsPath,
-                        new HashMap<String, OAWebBean>());
+                MDS_TO_ID2EL_MMAP.put(
+                    this.mdsPath,
+                    new HashMap<String, Element>());
+                MDS_TO_ID2WB_MMAP.put(
+                    pMdsPath,
+                    new HashMap<String, OAWebBean>());
                 MDS2_ID2SHOW_MMAP.put(pMdsPath, new HashMap<String, Boolean>());
                 MDS2_ID2EDIT_MMAP.put(pMdsPath, new HashMap<String, Boolean>());
                 MDS2_ID2REQR_MMAP.put(pMdsPath, new HashMap<String, Boolean>());
                 MDS2_ID2PID_MMAP.put(pMdsPath, new HashMap<String, String>());
-                MDS2_ID2CHILDREN_MMAP.put(pMdsPath,
-                        new HashMap<String, List<String>>());
+                MDS2_ID2CHILDREN_MMAP.put(
+                    pMdsPath,
+                    new HashMap<String, List<String>>());
                 MDS2_FIXLIST_MAP
-                        .put(pMdsPath, new ArrayList<MdsFixtureLight>());
+                    .put(pMdsPath, new ArrayList<MdsFixtureLight>());
                 processMds(pMdsPath, null); //NOPMD: method in question is already final, why still flagged?
                 processDuplicates();
                 initialized = true;
@@ -180,7 +183,7 @@ public class MdsFixtureLight {
      */
     private MdsFixtureLight(final String pMdsPath, final String containerId,
             final MdsFixtureLight parent) {
-        mdsPath = pMdsPath;
+        this.mdsPath = pMdsPath;
         MDS_TO_ID2EL_MMAP.put(pMdsPath, new HashMap<String, Element>());
         MDS_TO_ID2WB_MMAP.put(pMdsPath, new HashMap<String, OAWebBean>());
         MDS2_ID2SHOW_MMAP.put(pMdsPath, new HashMap<String, Boolean>());
@@ -188,10 +191,10 @@ public class MdsFixtureLight {
         MDS2_ID2REQR_MMAP.put(pMdsPath, new HashMap<String, Boolean>());
         MDS2_ID2PID_MMAP.put(pMdsPath, new HashMap<String, String>());
         MDS2_ID2CHILDREN_MMAP
-                .put(pMdsPath, new HashMap<String, List<String>>());
+            .put(pMdsPath, new HashMap<String, List<String>>());
         MDS2_FIXLIST_MAP.put(pMdsPath, new ArrayList<MdsFixtureLight>());
 
-        parentMdsFixture = parent;
+        this.parentMdsFixture = parent;
         processMds(pMdsPath, containerId);
     }
 
@@ -222,15 +225,16 @@ public class MdsFixtureLight {
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             final String currentPath = new File(".").getAbsolutePath();
-            final String projectPath = currentPath.substring(0,
-                    currentPath.length() - 2)
+            final String projectPath = currentPath.substring(
+                0,
+                currentPath.length() - 2)
                     + "\\build";
             final String mdsFilename = projectPath + pMdsPath + ".xml";
             final Document document = docBuilder.parse(new File(mdsFilename));
             final Element root = document.getDocumentElement();
 
             if (containerId != null) {
-                containerIdSet = false;
+                this.containerIdSet = false;
             }
             processNode(root, 0, containerId);
         } catch (final Exception exception) {
@@ -273,7 +277,7 @@ public class MdsFixtureLight {
             if (!children.isEmpty() && pNode instanceof Element
                     && containerId != null) {
                 final Map<String, List<String>> wbChildrenMap = MDS2_ID2CHILDREN_MMAP
-                        .get(getWebBeanMdsPath(parentMdsFixture, containerId));
+                    .get(getWebBeanMdsPath(this.parentMdsFixture, containerId));
                 wbChildrenMap.put(containerId, children);
             }
         }
@@ -297,24 +301,25 @@ public class MdsFixtureLight {
             final String childElemId = elem.getAttribute("id");
 
             if (containerId != null) {
-                if (!containerIdSet) {
-                    if (MDS2_ID2PID_MMAP.get(mdsPath) == null
-                            && mdsPath != null) {
-                        MDS2_ID2PID_MMAP.put(mdsPath,
-                                new HashMap<String, String>());
+                if (!this.containerIdSet) {
+                    if (MDS2_ID2PID_MMAP.get(this.mdsPath) == null
+                            && this.mdsPath != null) {
+                        MDS2_ID2PID_MMAP.put(
+                            this.mdsPath,
+                            new HashMap<String, String>());
                     }
                     final Map<String, String> webBeanParentMap = MDS2_ID2PID_MMAP
-                            .get(mdsPath);
+                        .get(this.mdsPath);
 
                     webBeanParentMap.put(childElemId, containerId);
-                    containerIdSet = true;
+                    this.containerIdSet = true;
                 }
                 CONTAINER_ID_MAP.put(childElemId, containerId);
             }
             children.add(childElemId);
             processOAElement(elem, nodeName, level);
         }
-        if (containerIdSet) {
+        if (this.containerIdSet) {
             processNode(childNode, level + 2, null);
         } else {
             processNode(childNode, level + 2, containerId);
@@ -328,17 +333,19 @@ public class MdsFixtureLight {
      */
     private void registerChild(final String parent, final String child)
     {
-        if (mdsPath != null && MDS2_ID2CHILDREN_MMAP.get(mdsPath) == null) {
-            MDS2_ID2CHILDREN_MMAP.put(mdsPath,
-                    new HashMap<String, List<String>>());
+        if (this.mdsPath != null
+                && MDS2_ID2CHILDREN_MMAP.get(this.mdsPath) == null) {
+            MDS2_ID2CHILDREN_MMAP.put(
+                this.mdsPath,
+                new HashMap<String, List<String>>());
         }
 
         Map<String, List<String>> webBeanChildrenMap;
         if (MdsFixtureLight.WBID_TO_EXTMDS_MAP.get(parent) == null) {
-            webBeanChildrenMap = MDS2_ID2CHILDREN_MMAP.get(mdsPath);
+            webBeanChildrenMap = MDS2_ID2CHILDREN_MMAP.get(this.mdsPath);
         } else {
             webBeanChildrenMap = MDS2_ID2CHILDREN_MMAP
-                    .get(MdsFixtureLight.WBID_TO_EXTMDS_MAP.get(parent));
+                .get(MdsFixtureLight.WBID_TO_EXTMDS_MAP.get(parent));
         }
 
         if (webBeanChildrenMap.get(parent) == null) {
@@ -359,17 +366,18 @@ public class MdsFixtureLight {
         //getLogger().debug("*** " + nodeName + " -> " + elem.getParentNode().getParentNode().getNodeName());
 
         final String webBeanId = elem.getAttribute("id");
-        final String parentWebBeanId = ((Element) elem.getParentNode()
-                .getParentNode()).getAttribute("id");
+        final String parentWebBeanId = ((Element) elem
+            .getParentNode()
+            .getParentNode()).getAttribute("id");
 
         //getLogger().debug(webBeanId + " -> " + parentWebBeanId);
         if (!"".equals(parentWebBeanId)) {
             final Map<String, String> webBeanParentMap = MDS2_ID2PID_MMAP
-                    .get(mdsPath);
+                .get(this.mdsPath);
             webBeanParentMap.put(webBeanId, parentWebBeanId);
             registerChild(parentWebBeanId, webBeanId);
         } else {
-            final String mdsParentId = MDS_TO_PARENTID_MAP.get(mdsPath);
+            final String mdsParentId = MDS_TO_PARENTID_MAP.get(this.mdsPath);
             if (mdsParentId != null) {
                 registerChild(mdsParentId, webBeanId);
             }
@@ -384,9 +392,11 @@ public class MdsFixtureLight {
             DUPED_WB_IDS.put(webBeanId, new ArrayList<String>());
         }
         final List<String> mdsList = MdsFixtureLight.DUPED_WB_IDS
-                .get(webBeanId);
+            .get(webBeanId);
         mdsList.add(mdsName);
-        MdsFixtureLight.MDS_TO_ID2EL_MMAP.get(mdsPath).put(webBeanId, elem);
+        MdsFixtureLight.MDS_TO_ID2EL_MMAP
+            .get(this.mdsPath)
+            .put(webBeanId, elem);
         final StringBuilder output = new StringBuilder();
         // getLogger().debug(space(level) + nodeName + " - " + webBeanId);
         output.append(space(level) + nodeName + " - " + webBeanId);
@@ -396,16 +406,18 @@ public class MdsFixtureLight {
         final String attrExtends = elem.getAttribute("extends");
         if (attrExtends != null && !"".equals(attrExtends)) {
             if (getPackage(attrExtends) != null
-                    && getPackage(attrExtends).equals(getPackage(mdsPath))) {
+                    && getPackage(attrExtends).equals(getPackage(this.mdsPath))) {
                 output.append(" - " + attrExtends + "\n");
                 final String extElementId = elem.getAttribute("id");
                 final List<MdsFixtureLight> children = MDS2_FIXLIST_MAP
-                        .get(mdsPath);
+                    .get(this.mdsPath);
                 WBID_TO_EXTMDS_MAP.put(extElementId, attrExtends);
                 MDS_TO_PARENTID_MAP.put(attrExtends, extElementId);
                 //webBeanIdWithExtChild.add(extElementId);
-                children.add(new MdsFixtureLight(attrExtends, extElementId,
-                        this));
+                children.add(new MdsFixtureLight(
+                    attrExtends,
+                    extElementId,
+                    this));
                 //processMds(attrExtends, extElementId);
             } else {
                 output.append(" - external");
@@ -471,7 +483,7 @@ public class MdsFixtureLight {
         } else {
             if (findElementInMds(this, webBeanId) == null) {
                 Assert.fail("WebBeanId [" + webBeanId + "]  was not found in "
-                        + mdsPath);
+                        + this.mdsPath);
             } else {
                 final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
                 if (webBeanMdsPath == null) {
@@ -496,17 +508,19 @@ public class MdsFixtureLight {
                 }
 
                 final Map<String, OAWebBean> webBeanMap = MDS_TO_ID2WB_MMAP
-                        .get(webBeanMdsPath);
+                    .get(webBeanMdsPath);
                 if (webBeanMap.get(webBeanId) == null) {
                     final String elemName = MdsFixtureLight.MDS_TO_ID2EL_MMAP
-                            .get(webBeanMdsPath).get(webBeanId).getNodeName();
+                        .get(webBeanMdsPath)
+                        .get(webBeanId)
+                        .getNodeName();
                     final String oaWebBeanType = buildOaWebBeanType(elemName);
                     final Class<? extends OAWebBean> oaClass = OABeanUtil
-                            .getOABeanClass(oaWebBeanType);
+                        .getOABeanClass(oaWebBeanType);
 
                     if (READONLY_TYPES.contains(oaClass)) {
                         final Map<String, Boolean> webBeanLockState = MDS2_ID2EDIT_MMAP
-                                .get(webBeanMdsPath);
+                            .get(webBeanMdsPath);
                         webBeanLockState.put(webBeanId, true);
                         PERMA_LOCK_IDS.add(webBeanId);
                     }
@@ -537,13 +551,13 @@ public class MdsFixtureLight {
             final String webBeanId)
     {
         final Map<String, Element> elMap = MdsFixtureLight.MDS_TO_ID2EL_MMAP
-                .get(mdsFixture.mdsPath);
+            .get(mdsFixture.mdsPath);
 
         String retval = null;
         Element element = elMap.get(webBeanId);
         if (element == null) {
             final List<MdsFixtureLight> children = MDS2_FIXLIST_MAP
-                    .get(mdsPath);
+                .get(this.mdsPath);
             childloop: for (final MdsFixtureLight nextFixture : children) {
                 element = findElementInMds(nextFixture, webBeanId);
                 if (element != null) {
@@ -568,11 +582,11 @@ public class MdsFixtureLight {
             final String webBeanId)
     {
         final Map<String, Element> elMap = MdsFixtureLight.MDS_TO_ID2EL_MMAP
-                .get(mdsFixture.mdsPath);
+            .get(mdsFixture.mdsPath);
         Element retval = elMap.get(webBeanId);
         if (retval == null) {
             final List<MdsFixtureLight> children = MDS2_FIXLIST_MAP
-                    .get(mdsFixture.mdsPath);
+                .get(mdsFixture.mdsPath);
             for (final MdsFixtureLight nextFixture : children) {
                 retval = findElementInMds(nextFixture, webBeanId);
                 if (retval != null) {
@@ -616,7 +630,7 @@ public class MdsFixtureLight {
 
             Answer<Object> setMdsPath(final String pMdsPath)
             {
-                mdsPath = pMdsPath;
+                this.mdsPath = pMdsPath;
                 return this;
             }
 
@@ -629,17 +643,18 @@ public class MdsFixtureLight {
                 Map<String, Boolean> webBeanRenderState;
                 if (CUSTOM_BEANS.contains(webBeanId)) {
                     webBeanRenderState = MdsFixtureLight.MDS2_ID2SHOW_MMAP
-                            .get(MdsFixtureLight.this.mdsPath);
+                        .get(MdsFixtureLight.this.mdsPath);
                 } else {
                     webBeanRenderState = MdsFixtureLight.MDS2_ID2SHOW_MMAP
-                            .get(mdsPath);
+                        .get(this.mdsPath);
                 }
                 webBeanRenderState.put(webBean.getID(), doRender);
                 return null;
             }
 
-        }.setMdsPath(webBeanMdsPath)).when(mockBean)
-                .setRendered(Matchers.anyBoolean());
+        }.setMdsPath(webBeanMdsPath))
+            .when(mockBean)
+            .setRendered(Matchers.anyBoolean());
 
         Mockito.when(mockBean.isRendered()).thenAnswer(new Answer<Boolean>() {
 
@@ -666,13 +681,13 @@ public class MdsFixtureLight {
         } else {
             if (DUPED_WB_IDS.containsKey(webBeanId)) {
                 throw new UnsupportedOperationException(
-                        "Duplicate ID detected for: " + webBeanId);
+                    "Duplicate ID detected for: " + webBeanId);
             }
             retval = getRenderedState(webBeanId);
             final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
 
             final Map<String, String> webBeanParentMap = MDS2_ID2PID_MMAP
-                    .get(webBeanMdsPath);
+                .get(webBeanMdsPath);
             String curreWebBeanId = webBeanParentMap.get(webBeanId);
 
             if (curreWebBeanId == null
@@ -699,7 +714,7 @@ public class MdsFixtureLight {
         final Map<String, Boolean> webBeanRenderState;
 
         if (CUSTOM_BEANS.contains(webBeanId)) {
-            webBeanRenderState = MDS2_ID2SHOW_MMAP.get(mdsPath);
+            webBeanRenderState = MDS2_ID2SHOW_MMAP.get(this.mdsPath);
             if (webBeanRenderState.get(webBeanId) == null) {
                 webBeanRenderState.put(webBeanId, true);
             }
@@ -708,7 +723,7 @@ public class MdsFixtureLight {
             webBeanRenderState = MDS2_ID2SHOW_MMAP.get(webBeanMdsPath);
             if (webBeanRenderState.get(webBeanId) == null) {
                 final Element elem = MdsFixtureLight.MDS_TO_ID2EL_MMAP.get(
-                        webBeanMdsPath).get(webBeanId);
+                    webBeanMdsPath).get(webBeanId);
                 final String attrRendered = elem.getAttribute("rendered");
                 if (attrRendered == null || "".equals(attrRendered)
                         || "true".equalsIgnoreCase(attrRendered)) {
@@ -726,7 +741,7 @@ public class MdsFixtureLight {
                     }
                 } else {
                     getLogger().warn(
-                            "Default Render false for [" + webBeanId + "]");
+                        "Default Render false for [" + webBeanId + "]");
                     webBeanRenderState.put(webBeanId, false);
                 }
             }
@@ -743,9 +758,10 @@ public class MdsFixtureLight {
     boolean processSpel(final String spelExpression)
     {
         final OAApplicationModuleImpl appModule = MdsFixtureLight.amFixture
-                .getMockAppModule();
-        final String inside = spelExpression.substring(2,
-                spelExpression.length() - 1);
+            .getMockAppModule();
+        final String inside = spelExpression.substring(
+            2,
+            spelExpression.length() - 1);
         final String[] spelArr = inside.split("\\.");
         final String voInst = spelArr[1];
 
@@ -776,14 +792,14 @@ public class MdsFixtureLight {
     {
         final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
         final Map<String, Boolean> webBeanLockState = MDS2_ID2EDIT_MMAP
-                .get(webBeanMdsPath == null ? mdsPath : webBeanMdsPath);
+            .get(webBeanMdsPath == null ? this.mdsPath : webBeanMdsPath);
         final Boolean lockState = webBeanLockState.get(webBeanId);
         if (PERMA_LOCK_IDS.contains(webBeanId)) {
             return true;
         } else {
             if (lockState == null) {
                 final Map<String, Element> wbId2ElMap = MDS_TO_ID2EL_MMAP
-                        .get(webBeanMdsPath);
+                    .get(webBeanMdsPath);
                 final Element elem = wbId2ElMap.get(webBeanId);
                 final String attrReadOnly = elem.getAttribute("readOnly");
                 return Boolean.valueOf(attrReadOnly);
@@ -801,7 +817,7 @@ public class MdsFixtureLight {
     {
         final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
         final Map<String, Boolean> wbRequiredState = MDS2_ID2REQR_MMAP
-                .get(webBeanMdsPath == null ? mdsPath : webBeanMdsPath);
+            .get(webBeanMdsPath == null ? this.mdsPath : webBeanMdsPath);
         final Boolean requiredState = wbRequiredState.get(webBeanId);
         if (requiredState == null) {
             return false;
@@ -821,7 +837,7 @@ public class MdsFixtureLight {
     {
         final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
         final Map<String, Boolean> webBeanLockState = MDS2_ID2EDIT_MMAP
-                .get(webBeanMdsPath);
+            .get(webBeanMdsPath);
         webBeanLockState.put(webBeanId, value);
     }
 
@@ -835,7 +851,7 @@ public class MdsFixtureLight {
     {
         final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
         final Map<String, Boolean> webBeanRequiredState = MDS2_ID2REQR_MMAP
-                .get(webBeanMdsPath);
+            .get(webBeanMdsPath);
         webBeanRequiredState.put(webBeanId, flag);
     }
 
@@ -850,18 +866,19 @@ public class MdsFixtureLight {
     {
         if (webBeanId == null) {
             MDS2_ID2EDIT_MMAP.get(getWebBeanMdsPath(this, origWebBeanId)).put(
-                    origWebBeanId, value);
+                origWebBeanId,
+                value);
         } else {
             final String extMdsPath = WBID_TO_EXTMDS_MAP.get(origWebBeanId);
             MDS2_ID2EDIT_MMAP.get(
-                    extMdsPath == null ? getWebBeanMdsPath(this, webBeanId)
-                            : extMdsPath).put(webBeanId, value);
+                extMdsPath == null ? getWebBeanMdsPath(this, webBeanId)
+                        : extMdsPath).put(webBeanId, value);
         }
 
         if (webBeanId == null) {
             final String webBeanMdsPath = getWebBeanMdsPath(this, origWebBeanId);
             final Map<String, List<String>> webBeanChildrenMap = MDS2_ID2CHILDREN_MMAP
-                    .get(webBeanMdsPath);
+                .get(webBeanMdsPath);
             if (webBeanChildrenMap.get(origWebBeanId) != null) {
                 for (final String child : webBeanChildrenMap.get(origWebBeanId)) {
                     setLockedStateRecurse(origWebBeanId, child, value);
@@ -870,8 +887,8 @@ public class MdsFixtureLight {
         } else {
             final String extMdsPath = WBID_TO_EXTMDS_MAP.get(origWebBeanId);
             final Map<String, List<String>> webBeanChildrenMap = MDS2_ID2CHILDREN_MMAP
-                    .get(extMdsPath == null ? getWebBeanMdsPath(this, webBeanId)
-                            : extMdsPath);
+                .get(extMdsPath == null ? getWebBeanMdsPath(this, webBeanId)
+                        : extMdsPath);
             final List<String> children = webBeanChildrenMap.get(webBeanId);
             if (children != null) {
                 for (final String child : children) {
@@ -910,7 +927,7 @@ public class MdsFixtureLight {
     @Override
     public String toString()
     {
-        return getClass().getSimpleName() + " : " + mdsPath;
+        return getClass().getSimpleName() + " : " + this.mdsPath;
     }
 
     /** @return CustomAmFixture if present. */
