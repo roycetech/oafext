@@ -36,8 +36,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.java.util.collections.UnsupportedOperationException;
-
 /**
  * Used for integration test of controller to MDS Objects. Full UNIT type of
  * test very hard to do since it will make a significant reduction in the
