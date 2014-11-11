@@ -12,18 +12,18 @@ public class OABeanUtil {
     {
         String className = string;
 
-        if (list1.contains(string)) {
+        if (LIST_BEANS.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans." + string;
-        } else if (messageList.contains(string)) {
+        } else if (LIST_MSG.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.message."
                     + string;
-        } else if (layoutList.contains(string)) {
+        } else if (LIST_LAYOUT.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.layout."
                     + string;
-        } else if (listTable.contains(string)) {
+        } else if (LIST_TAB.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.table." + string;
-        } else if (listTable.contains(string)) {
-            className = "oracle.apps.fnd.framework.webui.beans.table." + string;
+        } else if (LIST_FORM.contains(string)) {
+            className = "oracle.apps.fnd.framework.webui.beans.form." + string;
         } else if (LIST_NAV.contains(string)) {
             className = "oracle.apps.fnd.framework.webui.beans.nav." + string;
 
@@ -72,7 +72,7 @@ public class OABeanUtil {
             "OATreeLevelBean",
             "OATreeRecursiveBean" });
 
-    static final List<String> listTable = Arrays.asList(new String[] {
+    static final List<String> LIST_TAB = Arrays.asList(new String[] {
             "OAAddTableRowBean",
             "OAAdvancedTableBean",
             "OAColumnBean",
@@ -87,7 +87,33 @@ public class OABeanUtil {
             "OATableUtils",
             "OATotalRowBean" });
 
-    static final List<String> list1 = Arrays.asList(new String[] {
+    static final List<String> LIST_FORM = Arrays.asList(new String[] {
+            "OACheckBoxBean",
+            "OAChoiceBean",
+            "OADateFieldBean",
+            "OADefaultListBean",
+            "OADefaultShuttleBean",
+            "OAExportBean",
+            "OAFileUploadBean",
+            "OAFormBean",
+            "OAFormParameterBean",
+            "OAFormValueBean",
+            "OAInlineDatePickerBean",
+            "OAInternalFileUploadBean",
+            "OAListBean",
+            "OALovTextInputBean",
+            "OAOptionBean",
+            "OARadioButtonBean",
+            "OARadioGroupBean",
+            "OAResetButtonBean",
+            "OASelectionButtonBean",
+            "OAShuttleBean",
+            "OASubmitButtonBean",
+            "OATextInputBean",
+            "RichTextEditorBean" });
+
+
+    static final List<String> LIST_BEANS = Arrays.asList(new String[] {
             "OAAttachmentImageBean",
             "OABodyBean",
             "OADataScopeBean",
@@ -145,7 +171,7 @@ public class OABeanUtil {
             "OAWebBeanTable",
             "OAWebBeanTextInput" });
 
-    static final List<String> messageList = Arrays.asList(new String[] {
+    static final List<String> LIST_MSG = Arrays.asList(new String[] {
             "OAInlineMessageBean",
             "OAMessageAttachmentLinkBean",
             "OAMessageBoxBean",
@@ -174,7 +200,7 @@ public class OABeanUtil {
             "RichTextEditorBeanConstants",
             "RichTextEditorValidator" });
 
-    static final List<String> layoutList = Arrays.asList(new String[] {
+    static final List<String> LIST_LAYOUT = Arrays.asList(new String[] {
             "OAAdvancedSearchBean",
             "OAAttachmentTableBean",
             "OABorderLayoutBean",
