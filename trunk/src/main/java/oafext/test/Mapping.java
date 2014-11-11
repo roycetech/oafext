@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.mock;
+package oafext.test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,45 +31,21 @@ import org.w3c.dom.Element;
  * @version $Date$
  * </pre>
  */
-
 class BeanElementMap extends HashMap<String, Element> {}
-
-class MdsElementMap extends HashMap<String, BeanElementMap> {}
-
 
 class BeanMockMap extends HashMap<String, OAWebBean> {}
 
-class MdsBeanMap extends HashMap<String, BeanMockMap> {}
-
-
 class BeanLockMap extends HashMap<String, Boolean> {}
-
-class MdsLockMap extends HashMap<String, BeanLockMap> {}
-
 
 class BeanShowMap extends HashMap<String, Boolean> {}
 
-class MdsShowMap extends HashMap<String, BeanShowMap> {}
-
-
 class BeanRequiredMap extends HashMap<String, Boolean> {}
-
-class MdsRequiredMap extends HashMap<String, BeanRequiredMap> {}
-
 
 class BeanParentMap extends HashMap<String, String> {}
 
-class MdsParentMap extends HashMap<String, BeanParentMap> {}
-
-
 class BeanChildrenMap extends HashMap<String, List<String>> {}
 
-class MdsChildrenMap extends HashMap<String, BeanChildrenMap> {}
-
-
-class ActionMockList extends ArrayList<ActionWebBeanMocker> {}
-
-class MdsActionMockMap extends HashMap<String, ActionMockList> {}
+class MdsFixtureList extends ArrayList<MdsFixture2> {}
 
 
 /** Map of Bean ID to List of MDS Path that contained the same ID. */
@@ -78,6 +54,9 @@ class DupedBeanMap extends HashMap<String, List<String>> {}
 
 /** External MDS path to parent WebBeanID Map. */
 class ExtMdsParentIdMap extends HashMap<String, String> {};
+
+/** External MDS path to MdsFixture2 Map. */
+class MdsToFixtureMap extends HashMap<String, MdsFixture2> {};
 
 /** WebBeanID to external MDS path Map. */
 class BeanExtMdsMap extends HashMap<String, String> {};
