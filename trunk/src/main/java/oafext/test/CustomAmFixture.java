@@ -173,7 +173,7 @@ public class CustomAmFixture {
      * @param pValue Value of the attribute.
      */
     public void initVORowAtIndex(final ViewObject viewObject, final int index,
-            final int pAttr, final Object pValue)
+                                 final int pAttr, final Object pValue)
     {
         initVORowAtIndex(
             viewObject,
@@ -192,7 +192,7 @@ public class CustomAmFixture {
      * @param pValues array of values to set.
      */
     public void initVORowAtIndex(final ViewObject viewObject, final int index,
-            final int[] pAttrs, final Object[] pValues)
+                                 final int[] pAttrs, final Object[] pValues)
     {
         final String voInstance = viewObject.getName();
 
@@ -258,8 +258,10 @@ public class CustomAmFixture {
      * @param nextValObject
      */
     void mockGetAttribute(final String voInstance, final Row mockRow,
-            final Map<Integer, Object> clonedRow, final List<String> rowAttrs,
-            final List<String> targetAttrs, final List<Object> nextValObject)
+                          final Map<Integer, Object> clonedRow,
+                          final List<String> rowAttrs,
+                          final List<String> targetAttrs,
+                          final List<Object> nextValObject)
     {
         int counter = 0;
         for (final String nextAttr : rowAttrs) {
@@ -280,6 +282,7 @@ public class CustomAmFixture {
                     new Answer<Object>() {
 
 
+                        @Override
                         public Object answer(final InvocationOnMock invocation)
                                 throws Throwable
                         {
@@ -322,7 +325,7 @@ public class CustomAmFixture {
      *            rows to initialize/insert when necessary.
      */
     public void initVORow(final String voInstance, final String[] pAttrs,
-            final List<Object[]> pValues)
+                          final List<Object[]> pValues)
     {
 
         final ViewObject viewObject = CustomAmFixture.VOI_MOCKVO_MAP
@@ -395,7 +398,7 @@ public class CustomAmFixture {
      * @param voInstance view object instance.
      */
     public void mockVoInstance(final OAApplicationModuleImpl appModule,
-            final String voInstance)
+                               final String voInstance)
     {
         final Class<? extends ViewObject> voType = VOI_VOCLS_MAP
             .get(voInstance);
@@ -410,8 +413,9 @@ public class CustomAmFixture {
 
             Mockito.doAnswer(new Answer<Class<? extends Row>>() {
 
-                public Class<? extends Row> answer(
-                        final InvocationOnMock invocation) throws Throwable
+                @Override
+                public Class<? extends Row> answer(final InvocationOnMock invocation)
+                        throws Throwable
                 {
                     return CustomAmFixture.VOI_ROWCLS_MAP.get(voInstance);
                 }
@@ -423,6 +427,7 @@ public class CustomAmFixture {
             Mockito.doAnswer(new Answer<Object>() {
 
 
+                @Override
                 public Object answer(final InvocationOnMock invocation)
                         throws Throwable
                 {
@@ -438,6 +443,7 @@ public class CustomAmFixture {
             Mockito.doAnswer(new Answer<Row>() {
 
 
+                @Override
                 public Row answer(final InvocationOnMock invocation)
                         throws Throwable
                 {
@@ -459,6 +465,7 @@ public class CustomAmFixture {
                 .thenAnswer(new Answer<ViewObject>() {
 
 
+                    @Override
                     public ViewObject answer(final InvocationOnMock invocation)
                             throws Throwable
                     {
@@ -473,10 +480,13 @@ public class CustomAmFixture {
                 .thenAnswer(new Answer<RowSetIterator>() {
 
 
-                    public RowSetIterator answer(
-                            final InvocationOnMock invocation) throws Throwable
+                    @Override
+                    public RowSetIterator answer(final InvocationOnMock invocation)
+                            throws Throwable
                     {
-                        CustomAmFixture.VOI_ITERIDX_MAP.put(voInstance, 0);
+                        CustomAmFixture.VOI_ITERIDX_MAP.put(
+                            (String) invocation.getArguments()[0],
+                            0);
 
                         final RowSetIterator mockIter = Mockito
                             .mock(RowSetIterator.class);
@@ -487,8 +497,8 @@ public class CustomAmFixture {
                             .thenAnswer(new Answer<Row>() {
 
 
-                                public Row answer(
-                                        final InvocationOnMock invocation)
+                                @Override
+                                public Row answer(final InvocationOnMock invocation)
                                         throws Throwable
                                 {
                                     final int index = (Integer) invocation
@@ -506,8 +516,7 @@ public class CustomAmFixture {
                         Mockito.doAnswer(new Answer<Boolean>() {
 
                             @Override
-                            public Boolean answer(
-                                    final InvocationOnMock invocation)
+                            public Boolean answer(final InvocationOnMock invocation)
                                     throws Throwable
                             {
                                 final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
@@ -547,8 +556,7 @@ public class CustomAmFixture {
                         Mockito.doAnswer(new Answer<Object>() {
 
                             @Override
-                            public Object answer(
-                                    final InvocationOnMock invocation)
+                            public Object answer(final InvocationOnMock invocation)
                                     throws Throwable
                             {
                                 CustomAmFixture.VOI_ITERIDX_MAP.put(
@@ -569,6 +577,7 @@ public class CustomAmFixture {
             Mockito.when(mockVo.first()).thenAnswer(new Answer<Row>() {
 
 
+                @Override
                 public Row answer(final InvocationOnMock invocation)
                         throws Throwable
                 {
@@ -594,6 +603,7 @@ public class CustomAmFixture {
                 .thenAnswer(new Answer<Row>() {
 
 
+                    @Override
                     public Row answer(final InvocationOnMock invocation)
                             throws Throwable
                     {
@@ -611,6 +621,7 @@ public class CustomAmFixture {
             final Answer<Row[]> ansRetAllRow = new Answer<Row[]>() {
 
 
+                @Override
                 public Row[] answer(final InvocationOnMock invocation)
                         throws Throwable
                 {
@@ -640,6 +651,7 @@ public class CustomAmFixture {
             Mockito.when(mockVo.getRowCount()).then(new Answer<Integer>() {
 
 
+                @Override
                 public Integer answer(final InvocationOnMock invocation)
                         throws Throwable
                 {
@@ -661,6 +673,7 @@ public class CustomAmFixture {
             Mockito.doAnswer(new Answer<Row[]>() {
 
 
+                @Override
                 public Row[] answer(final InvocationOnMock invocation)
                         throws Throwable
                 {
@@ -705,6 +718,7 @@ public class CustomAmFixture {
                 new Answer<AttributeDef>() {
 
 
+                    @Override
                     public AttributeDef answer(final InvocationOnMock invocation)
                             throws Throwable
                     {
@@ -728,6 +742,7 @@ public class CustomAmFixture {
                 new Answer<Integer>() {
 
 
+                    @Override
                     public Integer answer(final InvocationOnMock invocation)
                             throws Throwable
                     {
@@ -744,6 +759,7 @@ public class CustomAmFixture {
                 .thenAnswer(new Answer<Integer>() {
 
 
+                    @Override
                     public Integer answer(final InvocationOnMock invocation)
                             throws Throwable
                     {
@@ -767,7 +783,7 @@ public class CustomAmFixture {
      */
     @SuppressWarnings("unchecked")
     private final void processAppModule(final String pAppModuleDef,
-            final String parentInstName)
+                                        final String parentInstName)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         final String path = "/" + pAppModuleDef.replaceAll("\\.", "/") + ".xml";
@@ -899,8 +915,10 @@ public class CustomAmFixture {
         docBuilder.setEntityResolver(new EntityResolver() {
 
 
+            @Override
             public InputSource resolveEntity(final String publicId,
-                    final String systemId) throws SAXException, IOException
+                                             final String systemId)
+                    throws SAXException, IOException
             {
                 InputSource retval = null; //NOPMD: null default, conditionally redefine.
                 if (systemId.contains("jbo_03_01.dtd")) {
