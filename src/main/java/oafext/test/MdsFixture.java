@@ -16,6 +16,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import oafext.logging.OafLogger;
+import oafext.test.webui.OABeanUtil;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 import oracle.apps.fnd.framework.webui.beans.form.OASubmitButtonBean;

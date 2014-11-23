@@ -1,4 +1,4 @@
-package oafext.test;
+package oafext.test.webui;
 
 import java.util.Arrays;
 import java.util.List;

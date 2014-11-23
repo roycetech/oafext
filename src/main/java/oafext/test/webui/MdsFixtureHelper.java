@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test;
+package oafext.test.webui;
 
 /**
  * 
@@ -23,7 +23,7 @@ package oafext.test;
  * </pre>
  */
 
-public class WbMockerHelper {
+public class MdsFixtureHelper {
 
 
     /** Internal source control version. */
