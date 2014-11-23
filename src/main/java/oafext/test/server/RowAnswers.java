@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.util.MockHelper;
 import oracle.jbo.Key;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
@@ -175,4 +176,64 @@ public final class RowAnswers {
         }).when(mockRow);
     }
 
+    static void mockSetterInt(final Row mockRow, final List<String> attrList,
+            final RowMocker rowMocker)
+    {
+        final MockHelper helper = new MockHelper();
+        for (final String nextAttr : attrList) {
+
+            final String methodName = "set"
+                    + nextAttr.substring(0, 1).toUpperCase()
+                    + nextAttr.substring(1);
+
+            Mockito.when(helper.invokeMethod(mockRow, methodName)).thenAnswer(
+                new Answer<Object>() {
+
+                    @Override
+                    public Object answer(final InvocationOnMock invocation)
+                            throws Throwable
+                    {
+                        final Object value = invocation.getArguments()[0];
+                        rowMocker.getAttrValueMap().put(nextAttr, value);
+                        return null;
+                    }
+                });
+        }
+    }
+
+    static void mockSetterString(final Row mockRow, final List<String> attrList,
+            final RowMocker rowMocker)
+    {
+        final MockHelper helper = new MockHelper();
+
+        final Class[] classParam = new Class[] {};
+
+
+        for (final String nextAttr : attrList) {
+
+            final String setterName = "set"
+                    + nextAttr.substring(0, 1).toUpperCase()
+                    + nextAttr.substring(1);
+
+            final String getterName = "get"
+                    + nextAttr.substring(0, 1).toUpperCase()
+                    + nextAttr.substring(1);
+
+            final Class type = helper.findMethod(klass, methodName)
+
+
+                    Mockito.when(helper.invokeMethod(mockRow, setterName, )).thenAnswer(
+                        new Answer<Object>() {
+
+                            @Override
+                            public Object answer(final InvocationOnMock invocation)
+                                    throws Throwable
+                            {
+                                final Object value = invocation.getArguments()[0];
+                                rowMocker.getAttrValueMap().put(nextAttr, value);
+                                return null;
+                            }
+                        });
+        }
+    }
 }

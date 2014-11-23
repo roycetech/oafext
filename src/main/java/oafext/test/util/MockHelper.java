@@ -12,12 +12,33 @@ import org.slf4j.LoggerFactory;
  */
 public class MockHelper {
 
+
     /** */
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(MockHelper.class);
+        .getLogger(MockHelper.class);
+
 
     /**
-     * Helper method to swallow exception from reflection.
+     * Find a method matching only the name.
+     * 
+     * @param klass class to find method from.
+     * @param methodName method name.
+     */
+    @SuppressWarnings("PMD.OnlyOneReturn")
+    public Method findMethod(final Class klass, final String methodName)
+    {
+
+        for (final Method method : klass.getMethods()) {
+            if (method.getName().equals(methodName)) {
+                return method;
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Helper method to swallow exception from reflection. Zero parameter only.
      *
      * @param mock mock to invoke method from.
      * @param methodName method name.
@@ -28,9 +49,9 @@ public class MockHelper {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {
             retval = mock
-                .getClass()
-                .getMethod(methodName, new Class[0])
-                .invoke(mock, new Object[0]);
+                    .getClass()
+                    .getMethod(methodName, new Class[0])
+                    .invoke(mock, new Object[0]);
         } catch (final IllegalAccessException e) {
             LOGGER.error(e.getMessage() + ':' + methodName, e);
         } catch (final IllegalArgumentException e) {

@@ -43,20 +43,20 @@ public class RowMocker {
 
 
     RowMocker(final ViewObject mockVo, final Class<? extends Row> rowClass,
-        final AppModuleFixture<?> amFixture) {
+            final AppModuleFixture<?> amFixture) {
         this.mockRow = Mockito.mock(rowClass);
 
         this.attrValueMap = new HashMap<String, Object>();
 
 
         final Map<Class<? extends Row>, String> rowClsVoDefMap = amFixture
-            .getRowClsVoDefMap();
+                .getRowClsVoDefMap();
         final String voDef = rowClsVoDefMap.get(rowClass);
         assert voDef != null;
 
         final List<String> attrList = amFixture
-            .getVoDefAttrListMap()
-            .get(voDef);
+                .getVoDefAttrListMap()
+                .get(voDef);
 
 
         /* getViewObj - anti zombie/anti final. */
@@ -65,8 +65,8 @@ public class RowMocker {
 
         /* getAttribute(int) */
         RowAnswers
-            .mockGetAttributeInt(this.mockRow, attrList, this)
-            .getAttribute(Matchers.anyInt());
+        .mockGetAttributeInt(this.mockRow, attrList, this)
+        .getAttribute(Matchers.anyInt());
 
         /* getAttribute(String) */
         RowAnswers.mockGetAttributeString(this.mockRow, this).getAttribute(
@@ -77,13 +77,25 @@ public class RowMocker {
 
         /* setAttribute(int) */
         RowAnswers
-            .mockSetAttributeInt(this.mockRow, attrList, this)
-            .setAttribute(Matchers.anyInt(), Matchers.any());
+        .mockSetAttributeInt(this.mockRow, attrList, this)
+        .setAttribute(Matchers.anyInt(), Matchers.any());
 
         /* setAttribute(String) */
         RowAnswers
-            .mockSetAttributeInt(this.mockRow, attrList, this)
-            .setAttribute(Matchers.anyInt(), Matchers.any());
+        .mockSetAttributeInt(this.mockRow, attrList, this)
+        .setAttribute(Matchers.anyInt(), Matchers.any());
+
+        /* set*(int, Object) */
+        RowAnswers.mockSetterInt(this.mockRow, attrList, this);
+
+        /* set*(String, Object) */
+        RowAnswers.mockSetterString(this.mockRow, attrList, this);
+
+        /* get*(int, Object) */
+        RowAnswers.mockGetterInt(this.mockRow, attrList, this);
+
+        /* get*(String, Object) */
+        RowAnswers.mockGetterString(this.mockRow, attrList, this);
 
 
     }
