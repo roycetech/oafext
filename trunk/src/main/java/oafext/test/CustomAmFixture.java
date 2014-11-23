@@ -39,17 +39,18 @@ import org.xml.sax.SAXException;
 
 /**
  * Custom Application Module fixture.
- * 
+ *
  * Use if you use SPEL in page.
- * 
+ *
  * Will mock all method of AM to return an instance assignable to ViewObject.
  * This is to handle varying/non-conforming VO instance name.
- * 
+ *
  * NOTE: This is designed to be Class variable (static) because this is HEAVY.
- * 
+ *
  * @author royce.com
  */
 public class CustomAmFixture {
+
 
     /** Platform independent path separator. */
     static final String FILE_SEP = File.separator;
@@ -110,7 +111,7 @@ public class CustomAmFixture {
     private transient OAApplicationModuleImpl mockAppModule;
 
     static {
-        // Eclipse compatibility mode. 
+        // Eclipse compatibility mode.
         OafLogger.getInstance().setDeployedMode(true);
         OafLogger.getInstance().setDefaultLevel(OafLogger.Level.OFF);
     }
@@ -127,7 +128,7 @@ public class CustomAmFixture {
                 initialized.put(pAppModuleDef, Boolean.TRUE);
             }
             final Class<? extends OAApplicationModuleImpl> appModuleClass = AMDEF_CLS_MAP
-                .get(pAppModuleDef);
+                    .get(pAppModuleDef);
             this.mockAppModule = Mockito.mock(appModuleClass);
         }
 
@@ -139,7 +140,7 @@ public class CustomAmFixture {
     @Before
     public void setUp()
     {
-        //NOPMD: see javadoc, !        
+        //NOPMD: see javadoc, !
     }
 
     /** JUnit clean up code. */
@@ -162,9 +163,9 @@ public class CustomAmFixture {
     }
 
     /**
-     * 
-     * 
-     * 
+     *
+     *
+     *
      * @param viewObject mock view object coming from mock application module.
      * @param index row index to modify. This can be a non existent index as
      *            long as it is number of rows + 1.
@@ -173,7 +174,7 @@ public class CustomAmFixture {
      * @param pValue Value of the attribute.
      */
     public void initVORowAtIndex(final ViewObject viewObject, final int index,
-                                 final int pAttr, final Object pValue)
+            final int pAttr, final Object pValue)
     {
         initVORowAtIndex(
             viewObject,
@@ -185,14 +186,14 @@ public class CustomAmFixture {
     /**
      * TODO: Missing Row impl, will use
      * {@link #initVORow(String, String[], List)} for the meantime in fixture.
-     * 
+     *
      * @param viewObject mock view object coming from mock application module.
      * @param index row index to modify.
      * @param pAttrs array of attribute indexes.
      * @param pValues array of values to set.
      */
     public void initVORowAtIndex(final ViewObject viewObject, final int index,
-                                 final int[] pAttrs, final Object[] pValues)
+            final int[] pAttrs, final Object[] pValues)
     {
         final String voInstance = viewObject.getName();
 
@@ -206,13 +207,13 @@ public class CustomAmFixture {
         }
 
         final List<Map<Integer, Object>> clonedRows = CustomAmFixture.VOI_RCLN_MAP
-            .get(voInstance);
+                .get(voInstance);
         final List<Row> rowsMock = CustomAmFixture.VOI_MROWLST_MAP
-            .get(voInstance);
+                .get(voInstance);
         if (clonedRows.size() == index) {
             clonedRows.add(new LinkedHashMap<Integer, Object>());
             final Class<? extends Row> voRowType = VOI_ROWCLS_MAP
-                .get(voInstance);
+                    .get(voInstance);
             final Row mockRow = Mockito.mock(voRowType);
             rowsMock.add(mockRow);
             MROW_VOI_MAP.put(mockRow, voInstance);
@@ -223,7 +224,7 @@ public class CustomAmFixture {
 
         final String voTypeName = CustomAmFixture.VOI_TYPE_MAP.get(voInstance);
         final List<String> rowAttrs = CustomAmFixture.VOT_ATTRLST_MAP
-            .get(voTypeName);
+                .get(voTypeName);
 
         final List<String> targetAttrs = new ArrayList<String>();
         for (final int nextInt : pAttrs) {
@@ -247,9 +248,9 @@ public class CustomAmFixture {
 
     /**
      * Mocks the generated getters e.g. getProjectId().
-     * 
+     *
      * TODO: Currently custom getCustom().
-     * 
+     *
      * @param voInstance
      * @param mockRow
      * @param clonedRow
@@ -258,10 +259,8 @@ public class CustomAmFixture {
      * @param nextValObject
      */
     void mockGetAttribute(final String voInstance, final Row mockRow,
-                          final Map<Integer, Object> clonedRow,
-                          final List<String> rowAttrs,
-                          final List<String> targetAttrs,
-                          final List<Object> nextValObject)
+            final Map<Integer, Object> clonedRow, final List<String> rowAttrs,
+            final List<String> targetAttrs, final List<Object> nextValObject)
     {
         int counter = 0;
         for (final String nextAttr : rowAttrs) {
@@ -272,7 +271,7 @@ public class CustomAmFixture {
             }
 
             final Class<? extends Row> voRowType = VOI_ROWCLS_MAP
-                .get(voInstance);
+                    .get(voInstance);
             if (!OAViewRowImpl.class.equals(voRowType)) {
 
                 final String methName = "get"
@@ -287,11 +286,11 @@ public class CustomAmFixture {
                                 throws Throwable
                         {
                             final String voInstance = MROW_VOI_MAP
-                                .get(invocation.getMock());
+                                    .get(invocation.getMock());
                             final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
-                                .get(voInstance);
+                                    .get(voInstance);
                             final List<String> rowAttrs = CustomAmFixture.VOT_ATTRLST_MAP
-                                .get(voTypeName);
+                                    .get(voTypeName);
 
                             if (CustomAmFixture.VOI_MROWLST_MAP.get(voInstance) == null) {
                                 CustomAmFixture.VOI_MROWLST_MAP.put(
@@ -299,14 +298,14 @@ public class CustomAmFixture {
                                     new ArrayList<Row>());
                             }
                             final List<Row> voMockRows = CustomAmFixture.VOI_MROWLST_MAP
-                                .get(voInstance);
+                                    .get(voInstance);
 
                             final int rowIdx = voMockRows.indexOf(invocation
                                 .getMock());
 
                             final Map<Integer, Object> rowClone = CustomAmFixture.VOI_RCLN_MAP
-                                .get(voInstance)
-                                .get(rowIdx);
+                                    .get(voInstance)
+                                    .get(rowIdx);
                             final int attrIdx = rowAttrs.indexOf(nextAttr);
                             return rowClone.get(attrIdx);
                         }
@@ -318,18 +317,18 @@ public class CustomAmFixture {
 
     /**
      * Please do not use hard coded attribute names.
-     * 
+     *
      * @param voInstance View Object instance name.
      * @param pAttrs array of attributes.
      * @param pValues List of array values. List size determines the number of
      *            rows to initialize/insert when necessary.
      */
     public void initVORow(final String voInstance, final String[] pAttrs,
-                          final List<Object[]> pValues)
+            final List<Object[]> pValues)
     {
 
         final ViewObject viewObject = CustomAmFixture.VOI_MOCKVO_MAP
-            .get(voInstance);
+                .get(voInstance);
         for (final Object[] nextValues : pValues) {
             int counter = 0;
             initVORowAtIndex(
@@ -345,7 +344,7 @@ public class CustomAmFixture {
 
         final String voTypeName = CustomAmFixture.VOI_TYPE_MAP.get(voInstance);
         final List<String> rowAttrs = CustomAmFixture.VOT_ATTRLST_MAP
-            .get(voTypeName);
+                .get(voTypeName);
         final int[] retval = new int[attrs.length];
         for (int i = 0; i < retval.length; i++) {
             retval[i] = rowAttrs.indexOf(attrs[i]);
@@ -356,7 +355,7 @@ public class CustomAmFixture {
     /**
      * Make calls to ViewObject.isExecuted return true for ALL view objects
      * under the application module.
-     * 
+     *
      */
     public void setAllViewObjectExecuted()
     {
@@ -372,7 +371,7 @@ public class CustomAmFixture {
     public void setViewObjectExecuted(final String voInstance)
     {
         final ViewObject mockVo = CustomAmFixture.VOI_MOCKVO_MAP
-            .get(voInstance);
+                .get(voInstance);
         Mockito.when(mockVo.isExecuted()).thenReturn(true);
     }
 
@@ -380,14 +379,14 @@ public class CustomAmFixture {
     /**
      * Note this can be very slow. 250~ ms. Mock selectively using
      * #mockVoInstance(OAApplicationModuleImpl, String) for better performance.
-     * 
+     *
      * @param appModule Mock application module, not spy.
      */
     public void mockViewObjects(final OAApplicationModuleImpl appModule)
     {
         getLogger()
-            .warn(
-                "Mocking all view objects.  Consider mocking only the needed view objects.");
+        .warn(
+            "Mocking all view objects.  Consider mocking only the needed view objects.");
         for (final String nextVoInst : VOI_VOCLS_MAP.keySet()) {
             mockVoInstance(appModule, nextVoInst);
         }
@@ -398,10 +397,10 @@ public class CustomAmFixture {
      * @param voInstance view object instance.
      */
     public void mockVoInstance(final OAApplicationModuleImpl appModule,
-                               final String voInstance)
+            final String voInstance)
     {
         final Class<? extends ViewObject> voType = VOI_VOCLS_MAP
-            .get(voInstance);
+                .get(voInstance);
         if (voType != null) {
             final ViewObject mockVo = Mockito.mock(voType);
             Mockito.when(mockVo.getName()).thenReturn(voInstance);
@@ -414,14 +413,14 @@ public class CustomAmFixture {
             Mockito.doAnswer(new Answer<Class<? extends Row>>() {
 
                 @Override
-                public Class<? extends Row> answer(final InvocationOnMock invocation)
-                        throws Throwable
-                {
+                public Class<? extends Row> answer(
+                        final InvocationOnMock invocation) throws Throwable
+                        {
                     return CustomAmFixture.VOI_ROWCLS_MAP.get(voInstance);
-                }
+                        }
             })
-                .when((ViewObjectImpl) mockVo)
-                .getRowClass();
+            .when((ViewObjectImpl) mockVo)
+            .getRowClass();
 
             // Mock setCurrentRow(Row).
             Mockito.doAnswer(new Answer<Object>() {
@@ -436,8 +435,8 @@ public class CustomAmFixture {
                     return null;
                 }
             })
-                .when(mockVo)
-                .setCurrentRow((Row) Matchers.any());
+            .when(mockVo)
+            .setCurrentRow((Row) Matchers.any());
 
             // Mock getCurrentRow().
             Mockito.doAnswer(new Answer<Row>() {
@@ -450,8 +449,8 @@ public class CustomAmFixture {
                     return CustomAmFixture.VOI_CURROW_MAP.get(voInstance);
                 }
             })
-                .when(mockVo)
-                .getCurrentRow();
+            .when(mockVo)
+            .getCurrentRow();
 
 
             CustomAmFixture.VOI_MOCKVO_MAP.put(voInstance, mockVo);
@@ -459,119 +458,122 @@ public class CustomAmFixture {
             final String methName = "get" + voInstance;
             Mockito.when(invokeMethod(appModule, methName)).thenReturn(mockVo);
 
-            //Mock findViewObject(String).            
+            //Mock findViewObject(String).
             Mockito
-                .when(appModule.findViewObject(Matchers.anyString()))
-                .thenAnswer(new Answer<ViewObject>() {
+            .when(appModule.findViewObject(Matchers.anyString()))
+            .thenAnswer(new Answer<ViewObject>() {
 
 
-                    @Override
-                    public ViewObject answer(final InvocationOnMock invocation)
-                            throws Throwable
-                    {
-                        final String voInstance = (String) invocation
+                @Override
+                public ViewObject answer(final InvocationOnMock invocation)
+                        throws Throwable
+                {
+                    final String voInstance = (String) invocation
                             .getArguments()[0];
-                        return CustomAmFixture.VOI_MOCKVO_MAP.get(voInstance);
-                    }
-                });
+                    return CustomAmFixture.VOI_MOCKVO_MAP.get(voInstance);
+                }
+            });
 
             Mockito
-                .when(mockVo.createRowSetIterator(Matchers.anyString()))
-                .thenAnswer(new Answer<RowSetIterator>() {
+            .when(mockVo.createRowSetIterator(Matchers.anyString()))
+            .thenAnswer(new Answer<RowSetIterator>() {
 
 
-                    @Override
-                    public RowSetIterator answer(final InvocationOnMock invocation)
-                            throws Throwable
-                    {
-                        CustomAmFixture.VOI_ITERIDX_MAP.put(
-                            (String) invocation.getArguments()[0],
-                            0);
+                @Override
+                public RowSetIterator answer(
+                            final InvocationOnMock invocation) throws Throwable
+                {
+                    CustomAmFixture.VOI_ITERIDX_MAP.put(
+                        (String) invocation.getArguments()[0],
+                        0);
 
-                        final RowSetIterator mockIter = Mockito
+                    final RowSetIterator mockIter = Mockito
                             .mock(RowSetIterator.class);
 
-                        Mockito
-                            .when(
-                                mockIter.getRowAtRangeIndex(Matchers.anyInt()))
-                            .thenAnswer(new Answer<Row>() {
+                    Mockito
+                    .when(
+                        mockIter.getRowAtRangeIndex(Matchers.anyInt()))
+                        .thenAnswer(new Answer<Row>() {
 
 
-                                @Override
-                                public Row answer(final InvocationOnMock invocation)
-                                        throws Throwable
-                                {
-                                    final int index = (Integer) invocation
+                            @Override
+                            public Row answer(
+                                        final InvocationOnMock invocation)
+                                    throws Throwable
+                            {
+                                final int index = (Integer) invocation
                                         .getArguments()[0];
-                                    final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
+                                final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
                                         .get(voInstance);
-                                    Row retval = null; //NOPMD: null default, conditionally redefine.
-                                    if (index < mockRowList.size()) {
-                                        retval = mockRowList.get(index);
-                                    }
-                                    return retval;
-                                }
-                            });
-
-                        Mockito.doAnswer(new Answer<Boolean>() {
-
-                            @Override
-                            public Boolean answer(final InvocationOnMock invocation)
-                                    throws Throwable
-                            {
-                                final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
-                                    .get(voInstance);
-                                final int currIdx = CustomAmFixture.VOI_ITERIDX_MAP
-                                    .get(voInstance);
-                                return currIdx < mockRowList.size();
-                            }
-                        })
-                            .when(mockIter)
-                            .hasNext();
-
-                        Mockito.doAnswer(new Answer<Row>() {
-
-                            @Override
-                            public Row answer(final InvocationOnMock invocation)
-                                    throws Throwable
-                            {
-                                final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
-                                    .get(voInstance);
-                                int currIdx = CustomAmFixture.VOI_ITERIDX_MAP
-                                    .get(voInstance);
                                 Row retval = null; //NOPMD: null default, conditionally redefine.
-                                if (currIdx < mockRowList.size()) {
-                                    retval = mockRowList.get(currIdx++);
-                                    CustomAmFixture.VOI_ITERIDX_MAP.put(
-                                        voInstance,
-                                        currIdx);
+                                if (index < mockRowList.size()) {
+                                    retval = mockRowList.get(index);
                                 }
                                 return retval;
                             }
-                        })
-                            .when(mockIter)
-                            .next();
+                        });
 
+                    Mockito.doAnswer(new Answer<Boolean>() {
 
-                        Mockito.doAnswer(new Answer<Object>() {
+                        @Override
+                        public Boolean answer(
+                                    final InvocationOnMock invocation)
+                                throws Throwable
+                        {
+                            final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
+                                    .get(voInstance);
+                            final int currIdx = CustomAmFixture.VOI_ITERIDX_MAP
+                                    .get(voInstance);
+                            return currIdx < mockRowList.size();
+                        }
+                    })
+                    .when(mockIter)
+                    .hasNext();
 
-                            @Override
-                            public Object answer(final InvocationOnMock invocation)
-                                    throws Throwable
-                            {
+                    Mockito.doAnswer(new Answer<Row>() {
+
+                        @Override
+                        public Row answer(final InvocationOnMock invocation)
+                                throws Throwable
+                        {
+                            final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
+                                    .get(voInstance);
+                            int currIdx = CustomAmFixture.VOI_ITERIDX_MAP
+                                    .get(voInstance);
+                            Row retval = null; //NOPMD: null default, conditionally redefine.
+                            if (currIdx < mockRowList.size()) {
+                                retval = mockRowList.get(currIdx++);
                                 CustomAmFixture.VOI_ITERIDX_MAP.put(
                                     voInstance,
-                                    0);
-                                return null;
+                                    currIdx);
                             }
-                        })
-                            .when(mockIter)
-                            .reset();
+                            return retval;
+                        }
+                    })
+                    .when(mockIter)
+                    .next();
 
 
-                        return mockIter;
-                    }
-                });
+                    Mockito.doAnswer(new Answer<Object>() {
+
+                        @Override
+                        public Object answer(
+                                    final InvocationOnMock invocation)
+                                throws Throwable
+                        {
+                            CustomAmFixture.VOI_ITERIDX_MAP.put(
+                                voInstance,
+                                0);
+                            return null;
+                        }
+                    })
+                    .when(mockIter)
+                    .reset();
+
+
+                    return mockIter;
+                }
+            });
 
             //Mock first().
             Mockito.when(mockVo.first()).thenAnswer(new Answer<Row>() {
@@ -582,10 +584,10 @@ public class CustomAmFixture {
                         throws Throwable
                 {
                     final ViewObject viewObject = (ViewObject) invocation
-                        .getMock();
+                            .getMock();
                     final String voInstance = viewObject.getName();
                     final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
-                        .get(voInstance);
+                            .get(voInstance);
                     if (mockRowList == null) {
                         return null;
                     } else if (mockRowList.size() > 0) {
@@ -599,24 +601,24 @@ public class CustomAmFixture {
 
             // Mock getRowAtRangeIndex(int).
             Mockito
-                .when(mockVo.getRowAtRangeIndex(Matchers.anyInt()))
-                .thenAnswer(new Answer<Row>() {
+            .when(mockVo.getRowAtRangeIndex(Matchers.anyInt()))
+            .thenAnswer(new Answer<Row>() {
 
 
-                    @Override
-                    public Row answer(final InvocationOnMock invocation)
-                            throws Throwable
-                    {
-                        final ViewObject viewObject = (ViewObject) invocation
+                @Override
+                public Row answer(final InvocationOnMock invocation)
+                        throws Throwable
+                {
+                    final ViewObject viewObject = (ViewObject) invocation
                             .getMock();
-                        final String voInstance = viewObject.getName();
-                        final int rowIndex = (Integer) invocation
+                    final String voInstance = viewObject.getName();
+                    final int rowIndex = (Integer) invocation
                             .getArguments()[0];
-                        final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
+                    final List<Row> mockRowList = CustomAmFixture.VOI_MROWLST_MAP
                             .get(voInstance);
-                        return mockRowList.get(rowIndex);
-                    }
-                });
+                    return mockRowList.get(rowIndex);
+                }
+            });
 
             final Answer<Row[]> ansRetAllRow = new Answer<Row[]>() {
 
@@ -628,7 +630,7 @@ public class CustomAmFixture {
                     final RowSet mockViewObject = (RowSet) invocation.getMock();
                     final String voInstance = mockViewObject.getName();
                     final List<Row> rowList = CustomAmFixture.VOI_MROWLST_MAP
-                        .get(voInstance);
+                            .get(voInstance);
                     Row[] retval;
                     if (rowList == null) {
                         retval = new Row[0];
@@ -656,7 +658,7 @@ public class CustomAmFixture {
                         throws Throwable
                 {
                     final List<Row> rowList = CustomAmFixture.VOI_MROWLST_MAP
-                        .get(voInstance);
+                            .get(voInstance);
                     int retval;
                     if (rowList == null) {
                         retval = 0;
@@ -681,10 +683,10 @@ public class CustomAmFixture {
                     if ("NameXXX".equals(paramOne)) {
                         //WET
                         final ViewObject mockViewObject = (ViewObject) invocation
-                            .getMock();
+                                .getMock();
                         final String voInstance = mockViewObject.getName();
                         final List<Row> rowList = CustomAmFixture.VOI_MROWLST_MAP
-                            .get(voInstance);
+                                .get(voInstance);
                         Row[] retval = new Row[0];
                         if (rowList != null) {
                             retval = rowList.toArray(new Row[0]);
@@ -695,10 +697,10 @@ public class CustomAmFixture {
                         final List<Row> retval = new ArrayList<Row>();
 
                         final ViewObject mockViewObject = (ViewObject) invocation
-                            .getMock();
+                                .getMock();
                         final String voInstance = mockViewObject.getName();
                         final List<Row> rowList = CustomAmFixture.VOI_MROWLST_MAP
-                            .get(voInstance);
+                                .get(voInstance);
                         for (final Row row : rowList) {
                             if (paramTwo != null
                                     && paramTwo.equals(row
@@ -710,8 +712,8 @@ public class CustomAmFixture {
                     }
                 }
             })
-                .when(mockVo)
-                .getFilteredRows(Matchers.anyString(), Matchers.any());
+            .when(mockVo)
+            .getFilteredRows(Matchers.anyString(), Matchers.any());
 
 
             Mockito.when(mockVo.getAttributeDef(Matchers.anyInt())).thenAnswer(
@@ -726,9 +728,9 @@ public class CustomAmFixture {
                         AttributeDef mockAttrDef = null; //NOPMD: null default, conditionally redefine.
                         if (attrIdx > -1) {
                             final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
-                                .get(voInstance);
+                                    .get(voInstance);
                             final List<String> attrList = CustomAmFixture.VOT_ATTRLST_MAP
-                                .get(voTypeName);
+                                    .get(voTypeName);
                             mockAttrDef = Mockito.mock(AttributeDef.class);
                             Mockito.when(mockAttrDef.getName()).thenReturn(
                                 attrList.get(attrIdx));
@@ -747,43 +749,43 @@ public class CustomAmFixture {
                             throws Throwable
                     {
                         final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
-                            .get(voInstance);
+                                .get(voInstance);
                         final List<String> attrList = CustomAmFixture.VOT_ATTRLST_MAP
-                            .get(voTypeName);
+                                .get(voTypeName);
                         return attrList.size();
                     }
                 });
 
             Mockito
-                .when(mockVo.getAttributeIndexOf(Matchers.anyString()))
-                .thenAnswer(new Answer<Integer>() {
+            .when(mockVo.getAttributeIndexOf(Matchers.anyString()))
+            .thenAnswer(new Answer<Integer>() {
 
 
-                    @Override
-                    public Integer answer(final InvocationOnMock invocation)
-                            throws Throwable
-                    {
-                        final String attrName = (String) invocation
+                @Override
+                public Integer answer(final InvocationOnMock invocation)
+                        throws Throwable
+                {
+                    final String attrName = (String) invocation
                             .getArguments()[0];
-                        final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
+                    final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
                             .get(voInstance);
-                        final List<String> attrList = CustomAmFixture.VOT_ATTRLST_MAP
+                    final List<String> attrList = CustomAmFixture.VOT_ATTRLST_MAP
                             .get(voTypeName);
-                        return attrList.indexOf(attrName);
-                    }
-                });
+                    return attrList.indexOf(attrName);
+                }
+            });
 
         }
     }
 
     /**
-     * 
+     *
      * @param pAppModuleDef
      * @param parentInstName Parent application module instance name.
      */
     @SuppressWarnings("unchecked")
     private final void processAppModule(final String pAppModuleDef,
-                                        final String parentInstName)
+            final String parentInstName)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         final String path = "/" + pAppModuleDef.replaceAll("\\.", "/") + ".xml";
@@ -796,11 +798,11 @@ public class CustomAmFixture {
                 .getResourceAsStream(path));
             final Element root = document.getDocumentElement();
             final String amType = root
-                .getAttribute(Attribute.OBJECT_IMPL_CLASS);
+                    .getAttribute(Attribute.OBJECT_IMPL_CLASS);
             AMDEF_CLS_MAP.put(
                 pAppModuleDef,
                 (Class<? extends OAApplicationModuleImpl>) Class
-                    .forName(amType));
+                .forName(amType));
             processAmRootNode(root, parentInstName);
         } catch (final Exception exception) {
             getLogger().error(exception);
@@ -825,7 +827,7 @@ public class CustomAmFixture {
                         voInstName,
                         voDef);
 
-                    //TODO: Unconventional ViewObject implementation through 
+                    //TODO: Unconventional ViewObject implementation through
                     //inheritance is not supported.
                     if (voAndRowType != null) {
                         CustomAmFixture.VOI_VOCLS_MAP.put(
@@ -844,7 +846,7 @@ public class CustomAmFixture {
     Class<?>[] getVoAndRowType(final String voInstName, final String voDef)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        Class<?>[] retval = null; //NOPMD: null default, conditionally redefine. 
+        Class<?>[] retval = null; //NOPMD: null default, conditionally redefine.
         final String appDefFilename = "/" + voDef.replaceAll("\\.", "/")
                 + ".xml";
         String implClass = null; //NOPMD: null default, conditionally redefine.
@@ -859,7 +861,7 @@ public class CustomAmFixture {
 
             @SuppressWarnings("unchecked")
             final Class<? extends Row> rowClass = (Class<? extends Row>) Class
-                .forName(root.getAttribute(Attribute.VOROW_IMPL));
+            .forName(root.getAttribute(Attribute.VOROW_IMPL));
 
             implClass = root.getAttribute(Attribute.OBJECT_IMPL_CLASS);
             retval = new Class[] {
@@ -873,14 +875,14 @@ public class CustomAmFixture {
             getLogger().error(
                 "Error on voInstName[" + voInstName + "], impl class: "
                         + implClass,
-                exception);
+                        exception);
         }
         return retval;
     }
 
     /**
      * To use later when reading attribute list from VO.xml.
-     * 
+     *
      * @param root
      * @return
      */
@@ -907,7 +909,7 @@ public class CustomAmFixture {
     /**
      * This will prevent the DocumentBuilder from validating the DTD. Saves us
      * the trouble of dependence to online DTD resource.
-     * 
+     *
      * @param docBuilder DocumentBuilder instance.
      */
     private void ignoreDtd(final DocumentBuilder docBuilder)
@@ -917,8 +919,7 @@ public class CustomAmFixture {
 
             @Override
             public InputSource resolveEntity(final String publicId,
-                                             final String systemId)
-                    throws SAXException, IOException
+                    final String systemId) throws SAXException, IOException
             {
                 InputSource retval = null; //NOPMD: null default, conditionally redefine.
                 if (systemId.contains("jbo_03_01.dtd")) {
@@ -931,7 +932,7 @@ public class CustomAmFixture {
 
     /**
      * Helper method to swallow exception from reflection. WET: With who!?
-     * 
+     *
      * @param object
      */
     protected Object invokeMethod(final Object object, final String methName)
@@ -939,9 +940,9 @@ public class CustomAmFixture {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {
             retval = object
-                .getClass()
-                .getMethod(methName, new Class[0])
-                .invoke(object, new Object[0]);
+                    .getClass()
+                    .getMethod(methName, new Class[0])
+                    .invoke(object, new Object[0]);
         } catch (final Exception e) {
             getLogger().error(e.getMessage() + ", methName: " + methName, e);
         }
