@@ -32,7 +32,7 @@ public class RowMocker {
 
 
     /** Wrapper for the final method getViewObject. */
-    public static final String METH_WRAPPED_GET_VO = "getViewObj";
+    public static final String CUSTOM_GET_VO = "getViewObj";
 
 
     /** */
@@ -50,13 +50,13 @@ public class RowMocker {
 
 
         final Map<Class<? extends Row>, String> rowClsVoDefMap = amFixture
-                .getRowClsVoDefMap();
+            .getRowClsVoDefMap();
         final String voDef = rowClsVoDefMap.get(rowClass);
         assert voDef != null;
 
         final List<String> attrList = amFixture
-                .getVoDefAttrListMap()
-                .get(voDef);
+            .getVoDefAttrListMap()
+            .get(voDef);
 
 
         /* getViewObj - anti zombie/anti final. */
@@ -65,8 +65,8 @@ public class RowMocker {
 
         /* getAttribute(int) */
         RowAnswers
-        .mockGetAttributeInt(this.mockRow, attrList, this)
-        .getAttribute(Matchers.anyInt());
+            .mockGetAttributeInt(this.mockRow, attrList, this)
+            .getAttribute(Matchers.anyInt());
 
         /* getAttribute(String) */
         RowAnswers.mockGetAttributeString(this.mockRow, this).getAttribute(
@@ -77,24 +77,24 @@ public class RowMocker {
 
         /* setAttribute(int) */
         RowAnswers
-        .mockSetAttributeInt(this.mockRow, attrList, this)
-        .setAttribute(Matchers.anyInt(), Matchers.any());
+            .mockSetAttributeInt(this.mockRow, attrList, this)
+            .setAttribute(Matchers.anyInt(), Matchers.any());
 
         /* setAttribute(String) */
         RowAnswers
-        .mockSetAttributeInt(this.mockRow, attrList, this)
-        .setAttribute(Matchers.anyInt(), Matchers.any());
+            .mockSetAttributeInt(this.mockRow, attrList, this)
+            .setAttribute(Matchers.anyInt(), Matchers.any());
 
         /* set*(int, Object) */
-        RowAnswers.mockSetterInt(this.mockRow, attrList, this);
+        RowAnswers.mockSetterInt(this.mockRow, rowClass, attrList, this);
 
         /* set*(String, Object) */
-        RowAnswers.mockSetterString(this.mockRow, attrList, this);
+        RowAnswers.mockSetterString(this.mockRow, rowClass, attrList, this);
 
-        /* get*(int, Object) */
+        /* get*(int) */
         RowAnswers.mockGetterInt(this.mockRow, attrList, this);
 
-        /* get*(String, Object) */
+        /* get*(String) */
         RowAnswers.mockGetterString(this.mockRow, attrList, this);
 
 

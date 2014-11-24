@@ -16,6 +16,7 @@
 package oafext.test.server;
 
 import oracle.jbo.Row;
+import oracle.jbo.RowSetIterator;
 import oracle.jbo.server.ViewObjectImpl;
 
 import org.mockito.Mockito;
@@ -24,7 +25,7 @@ import org.mockito.stubbing.Answer;
 
 /**
  * @author royce
- *
+ * 
  */
 public final class RowSetIteratorAnswers {
 
@@ -34,7 +35,7 @@ public final class RowSetIteratorAnswers {
 
 
     static <M> M mockGetRowAtRangeIndex(final M mockRsIter,
-            final ViewObjectImpl mockVo)
+                                        final ViewObjectImpl mockVo)
     {
 
         return Mockito.doAnswer(new Answer<Row>() {
@@ -59,7 +60,7 @@ public final class RowSetIteratorAnswers {
      * @param mockVo
      */
     static <M> M mockHasNext(final M mockRsIter,
-            final RowSetIteratorMocker rsIterMocker)
+                             final RowSetIteratorMocker rsIterMocker)
     {
         return Mockito.doAnswer(new Answer<Boolean>() {
 
@@ -74,13 +75,9 @@ public final class RowSetIteratorAnswers {
     }
 
 
-    /**
-     * @param mockRsIter
-     * @param mockVo
-     */
     static <M> M mockNext(final M mockRsIter,
-            final RowSetIteratorMocker rsIterMocker,
-            final ViewObjectMocker voMocker)
+                          final RowSetIteratorMocker rsIterMocker,
+                          final ViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -101,15 +98,42 @@ public final class RowSetIteratorAnswers {
 
             }
         })
-        .when(mockRsIter);
+            .when(mockRsIter);
     }
+
+    static <M> M mockPrevious(final M mockRsIter,
+                              final RowSetIteratorMocker rsIterMocker,
+                              final ViewObjectMocker voMocker)
+    {
+        return Mockito.doAnswer(new Answer<Row>() {
+
+            @Override
+            public Row answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                if (rsIterMocker.getRangeCurrent() > rsIterMocker
+                    .getRangeStart()) {
+                    rsIterMocker.decrement();
+
+                    return voMocker
+                        .getRowMockerList()
+                        .get(rsIterMocker.getRangeCurrent())
+                        .getMockRow();
+                } else {
+                    return null;
+                }
+
+            }
+        }).when(mockRsIter);
+    }
+
 
     /**
      * @param mockRsIter
      * @param rowSetIterMocker
      */
     static <M> M mockReset(final M mockRsIter,
-            final RowSetIteratorMocker rowSetIterMocker)
+                           final RowSetIteratorMocker rowSetIterMocker)
     {
 
         return Mockito.doAnswer(new Answer<Object>() {
@@ -125,5 +149,21 @@ public final class RowSetIteratorAnswers {
         }).when(mockRsIter);
 
     }
+
+    static <M extends RowSetIterator> M mockCloseRsIterator(final M mockRsIter,
+                                                            final ViewObjectMocker voMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                voMocker.getRowSetIterMap().remove(mockRsIter.getName());
+                return null;
+            }
+        }).when(mockRsIter);
+    }
+
 
 }

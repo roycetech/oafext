@@ -31,7 +31,7 @@ import org.mockito.Mockito;
 
 /**
  * @author royce
- *
+ * 
  */
 public class ViewObjectMocker {
 
@@ -46,6 +46,9 @@ public class ViewObjectMocker {
 
     /** */
     private final transient Map<String, RowSetIteratorMocker> rowSetIterMap = new HashMap<String, RowSetIteratorMocker>();
+
+    /** Temporary place holder for new rows. */
+    private final transient Map<Row, RowMocker> newRowsMap = new HashMap<Row, RowMocker>();
 
 
     /** */
@@ -82,7 +85,7 @@ public class ViewObjectMocker {
 
     /**
      * Commented are the mocked methods.
-     *
+     * 
      * @param appModule mock application module instance.
      * @param viewObjectClass view object class.
      * @param rowClass row class
@@ -90,15 +93,15 @@ public class ViewObjectMocker {
      */
     ViewObjectMocker(final AppModuleFixture<?> amFixture,
 
-        final String viewObjectName) {
+    final String viewObjectName) {
 
         final OAApplicationModuleImpl appModule = amFixture.getMockAppModule();
 
         final Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = amFixture
-                .getVoNameClassMap();
+            .getVoNameClassMap();
 
         final Class<? extends ViewObjectImpl> viewObjectClass = voNameClassMap
-                .get(viewObjectName);
+            .get(viewObjectName);
 
         final Class<? extends Row> rowClass = amFixture
             .getVoNameRowClsMap()
@@ -122,11 +125,24 @@ public class ViewObjectMocker {
         /* getRowSet() */
         Mockito.when(this.mockVo.getRowSet()).thenReturn(this.mockVo);
 
+        /* createRow() */
+        ViewObjectAnswers
+            .mockCreateRow(this.mockVo, amFixture, this)
+            .createRow();
+
+        /* insertRow(Row) */
+        ViewObjectAnswers.mockInsertRow(this.mockVo, this).insertRow(
+            (Row) Matchers.any());
+
+        /* insertRowAtRangeIndex(int, Row) */
+        ViewObjectAnswers
+            .mockInsertRowAtRangeIndex(this.mockVo, this)
+            .insertRowAtRangeIndex(Matchers.anyInt(), (Row) Matchers.any());
 
         /* getCurrentRow() */
         ViewObjectAnswers
-        .mockGetCurrentRow(this.mockVo, this.currentRow)
-        .getCurrentRow();
+            .mockGetCurrentRow(this.mockVo, this.currentRow)
+            .getCurrentRow();
 
         /* setCurrentRow() */
         ViewObjectAnswers.mockSetCurrentRow(this.mockVo, this).setCurrentRow(
@@ -161,18 +177,18 @@ public class ViewObjectMocker {
 
         //getAttributeDef().
         ViewObjectAnswers
-        .mockGetAttributeDef(this.mockVo, amFixture)
-        .getAttributeDef(Matchers.anyInt());
+            .mockGetAttributeDef(this.mockVo, amFixture)
+            .getAttributeDef(Matchers.anyInt());
 
         //getAttributeCount().
         ViewObjectAnswers
-        .mockGetAttributeCount(this.mockVo, amFixture)
-        .getAttributeCount();
+            .mockGetAttributeCount(this.mockVo, amFixture)
+            .getAttributeCount();
 
         //getAttributeIndexOf().
         ViewObjectAnswers
-        .mockGetAttributeIndexOf(this.mockVo, amFixture)
-        .getAttributeIndexOf(Matchers.anyString());
+            .mockGetAttributeIndexOf(this.mockVo, amFixture)
+            .getAttributeIndexOf(Matchers.anyString());
 
 
     }
@@ -286,6 +302,15 @@ public class ViewObjectMocker {
     public void setExecuted(final boolean executed)
     {
         this.executed = executed;
+    }
+
+
+    /**
+     * @return the newRowsMap
+     */
+    Map<Row, RowMocker> getNewRowsMap()
+    {
+        return this.newRowsMap;
     }
 
 }

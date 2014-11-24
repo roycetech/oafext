@@ -18,6 +18,7 @@ package oafext.test.server;
 import java.util.ArrayList;
 import java.util.List;
 
+import oafext.Constant;
 import oracle.jbo.AttributeDef;
 import oracle.jbo.Row;
 import oracle.jbo.RowSetIterator;
@@ -30,17 +31,40 @@ import org.mockito.stubbing.Answer;
 
 /**
  * Mock View object is always the first parameter.
- *
+ * 
  * @author royce
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public final class ViewObjectAnswers {
 
 
-    /** */
-    private ViewObjectAnswers() {}
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops" /* FP: */)
+    private static List<AttrDefMocker> initAttributeList(final String voInstName,
+                                                         final AppModuleFixture<?> amFixture)
+    {
+        final String voType = amFixture.getVoNameDefMap().get(voInstName);
+        assert voType != null;
 
+        final AppModuleMocker appModuleMocker = amFixture.getAppModuleMocker();
+        final List<AttrDefMocker> attrDefMockerList = appModuleMocker
+            .getAttrDefMockerMap()
+            .get(voType);
+        assert attrDefMockerList != null;
 
-    static <M> M mockGetCurrentRow(final M mockVo, final Row currentRow)
+        if (attrDefMockerList.isEmpty()) {
+            final List<String> attrList = amFixture.getVoDefAttrListMap().get(
+                voInstName);
+            for (final String string : attrList) {
+                attrDefMockerList.add(new AttrDefMocker(string));
+            }
+        }
+        return attrDefMockerList;
+
+    }
+
+    static <M extends ViewObjectImpl> M mockCreateRow(final M mockVo,
+                                                      final AppModuleFixture<?> amFixture,
+                                                      final ViewObjectMocker viewObjectMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -48,17 +72,58 @@ public final class ViewObjectAnswers {
             public Row answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                return currentRow;
+                @SuppressWarnings(Constant.UNCHECKED)
+                final Class<? extends Row> rowClass = mockVo.getRowClass();
+                final RowMocker rowMocker = new RowMocker(
+                    mockVo,
+                    rowClass,
+                    amFixture);
+
+                viewObjectMocker.getNewRowsMap().put(
+                    rowMocker.getMockRow(),
+                    rowMocker);
+
+                return rowMocker.getMockRow();
             }
         }).when(mockVo);
+    }
+
+    /**
+     * @param mockVo
+     * @param viewObjectMocker
+     * @return
+     */
+    static <M extends ViewObjectImpl> M mockCreateRowSetIterator(final M mockVo,
+                                                                 final ViewObjectMocker viewObjectMocker)
+    {
+        return Mockito.doAnswer(new Answer<RowSetIterator>() {
+
+            @Override
+            public RowSetIterator answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final String iterName = invocation.getArguments()[0].toString();
+                assert iterName != null;
+                assert viewObjectMocker.getRowSetIterMap().get(iterName) == null;
+
+                final RowSetIteratorMocker rsIterMocker = new RowSetIteratorMocker(
+                    iterName,
+                    viewObjectMocker);
+                viewObjectMocker.getRowSetIterMap().put(iterName, rsIterMocker);
+
+                return rsIterMocker.getMockRsIter();
+            }
+        })
+            .when(mockVo);
     }
 
 
     /**
      * @param mockVo
+     * @param viewObjectMocker
      */
-    static <M> M mockSetCurrentRow(final M mockVo,
-            final ViewObjectMocker voMocker)
+    static <M> M mockExecuteQuery(final M mockVo,
+                                  final ViewObjectMocker viewObjectMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -66,12 +131,11 @@ public final class ViewObjectAnswers {
             public Object answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                voMocker.setCurrentRow((Row) invocation.getArguments()[0]);
+                viewObjectMocker.setExecuted(true);
                 return null;
             }
         }).when(mockVo);
     }
-
 
     /**
      * @param mockVo
@@ -98,81 +162,13 @@ public final class ViewObjectAnswers {
         }).when(mockVo);
     }
 
-    /**
-     * @param mockVo
-     */
-    static <M> M mockGetRowCount(final M mockVo, final ViewObjectMocker voMocker)
-    {
-        return Mockito.doAnswer(new Answer<Integer>() {
-
-            @Override
-            public Integer answer(final InvocationOnMock invocation)
-                    throws Throwable
-            {
-                return voMocker.getRowMockerList().size();
-            }
-        }).when(mockVo);
-    }
-
-
-    /**
-     * @param mockVo
-     * @param viewObjectMocker
-     * @return
-     */
-    static <M extends ViewObjectImpl> M mockCreateRowSetIterator(
-            final M mockVo, final ViewObjectMocker viewObjectMocker)
-    {
-        return Mockito.doAnswer(new Answer<RowSetIterator>() {
-
-            @Override
-            public RowSetIterator answer(final InvocationOnMock invocation)
-                    throws Throwable
-            {
-                final String iterName = invocation.getArguments()[0].toString();
-                assert iterName != null;
-                assert viewObjectMocker.getRowSetIterMap().get(iterName) == null;
-
-                final RowSetIteratorMocker rsIterMocker = new RowSetIteratorMocker(
-                    viewObjectMocker);
-                viewObjectMocker.getRowSetIterMap().put(iterName, rsIterMocker);
-
-                return rsIterMocker.getMockRsIter();
-            }
-        })
-            .when(mockVo);
-    }
-
-
-    /**
-     * @param mockVo
-     * @param viewObjectMocker
-     */
-    static <M> M mockGetRowAtRangeIndex(final M mockVo,
-            final ViewObjectMocker viewObjectMocker)
-    {
-        return Mockito.doAnswer(new Answer<Row>() {
-
-            @Override
-            public Row answer(final InvocationOnMock invocation)
-                    throws Throwable
-            {
-                final Integer index = (Integer) invocation.getArguments()[0];
-                return viewObjectMocker
-                    .getRowMockerList()
-                    .get(index)
-                    .getMockRow();
-            }
-        }).when(mockVo);
-
-    }
 
     /**
      * @param mockVo
      * @param viewObjectMocker
      */
     static <M> M mockGetAllRowsInRange(final M mockVo,
-            final ViewObjectMocker viewObjectMocker)
+                                       final ViewObjectMocker viewObjectMocker)
     {
         return Mockito.doAnswer(new Answer<Row[]>() {
 
@@ -194,67 +190,25 @@ public final class ViewObjectAnswers {
             .when(mockVo);
     }
 
-    /**
-     * @param mockVo
-     * @param viewObjectMocker
-     */
-    static <M> M mockExecuteQuery(final M mockVo,
-            final ViewObjectMocker viewObjectMocker)
+
+    static <M extends ViewObject> M mockGetAttributeCount(final M mockVo,
+                                                          final AppModuleFixture<?> amFixture)
     {
-        return Mockito.doAnswer(new Answer<Object>() {
+
+        return Mockito.doAnswer(new Answer<Integer>() {
 
             @Override
-            public Object answer(final InvocationOnMock invocation)
+            public Integer answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                viewObjectMocker.setExecuted(true);
-                return null;
+                final List<AttrDefMocker> attrDefMockerList = initAttributeList(
+                    mockVo.getName(),
+                    amFixture);
+
+                return attrDefMockerList.size();
             }
-        }).when(mockVo);
-    }
-
-
-    /**
-     * @param mockVo
-     * @param viewObjectMocker
-     */
-    static <M> M mockIsExecuted(final M mockVo,
-            final ViewObjectMocker viewObjectMocker)
-    {
-        return Mockito.doAnswer(new Answer<Boolean>() {
-
-            @Override
-            public Boolean answer(final InvocationOnMock invocation)
-                    throws Throwable
-            {
-                return viewObjectMocker.isExecuted();
-            }
-        }).when(mockVo);
-    }
-
-
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops" /* FP: */)
-    private static List<AttrDefMocker> initAttributeList(
-            final String voInstName, final AppModuleFixture<?> amFixture)
-    {
-        final String voType = amFixture.getVoNameDefMap().get(voInstName);
-        assert voType != null;
-
-        final AppModuleMocker appModuleMocker = amFixture.getAppModuleMocker();
-        final List<AttrDefMocker> attrDefMockerList = appModuleMocker
-            .getAttrDefMockerMap()
-            .get(voType);
-        assert attrDefMockerList != null;
-
-        if (attrDefMockerList.isEmpty()) {
-            final List<String> attrList = amFixture.getVoDefAttrListMap().get(
-                voInstName);
-            for (final String string : attrList) {
-                attrDefMockerList.add(new AttrDefMocker(string));
-            }
-        }
-        return attrDefMockerList;
-
+        })
+            .when(mockVo);
     }
 
     /**
@@ -262,7 +216,7 @@ public final class ViewObjectAnswers {
      * @param viewObjectMocker
      */
     static <M extends ViewObject> M mockGetAttributeDef(final M mockVo,
-            final AppModuleFixture<?> amFixture)
+                                                        final AppModuleFixture<?> amFixture)
     {
 
         return Mockito.doAnswer(new Answer<AttributeDef>() {
@@ -284,29 +238,8 @@ public final class ViewObjectAnswers {
             .when(mockVo);
     }
 
-    static <M extends ViewObject> M mockGetAttributeCount(final M mockVo,
-            final AppModuleFixture<?> amFixture)
-    {
-
-        return Mockito.doAnswer(new Answer<Integer>() {
-
-            @Override
-            public Integer answer(final InvocationOnMock invocation)
-                    throws Throwable
-            {
-                final List<AttrDefMocker> attrDefMockerList = initAttributeList(
-                    mockVo.getName(),
-                    amFixture);
-
-                return attrDefMockerList.size();
-            }
-        })
-        .when(mockVo);
-    }
-
-
     static <M extends ViewObject> M mockGetAttributeIndexOf(final M mockVo,
-            final AppModuleFixture<?> amFixture)
+                                                            final AppModuleFixture<?> amFixture)
     {
         return Mockito.doAnswer(new Answer<Integer>() {
 
@@ -316,10 +249,161 @@ public final class ViewObjectAnswers {
             {
                 final String attrName = (String) invocation.getArguments()[0];
                 return amFixture
-                        .getVoDefAttrListMap()
-                        .get(mockVo.getName())
-                        .indexOf(attrName);
+                    .getVoDefAttrListMap()
+                    .get(mockVo.getName())
+                    .indexOf(attrName);
             }
         }).when(mockVo);
     }
+
+
+    static <M> M mockGetCurrentRow(final M mockVo, final Row currentRow)
+    {
+        return Mockito.doAnswer(new Answer<Row>() {
+
+            @Override
+            public Row answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                return currentRow;
+            }
+        }).when(mockVo);
+    }
+
+
+    /**
+     * @param mockVo
+     * @param viewObjectMocker
+     */
+    static <M> M mockGetRowAtRangeIndex(final M mockVo,
+                                        final ViewObjectMocker viewObjectMocker)
+    {
+        return Mockito.doAnswer(new Answer<Row>() {
+
+            @Override
+            public Row answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final Integer index = (Integer) invocation.getArguments()[0];
+                return viewObjectMocker
+                    .getRowMockerList()
+                    .get(index)
+                    .getMockRow();
+            }
+        }).when(mockVo);
+
+    }
+
+    /**
+     * @param mockVo
+     */
+    static <M> M mockGetRowCount(final M mockVo, final ViewObjectMocker voMocker)
+    {
+        return Mockito.doAnswer(new Answer<Integer>() {
+
+            @Override
+            public Integer answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                return voMocker.getRowMockerList().size();
+            }
+        }).when(mockVo);
+    }
+
+    /**
+     * @param mockVo
+     * @param viewObjectMocker
+     */
+    static <M> M mockIsExecuted(final M mockVo,
+                                final ViewObjectMocker viewObjectMocker)
+    {
+        return Mockito.doAnswer(new Answer<Boolean>() {
+
+            @Override
+            public Boolean answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                return viewObjectMocker.isExecuted();
+            }
+        }).when(mockVo);
+    }
+
+
+    /**
+     * @param mockVo
+     */
+    static <M> M mockSetCurrentRow(final M mockVo,
+                                   final ViewObjectMocker voMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                voMocker.setCurrentRow((Row) invocation.getArguments()[0]);
+                return null;
+            }
+        }).when(mockVo);
+    }
+
+
+    /** */
+    static <M> M mockInsertRow(final M mockVo,
+                               final ViewObjectMocker viewObjectMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final Row mockRow = (Row) invocation.getArguments()[0];
+                final RowMocker rowMocker = viewObjectMocker
+                    .getNewRowsMap()
+                    .remove(mockRow);
+
+                viewObjectMocker.getRowMockerList().add(rowMocker);
+                return null;
+            }
+        }).when(mockVo);
+    }
+
+
+    static <M> M mockInsertRowAtRangeIndex(final M mockVo,
+                                           final ViewObjectMocker viewObjectMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final Integer index = (Integer) invocation.getArguments()[0];
+                assert index <= viewObjectMocker.getRowMockerList().size();
+                final Row mockRow = (Row) invocation.getArguments()[1];
+
+                final RowMocker rowMocker = viewObjectMocker
+                    .getNewRowsMap()
+                    .remove(mockRow);
+
+                final List<RowMocker> rowMockerList = viewObjectMocker
+                    .getRowMockerList();
+                rowMockerList.add(index, rowMocker);
+
+                //                if (index == rowMockerList.size()) {
+                //                    rowMockerList.add(rowMocker);
+                //                } else {
+                //                    rowMockerList.add(index, rowMocker);
+                //                }
+                return null;
+            }
+        }).when(mockVo);
+    }
+
+
+    /** */
+    private ViewObjectAnswers() {}
+
+
 }
