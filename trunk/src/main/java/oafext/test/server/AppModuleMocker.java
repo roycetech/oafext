@@ -21,6 +21,8 @@ import java.util.Map;
 
 import oafext.test.util.MockHelper;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
+import oracle.jbo.Row;
+import oracle.jbo.ViewObject;
 
 import org.junit.After;
 import org.mockito.Matchers;
@@ -28,7 +30,7 @@ import org.mockito.Mockito;
 
 /**
  * @author royce
- *
+ * 
  */
 public class AppModuleMocker {
 
@@ -60,13 +62,23 @@ public class AppModuleMocker {
     }
 
 
+    @After
+    void tearDown()
+    {
+        Mockito.reset(this.mockAm);
+        for (final ViewObjectMocker voMocker : this.voInstMockerMap.values()) {
+            Mockito.reset(voMocker.getMockVo());
+        }
+        this.voInstMockerMap.clear();
+    }
+
     /**
      * e.g. Mock getFinFacilityVO1.
-     *
+     * 
      * @param voInstance
      */
     void mockViewObject(final AppModuleFixture<?> amFixture,
-            final String voInstance)
+                        final String voInstance)
     {
 
         final ViewObjectMocker voMocker = new ViewObjectMocker(
@@ -82,16 +94,27 @@ public class AppModuleMocker {
 
     }
 
-    @After
-    void tearDown()
-    {
-        Mockito.reset(this.mockAm);
-        for (final ViewObjectMocker voMocker : this.voInstMockerMap.values()) {
-            Mockito.reset(voMocker.getMockVo());
-        }
-        this.voInstMockerMap.clear();
-    }
 
+    /**
+     * @param voInstance view object instance name.
+     * @param index row index.
+     * @param pAttrs attribute to set.
+     * @param pValues values to set.
+     */
+    public void initRowAtIndex(final String voInstance, final int index,
+                               final int[] pAttrs, final Object[] pValues)
+    {
+        assert this.voInstMockerMap.get(voInstance) != null;
+
+        final ViewObject viewObject = getMockAm().findViewObject(voInstance);
+        assert viewObject != null;
+
+        final Row newRow = viewObject.createRow();
+        for (int i = 0; i < pValues.length; i++) {
+            newRow.setAttribute(pAttrs[i], pValues[i]);
+        }
+        viewObject.insertRowAtRangeIndex(index, newRow);
+    }
 
     /**
      *
@@ -107,7 +130,7 @@ public class AppModuleMocker {
     /**
      * Make calls to ViewObject.isExecuted return true for the given view object
      * instance..
-     *
+     * 
      * @param voInstance view object instance.
      */
     public void setViewObjectExecuted(final String voInstance)

@@ -48,7 +48,7 @@ import org.xml.sax.SAXException;
 
 /**
  * @author royce
- *
+ * 
  * @param <A> application module type.
  */
 public class AppModuleFixture<A extends OAApplicationModuleImpl> {
@@ -56,7 +56,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /** */
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(AppModuleFixture.class);
+        .getLogger(AppModuleFixture.class);
 
 
     /** */
@@ -110,7 +110,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         final String amClassName = processAppModuleDef(pAppModuleDef, null);
         try {
             final Class<? extends OAApplicationModuleImpl> klass = (Class<? extends OAApplicationModuleImpl>) Class
-                    .forName(amClassName);
+                .forName(amClassName);
 
             this.appModuleMocker = new AppModuleMocker(klass);
         } catch (final ClassNotFoundException e) {
@@ -134,6 +134,20 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     public void tearDown()
     {
         this.appModuleMocker.tearDown();
+    }
+
+    /**
+     * Initialize view object row with attribute values.
+     * 
+     * @param voInstance view object instance name.
+     * @param index row index.
+     * @param pAttrs attribute to set.
+     * @param pValues values to set.
+     */
+    public void initRowAtIndex(final String voInstance, final int index,
+                               final int[] pAttrs, final Object[] pValues)
+    {
+        this.appModuleMocker.initRowAtIndex(voInstance, index, pAttrs, pValues);
     }
 
 
@@ -185,92 +199,13 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     //
     //        final List<Object> nextValObject = Arrays.asList(pValues);
     //
-    //        mockGetAttribute(
-    //            voInstance,
-    //            mockRow,
-    //            clonedRow,
-    //            rowAttrs,
-    //            targetAttrs,
-    //            nextValObject);
     //
-    //        final ViewRowMocker mocker = new ViewRowMocker();
-    //        mocker.mockRow(mockRow);
-    //
-    //    }
-    //
-    //    /**
-    //     * Mocks the generated getters e.g. getProjectId().
-    //     *
-    //     * TODO: Currently custom getCustom().
-    //     *
-    //     * @param voInstance
-    //     * @param mockRow
-    //     * @param clonedRow
-    //     * @param rowAttrs
-    //     * @param targetAttrs
-    //     * @param nextValObject
-    //     */
-    //    void mockGetAttribute(final String voInstance, final Row mockRow,
-    //            final Map<Integer, Object> clonedRow, final List<String> rowAttrs,
-    //            final List<String> targetAttrs, final List<Object> nextValObject)
-    //    {
-    //        int counter = 0;
-    //        for (final String nextAttr : rowAttrs) {
-    //
-    //            if (targetAttrs.contains(nextAttr)) {
-    //                final int attrIdx = targetAttrs.indexOf(nextAttr);
-    //                clonedRow.put(counter, nextValObject.get(attrIdx));
-    //            }
-    //
-    //            final Class<? extends Row> voRowType = this.voNameRowClsMap
-    //                .get(voInstance);
-    //            if (!OAViewRowImpl.class.equals(voRowType)) {
-    //
-    //                final String methName = "get"
-    //                        + nextAttr.substring(0, 1).toUpperCase()
-    //                        + nextAttr.substring(1);
-    //                Mockito.when(invokeMethod(mockRow, methName)).thenAnswer(
-    //                    new Answer<Object>() {
-    //
-    //
-    //                        @Override
-    //                        public Object answer(final InvocationOnMock invocation)
-    //                                throws Throwable
-    //                        {
-    //                            final String voInstance = MROW_VOI_MAP
-    //                                .get(invocation.getMock());
-    //                            final String voTypeName = CustomAmFixture.VOI_TYPE_MAP
-    //                                .get(voInstance);
-    //                            final List<String> rowAttrs = CustomAmFixture.VOT_ATTRLST_MAP
-    //                                .get(voTypeName);
-    //
-    //                            if (CustomAmFixture.VOI_MROWLST_MAP.get(voInstance) == null) {
-    //                                CustomAmFixture.VOI_MROWLST_MAP.put(
-    //                                    voInstance,
-    //                                    new ArrayList<Row>());
-    //                            }
-    //                            final List<Row> voMockRows = CustomAmFixture.VOI_MROWLST_MAP
-    //                                .get(voInstance);
-    //
-    //                            final int rowIdx = voMockRows.indexOf(invocation
-    //                                .getMock());
-    //
-    //                            final Map<Integer, Object> rowClone = CustomAmFixture.VOI_RCLN_MAP
-    //                                .get(voInstance)
-    //                                .get(rowIdx);
-    //                            final int attrIdx = rowAttrs.indexOf(nextAttr);
-    //                            return rowClone.get(attrIdx);
-    //                        }
-    //                    });
-    //            }
-    //            counter++;
-    //        }
     //    }
 
     /**
      * Make calls to ViewObject.isExecuted return true for ALL view objects
      * under the application module.
-     *
+     * 
      */
     public void setAllViewObjectExecuted()
     {
@@ -280,7 +215,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * Make calls to ViewObject.isExecuted return true for the given view object
      * instance..voType
-     *
+     * 
      * @param voInstName view object instance.
      */
     public void setViewObjectExecuted(final String voInstName)
@@ -295,7 +230,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     public void mockViewObject(final String voInstName)
     {
         final Class<? extends ViewObject> voType = this.voNameClassMap
-                .get(voInstName);
+            .get(voInstName);
 
         if (voType == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -313,13 +248,13 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
-     *
+     * 
      * @param pAppModuleDef
      * @param parentInstName Parent application module instance name.
      */
     @SuppressWarnings({ "PMD.OnlyOneReturn" })
     private String processAppModuleDef(final String pAppModuleDef,
-            final String parentInstName)
+                                       final String parentInstName)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         final String path = "/" + pAppModuleDef.replaceAll("\\.", "/") + ".xml";
@@ -334,7 +269,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             final Element root = document.getDocumentElement();
             final String amClass = root
-                    .getAttribute(Attribute.OBJECT_IMPL_CLASS);
+                .getAttribute(Attribute.OBJECT_IMPL_CLASS);
             processAmRootNode(root, parentInstName);
             return amClass;
 
@@ -368,16 +303,14 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
     /**
-     * Parses the view object definition xml file.
-     *
+     * Parses the view object definition XML file.
+     * 
      * @param voInstName view object instance name.
      * @param voDef view object definition name.
-     * @return Array of Class with the first as view object type and the second
-     *         as row implementation type.
      */
     @SuppressWarnings({
-        UNCHECKED,
-        "PMD.AvoidCatchingGenericException" })
+            UNCHECKED,
+            "PMD.AvoidCatchingGenericException" })
     void parseVoAndRowType(final String voInstName, final String voDef)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -396,7 +329,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
             VOI_TYPE_MAP.put(voInstName, voDefName);
 
             final String implClassName = root
-                    .getAttribute(Attribute.OBJECT_IMPL_CLASS);
+                .getAttribute(Attribute.OBJECT_IMPL_CLASS);
 
             this.voNameClassMap.put(
                 voInstName,
@@ -405,7 +338,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             final String rowClassName = root.getAttribute(Attribute.VOROW_IMPL);
             final Class<? extends Row> rowClass = (Class<? extends Row>) Class
-                    .forName(rowClassName);
+                .forName(rowClassName);
 
             this.voNameRowClsMap.put(voInstName, rowClass);
             this.rowClsVoDefMap.put(rowClass, voDefName);
@@ -414,15 +347,14 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
         } catch (final Exception exception) {
             LOGGER.error("Error on voInstName[" + voInstName
-                + "], definition: " + voDef, exception);
+                    + "], definition: " + voDef, exception);
         }
     }
 
     /**
      * To use later when reading attribute list from VO.xml.
-     *
+     * 
      * @param root
-     * @return
      */
     private void processVoRootNode(final String voTypeName, final Element root)
     {
@@ -447,7 +379,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * This will prevent the DocumentBuilder from validating the DTD. Saves us
      * the trouble of dependence to online DTD resource.
-     *
+     * 
      * @param docBuilder DocumentBuilder instance.
      */
     private void ignoreDtd(final DocumentBuilder docBuilder)
@@ -457,7 +389,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             @Override
             public InputSource resolveEntity(final String publicId,
-                    final String systemId) throws SAXException, IOException
+                                             final String systemId)
+                    throws SAXException, IOException
             {
                 InputSource retval = null; //NOPMD: null default, conditionally redefine.
                 if (systemId.contains("jbo_03_01.dtd")) {
@@ -568,7 +501,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 /** */
 class InitException extends RuntimeException {
-    InitException(final String msg, final Throwable e) {
-        super(msg, e);
+    InitException(final String msg, final Throwable thrw) {
+        super(msg, thrw);
     }
 }

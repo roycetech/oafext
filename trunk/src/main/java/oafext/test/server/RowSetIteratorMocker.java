@@ -22,7 +22,7 @@ import org.mockito.Mockito;
 
 /**
  * @author royce
- *
+ * 
  */
 public class RowSetIteratorMocker {
 
@@ -43,10 +43,14 @@ public class RowSetIteratorMocker {
     private transient int rangeCurrent = -1;
 
 
-    RowSetIteratorMocker(final ViewObjectMocker voMocker) {
+    RowSetIteratorMocker(final String pName, final ViewObjectMocker voMocker) {
+
+        assert pName != null;
 
         this.mockRsIter = Mockito.mock(RowSetIterator.class);
 
+        /* getName() */
+        Mockito.doReturn(pName).when(this.mockRsIter).getName();
 
         /* getRowAtRangeIndex() */
         RowSetIteratorAnswers.mockGetRowAtRangeIndex(
@@ -58,6 +62,16 @@ public class RowSetIteratorMocker {
 
         /* next() */
         RowSetIteratorAnswers.mockNext(this.mockRsIter, this, voMocker).next();
+
+        /* previous() */
+        RowSetIteratorAnswers
+            .mockPrevious(this.mockRsIter, this, voMocker)
+            .previous();
+
+        /* closeRowSetIterator() */
+        RowSetIteratorAnswers
+            .mockCloseRsIterator(this.mockRsIter, voMocker)
+            .closeRowSetIterator();
 
         /* reset() */
         RowSetIteratorAnswers.mockReset(this.mockRsIter, this).reset();
