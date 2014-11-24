@@ -47,6 +47,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
+ * TODO: Nested AM.
+ * 
  * @author royce
  * 
  * @param <A> application module type.
@@ -72,11 +74,11 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
     /** View Object Instance to Type Name. e.g. FinFacilityVO1=FinFacilityVO. */
-    static final Map<String, String> VOI_TYPE_MAP = new HashMap<String, String>();
+    private final transient Map<String, String> voNameDefMap;
 
 
     /** View Object Instance name to View Object Definition. */
-    private final transient Map<String, String> voNameDefMap;
+    private final transient Map<String, String> voNameDefFullMap;
 
     /** View Object Instance name to View Object Class. */
     private final transient Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = new HashMap<String, Class<? extends ViewObjectImpl>>();
@@ -104,8 +106,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
         this.voDefAttrListMap = new HashMap<String, List<String>>();
+        this.voNameDefFullMap = new HashMap<String, String>();
         this.voNameDefMap = new HashMap<String, String>();
-
 
         final String amClassName = processAppModuleDef(pAppModuleDef, null);
         try {
@@ -150,58 +152,6 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         this.appModuleMocker.initRowAtIndex(voInstance, index, pAttrs, pValues);
     }
 
-
-    //    /**
-    //     * TODO: Missing Row impl, will use
-    //     * {@link #initVORow(String, String[], List)} for the meantime in fixture.
-    //     *
-    //     * @param voInstance view object name.
-    //     * @param index row index to modify.
-    //     * @param pAttrs array of attribute indexes.
-    //     * @param pValues array of values to set.
-    //     */
-    //    public void initVORowAtIndex(final String voInstance, final int index,
-    //            final int[] pAttrs, final Object[] pValues)
-    //    {
-    //        if (CustomAmFixture.VOI_RCLN_MAP.get(voInstance) == null) {
-    //            CustomAmFixture.VOI_RCLN_MAP.put(
-    //                voInstance,
-    //                new ArrayList<Map<Integer, Object>>());
-    //            CustomAmFixture.VOI_MROWLST_MAP.put(
-    //                voInstance,
-    //                new ArrayList<Row>());
-    //        }
-    //
-    //        final List<Map<Integer, Object>> clonedRows = CustomAmFixture.VOI_RCLN_MAP
-    //            .get(voInstance);
-    //        final List<Row> rowsMock = CustomAmFixture.VOI_MROWLST_MAP
-    //            .get(voInstance);
-    //        if (clonedRows.size() == index) {
-    //            clonedRows.add(new LinkedHashMap<Integer, Object>());
-    //            final Class<? extends Row> voRowType = this.voNameRowClsMap
-    //                .get(voInstance);
-    //            final Row mockRow = Mockito.mock(voRowType);
-    //            rowsMock.add(mockRow);
-    //            MROW_VOI_MAP.put(mockRow, voInstance);
-    //        }
-    //
-    //        final Row mockRow = rowsMock.get(index);
-    //        final Map<Integer, Object> clonedRow = clonedRows.get(index);
-    //
-    //        final String voTypeName = CustomAmFixture.VOI_TYPE_MAP.get(voInstance);
-    //        final List<String> rowAttrs = CustomAmFixture.VOT_ATTRLST_MAP
-    //            .get(voTypeName);
-    //
-    //        final List<String> targetAttrs = new ArrayList<String>();
-    //        for (final int nextInt : pAttrs) {
-    //            targetAttrs.add(rowAttrs.get(nextInt));
-    //        }
-    //
-    //        final List<Object> nextValObject = Arrays.asList(pValues);
-    //
-    //
-    //    }
-
     /**
      * Make calls to ViewObject.isExecuted return true for ALL view objects
      * under the application module.
@@ -229,19 +179,18 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      */
     public void mockViewObject(final String voInstName)
     {
-        final Class<? extends ViewObject> voType = this.voNameClassMap
-            .get(voInstName);
-
-        if (voType == null) {
+        if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
 
-            final String voDef = this.voNameDefMap.get(voInstName);
+            final String voDef = this.voNameDefFullMap.get(voInstName);
             assert voDef != null;
 
             parseVoAndRowType(voInstName, voDef);
         }
 
-        assert voType != null;
+        final Class<? extends ViewObject> voClass = this.voNameClassMap
+            .get(voInstName);
+        assert voClass != null;
 
         this.appModuleMocker.mockViewObject(this, voInstName);
 
@@ -295,7 +244,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                     final String voInstName = elem.getAttribute(Attribute.NAME);
                     final String voDef = elem.getAttribute(Attribute.VO_DEF);
 
-                    this.voNameDefMap.put(voInstName, voDef);
+                    this.voNameDefFullMap.put(voInstName, voDef);
                 }
             }
         }
@@ -326,7 +275,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
             final Element root = document.getDocumentElement();
 
             final String voDefName = root.getAttribute(Attribute.NAME);
-            VOI_TYPE_MAP.put(voInstName, voDefName);
+            this.voNameDefMap.put(voInstName, voDefName);
 
             final String implClassName = root
                 .getAttribute(Attribute.OBJECT_IMPL_CLASS);
@@ -471,11 +420,11 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
-     * @return the voNameDefMap
+     * @return the voNameDefFullMap
      */
     Map<String, String> getVoNameDefMap()
     {
-        return this.voNameDefMap;
+        return this.voNameDefFullMap;
     }
 
     /**

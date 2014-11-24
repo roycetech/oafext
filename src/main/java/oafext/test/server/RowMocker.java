@@ -27,7 +27,11 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 
-/** @author royce */
+/**
+ * NOTE: Overloaded accessor method for VORowImpl is not supported.
+ * 
+ * @author royce
+ */
 public class RowMocker {
 
 
@@ -85,18 +89,11 @@ public class RowMocker {
             .mockSetAttributeInt(this.mockRow, attrList, this)
             .setAttribute(Matchers.anyInt(), Matchers.any());
 
-        /* set*(int, Object) */
-        RowAnswers.mockSetterInt(this.mockRow, rowClass, attrList, this);
+        /* set*(Object) */
+        RowAnswers.mockSetter(this.mockRow, rowClass, attrList, this);
 
-        /* set*(String, Object) */
-        RowAnswers.mockSetterString(this.mockRow, rowClass, attrList, this);
-
-        /* get*(int) */
-        RowAnswers.mockGetterInt(this.mockRow, attrList, this);
-
-        /* get*(String) */
-        RowAnswers.mockGetterString(this.mockRow, attrList, this);
-
+        /* get*() */
+        RowAnswers.mockGetter(this.mockRow, attrList, this);
 
     }
 

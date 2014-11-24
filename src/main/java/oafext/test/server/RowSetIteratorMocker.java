@@ -19,12 +19,19 @@ import oracle.jbo.RowSetIterator;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author royce
  * 
  */
 public class RowSetIteratorMocker {
+
+
+    /** sl4j logger instance. */
+    private static final Logger LOGGER = LoggerFactory
+        .getLogger(RowSetIteratorMocker.class);
 
 
     /** */
@@ -37,7 +44,7 @@ public class RowSetIteratorMocker {
     private transient int rangeStart;
 
     /** */
-    private transient int rangeEnd;
+    private transient int rangeEnd = 1;
 
     /** */
     private transient int rangeCurrent = -1;
@@ -47,7 +54,12 @@ public class RowSetIteratorMocker {
 
         assert pName != null;
 
+
         this.mockRsIter = Mockito.mock(RowSetIterator.class);
+        this.rangeEnd = voMocker.getRowMockerList().size();
+
+        LOGGER.info("New Iterator: " + pName + ',' + this.rangeEnd);
+
 
         /* getName() */
         Mockito.doReturn(pName).when(this.mockRsIter).getName();
@@ -56,6 +68,12 @@ public class RowSetIteratorMocker {
         RowSetIteratorAnswers.mockGetRowAtRangeIndex(
             this.mockRsIter,
             voMocker.getMockVo()).getRowAtRangeIndex(Matchers.anyInt());
+
+        /* getRowCount() */
+        RowSetIteratorAnswers
+            .mockGetRowCount(this.mockRsIter, voMocker)
+            .getRowCount();
+
 
         /* hasNext() */
         RowSetIteratorAnswers.mockHasNext(this.mockRsIter, this).hasNext();
@@ -67,6 +85,11 @@ public class RowSetIteratorMocker {
         RowSetIteratorAnswers
             .mockPrevious(this.mockRsIter, this, voMocker)
             .previous();
+
+        /* setRangeSize(int) */
+        RowSetIteratorAnswers
+            .mockSetRangeSize(this.mockRsIter, this)
+            .setRangeSize(Matchers.anyInt());
 
         /* closeRowSetIterator() */
         RowSetIteratorAnswers

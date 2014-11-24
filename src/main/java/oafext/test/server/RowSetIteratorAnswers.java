@@ -22,6 +22,8 @@ import oracle.jbo.server.ViewObjectImpl;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author royce
@@ -29,6 +31,10 @@ import org.mockito.stubbing.Answer;
  */
 public final class RowSetIteratorAnswers {
 
+
+    /** sl4j logger instance. */
+    private static final Logger LOGGER = LoggerFactory
+        .getLogger(RowSetIteratorAnswers.class);
 
     /** */
     private RowSetIteratorAnswers() {}
@@ -75,9 +81,9 @@ public final class RowSetIteratorAnswers {
     }
 
 
-    static <M> M mockNext(final M mockRsIter,
-                          final RowSetIteratorMocker rsIterMocker,
-                          final ViewObjectMocker voMocker)
+    static <M extends RowSetIterator> M mockNext(final M mockRsIter,
+                                                 final RowSetIteratorMocker rsIterMocker,
+                                                 final ViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -85,14 +91,24 @@ public final class RowSetIteratorAnswers {
             public Row answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                if (rsIterMocker.getRangeCurrent() < rsIterMocker.getRangeEnd()) {
+                if (rsIterMocker.getRangeCurrent() < rsIterMocker.getRangeEnd()
+                        && rsIterMocker.getRangeCurrent() < voMocker
+                            .getRowMockerList()
+                            .size()) {
                     rsIterMocker.increment();
+                }
+
+                if (rsIterMocker.getRangeCurrent() < rsIterMocker.getRangeEnd()) {
+
+                    rsIterMocker.setHasNext(rsIterMocker.getRangeCurrent() < rsIterMocker
+                        .getRangeEnd() - 1);
 
                     return voMocker
                         .getRowMockerList()
                         .get(rsIterMocker.getRangeCurrent())
                         .getMockRow();
                 } else {
+
                     return null;
                 }
 
@@ -165,5 +181,34 @@ public final class RowSetIteratorAnswers {
         }).when(mockRsIter);
     }
 
+    static <M> M mockSetRangeSize(final M mockRsIter,
+                                  final RowSetIteratorMocker rowSetIterMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final Integer newSize = (Integer) invocation.getArguments()[0];
+                rowSetIterMocker.setRangeEnd(newSize);
+                return null;
+            }
+        }).when(mockRsIter);
+    }
+
+    static <M> M mockGetRowCount(final M mockRsIter,
+                                 final ViewObjectMocker voMocker)
+    {
+        return Mockito.doAnswer(new Answer<Integer>() {
+
+            @Override
+            public Integer answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                return voMocker.getRowMockerList().size();
+            }
+        }).when(mockRsIter);
+    }
 
 }

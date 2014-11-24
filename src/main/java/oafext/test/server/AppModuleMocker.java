@@ -65,9 +65,10 @@ public class AppModuleMocker {
     @After
     void tearDown()
     {
-        Mockito.reset(this.mockAm);
+        //Mockito.reset(this.mockAm);  //Don't reset.  App Module mocker is retained between calls.
         for (final ViewObjectMocker voMocker : this.voInstMockerMap.values()) {
             Mockito.reset(voMocker.getMockVo());
+            voMocker.tearDown();
         }
         this.voInstMockerMap.clear();
     }

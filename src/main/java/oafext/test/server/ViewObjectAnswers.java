@@ -178,7 +178,9 @@ public final class ViewObjectAnswers {
             {
                 final List<Row> retval = new ArrayList<Row>();
                 for (int i = viewObjectMocker.getRangeStart(); i < viewObjectMocker
-                    .getRangeSize(); i++) {
+                    .getRangeSize()
+                        || viewObjectMocker.getRangeSize() == -1
+                        && i < viewObjectMocker.getRowMockerList().size(); i++) {
                     retval.add(viewObjectMocker
                         .getRowMockerList()
                         .get(i)
@@ -401,6 +403,21 @@ public final class ViewObjectAnswers {
         }).when(mockVo);
     }
 
+    static <M> M mockSetRangeSize(final M mockVo,
+                                  final ViewObjectMocker viewObjectMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final Integer size = (Integer) invocation.getArguments()[0];
+                viewObjectMocker.setRangeSize(size);
+                return null;
+            }
+        }).when(mockVo);
+    }
 
     /** */
     private ViewObjectAnswers() {}

@@ -39,19 +39,19 @@ public class MockHelper {
 
     /**
      * Helper method to swallow exception from reflection. Zero parameter only.
-     *
+     * 
      * @param mock mock to invoke method from.
      * @param methodName method name.
-     *
+     * 
      */
     public Object invokeMethod(final Object mock, final String methodName)
     {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {
             retval = mock
-                    .getClass()
-                    .getMethod(methodName, new Class[0])
-                    .invoke(mock, new Object[0]);
+                .getClass()
+                .getMethod(methodName, new Class[0])
+                .invoke(mock, new Object[0]);
         } catch (final IllegalAccessException e) {
             LOGGER.error(e.getMessage() + ':' + methodName, e);
         } catch (final IllegalArgumentException e) {
@@ -69,18 +69,18 @@ public class MockHelper {
 
     /**
      * Helper method to swallow exception from reflection. WET: With who!?
-     *
+     * 
      * @param object
      */
     public Object invokeMethod(final Object object, final String methName,
-            final Class<?>[] paramType, final Object[] args)
+                               final Class<?>[] paramType, final Object[] args)
     {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {
-            final Method method = object.getClass().getDeclaredMethod(
+            final Method method = object.getClass().getMethod(
                 methName,
                 paramType);
-            method.setAccessible(true);
+            //method.setAccessible(true);
             retval = method.invoke(object, args);
         } catch (final Exception e) { //NOPMD: too many exceptions.
             LOGGER.error(e.getMessage(), e);
