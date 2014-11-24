@@ -122,8 +122,15 @@ public class ViewObjectMocker {
         Mockito.when(this.mockVo.getFullName()).thenReturn(
             "Mock Full Name" + viewObjectName);
 
+        /* getViewObject() */
+        Mockito.when(this.mockVo.getViewObject()).thenReturn(this.mockVo);
+
         /* getRowSet() */
         Mockito.when(this.mockVo.getRowSet()).thenReturn(this.mockVo);
+
+        /* setRangeSize(int) */
+        ViewObjectAnswers.mockSetRangeSize(this.mockVo, this).setRangeSize(
+            Matchers.anyInt());
 
         /* createRow() */
         ViewObjectAnswers
