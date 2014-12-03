@@ -42,13 +42,13 @@ public final class ViewObjectAnswers {
     private static List<AttrDefMocker> initAttributeList(final String voInstName,
                                                          final AppModuleFixture<?> amFixture)
     {
-        final String voType = amFixture.getVoNameDefMap().get(voInstName);
-        assert voType != null;
+        final String voDef = amFixture.getVoNameDefMap().get(voInstName);
+        assert voDef != null;
 
         final AppModuleMocker appModuleMocker = amFixture.getAppModuleMocker();
         final List<AttrDefMocker> attrDefMockerList = appModuleMocker
             .getAttrDefMockerMap()
-            .get(voType);
+            .get(voDef);
         assert attrDefMockerList != null;
 
         if (attrDefMockerList.isEmpty()) {
@@ -250,9 +250,13 @@ public final class ViewObjectAnswers {
                     throws Throwable
             {
                 final String attrName = (String) invocation.getArguments()[0];
+                final String voDef = amFixture.getVoNameDefMap().get(
+                    mockVo.getName());
+                assert voDef != null;
+
                 return amFixture
                     .getVoDefAttrListMap()
-                    .get(mockVo.getName())
+                    .get(voDef)
                     .indexOf(attrName);
             }
         }).when(mockVo);

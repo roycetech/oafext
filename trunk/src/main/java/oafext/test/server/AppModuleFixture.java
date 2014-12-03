@@ -47,13 +47,13 @@ import org.xml.sax.SAXException;
 
 /**
  * TODO: Nested AM.
- *
+ * 
  * This class will handle parsing AM definition, and VO definition. Delegate to
  * initialization is also done here so you can invoke it directly from test
  * class.
  *
  * @author royce
- *
+ * 
  * @param <A> application module type.
  */
 public class AppModuleFixture<A extends OAApplicationModuleImpl> {
@@ -143,7 +143,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * Initialize view object row with attribute values.
-     *
+     * 
      * @param voInstance view object instance name.
      * @param index row index.
      * @param pAttrs attribute to set.
@@ -151,15 +151,33 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      */
     @SuppressWarnings("PMD.UseVarargs")
     public void initRowAtIndex(final String voInstance, final int index,
-            final int[] pAttrs, final Object[] pValues)
+                               final int[] pAttrs, final Object[] pValues)
     {
         this.appModuleMocker.initRowAtIndex(voInstance, index, pAttrs, pValues);
     }
 
     /**
+     * Initialize view object row with attribute values.
+     * 
+     * @param voInstance view object instance name.
+     * @param index row index.
+     * @param pAttrs attribute to set.
+     * @param pValues values to set.
+     */
+    public void initRowAtIndex(final String voInstance, final int index,
+                               final int pAttrs, final Object pValues)
+    {
+        this.appModuleMocker.initRowAtIndex(
+            voInstance,
+            index,
+            new int[] { pAttrs },
+            new Object[] { pValues });
+    }
+
+    /**
      * Make calls to ViewObject.isExecuted return true for ALL view objects
      * under the application module.
-     *
+     * 
      */
     public void setAllViewObjectExecuted()
     {
@@ -169,7 +187,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * Make calls to ViewObject.isExecuted return true for the given view object
      * instance..voType
-     *
+     * 
      * @param voInstName view object instance.
      */
     public void setViewObjectExecuted(final String voInstName)
@@ -191,21 +209,23 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             parseVoAndRowType(voInstName, voDef);
         }
-        this.appModuleMocker.mockViewObject(this, voInstName);
 
+        assert this.voNameClassMap.get(voInstName) != null;
+
+        this.appModuleMocker.mockViewObject(this, voInstName);
     }
 
     /**
-     *
+     * 
      * @param pAppModuleDef
      * @param parentInstName Parent application module instance name.
      */
     @SuppressWarnings({ "PMD.OnlyOneReturn" })
     private String processAppModuleDef(final String pAppModuleDef,
-            final String parentInstName)
+                                       final String parentInstName)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final String path = "/" + pAppModuleDef.replaceAll("\\.", "/") + ".xml";
+        final String path = '/' + pAppModuleDef.replaceAll("\\.", "/") + ".xml";
         DocumentBuilder docBuilder;
         try {
             docBuilder = dbf.newDocumentBuilder();
@@ -231,6 +251,11 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         return null;
     }
 
+
+    /**
+     * @param pNode
+     * @param parentInstName TODO:
+     */
     final void processAmRootNode(final Node pNode, final String parentInstName)
     {
         final NodeList nodes = pNode.getChildNodes();
@@ -252,7 +277,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * Parses the view object definition XML file.
-     *
+     * 
      * @param voInstName view object instance name.
      * @param voDef view object definition name.
      */
@@ -301,7 +326,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * To use later when reading attribute list from VO.xml.
-     *
+     * 
      * @param root
      */
     private void processVoRootNode(final String voTypeName, final Element root)
@@ -327,7 +352,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * This will prevent the DocumentBuilder from validating the DTD. Saves us
      * the trouble of dependence to online DTD resource.
-     *
+     * 
      * @param docBuilder DocumentBuilder instance.
      */
     private void ignoreDtd(final DocumentBuilder docBuilder)
@@ -337,7 +362,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             @Override
             public InputSource resolveEntity(final String publicId,
-                    final String systemId) throws SAXException, IOException
+                                             final String systemId)
+                    throws SAXException, IOException
             {
                 InputSource retval = null; //NOPMD: null default, conditionally redefine.
                 if (systemId.contains("jbo_03_01.dtd")) {
@@ -420,7 +446,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @return the voNameDefFullMap
      */
-    Map<String, String> getVoNameDefMap()
+    Map<String, String> getVoNameDefFullMap()
     {
         return this.voNameDefFullMap;
     }
@@ -440,6 +466,15 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     Map<Class<? extends Row>, String> getRowClsVoDefMap()
     {
         return this.rowClsVoDefMap;
+    }
+
+
+    /**
+     * @return the voNameDefMap
+     */
+    Map<String, String> getVoNameDefMap()
+    {
+        return this.voNameDefMap;
     }
 
 
