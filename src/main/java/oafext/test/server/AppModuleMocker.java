@@ -15,6 +15,7 @@
  */
 package oafext.test.server;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class AppModuleMocker {
     /** */
     private final transient Map<String, ViewObjectMocker> voInstMockerMap;
 
-    /** */
+    /** View Object Def Name to List of Attributes. */
     private final transient Map<String, List<AttrDefMocker>> attrDefMockerMap = new HashMap<String, List<AttrDefMocker>>();
 
 
@@ -78,15 +79,30 @@ public class AppModuleMocker {
      * 
      * @param voInstance
      */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     void mockViewObject(final AppModuleFixture<?> amFixture,
                         final String voInstance)
     {
-
         final ViewObjectMocker voMocker = new ViewObjectMocker(
             amFixture,
             voInstance);
 
         this.voInstMockerMap.put(voInstance, voMocker);
+
+        final String voDef = amFixture.getVoNameDefMap().get(voInstance);
+        assert voDef != null;
+
+        final List<AttrDefMocker> attrDefMocker = new ArrayList<AttrDefMocker>();
+        final List<String> attrList = amFixture
+            .getVoDefAttrListMap()
+            .get(voDef);
+        assert attrList != null;
+        for (final String string : attrList) {
+            attrDefMocker.add(new AttrDefMocker(string));
+        }
+
+        this.attrDefMockerMap.put(voDef, attrDefMocker);
+
 
         final String methName = "get" + voInstance;
         Mockito

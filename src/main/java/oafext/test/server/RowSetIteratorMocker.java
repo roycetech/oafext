@@ -58,7 +58,7 @@ public class RowSetIteratorMocker {
         this.mockRsIter = Mockito.mock(RowSetIterator.class);
         this.rangeEnd = voMocker.getRowMockerList().size();
 
-        LOGGER.info("New Iterator: " + pName + ',' + this.rangeEnd);
+        //LOGGER.info("New Iterator: " + pName + ',' + this.rangeEnd);
 
 
         /* getName() */

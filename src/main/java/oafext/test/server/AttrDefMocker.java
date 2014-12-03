@@ -21,7 +21,7 @@ import org.mockito.Mockito;
 
 /**
  * @author royce
- *
+ * 
  */
 public class AttrDefMocker {
 
@@ -33,6 +33,7 @@ public class AttrDefMocker {
     AttrDefMocker(final String name) {
         this.mockAttrDef = Mockito.mock(AttributeDef.class);
 
+        /* getName() */
         Mockito.doReturn(name).when(this.mockAttrDef).getName();
     }
 

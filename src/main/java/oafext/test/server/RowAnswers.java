@@ -90,34 +90,36 @@ public final class RowAnswers {
             getViewObj = mockRow.getClass().getDeclaredMethod(
                 RowMocker.CUSTOM_GET_VO,
                 new Class<?>[0]);
+
+            if (getViewObj != null) {
+
+                Mockito
+                    .when(getViewObj.invoke(mockRow, new Object[0]))
+                    .thenAnswer(new Answer<ViewObject>() {
+
+                        @Override
+                        public ViewObject answer(final InvocationOnMock invocation)
+                                throws Throwable
+                        {
+                            return mockVo;
+                        }
+                    });
+
+
+            }
+
         } catch (final SecurityException e1) {
             LOGGER.error(e1.getMessage(), e1);
         } catch (final NoSuchMethodException e1) {
             LOGGER.error("Anti zombie method not found for: "
                     + mockRow.getClass().getSimpleName(), e1);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (final IllegalAccessException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (final InvocationTargetException e) {
+            LOGGER.error(e.getMessage(), e);
         }
-
-        if (getViewObj != null) {
-
-            try {
-                Mockito.doAnswer(new Answer<ViewObject>() {
-
-                    @Override
-                    public ViewObject answer(final InvocationOnMock invocation)
-                            throws Throwable
-                    {
-                        return mockVo;
-                    }
-                })
-                    .when(mockRow)
-                    .getClass()
-                    .getDeclaredMethod(RowMocker.CUSTOM_GET_VO, new Class<?>[0])
-                    .invoke(mockRow, new Object[0]);
-            } catch (final Exception e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-
 
     }
 
