@@ -51,7 +51,7 @@ import org.xml.sax.SAXException;
  * This class will handle parsing AM definition, and VO definition. Delegate to
  * initialization is also done here so you can invoke it directly from test
  * class.
- *
+ * 
  * @author royce
  * 
  * @param <A> application module type.
@@ -287,7 +287,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     void parseVoAndRowType(final String voInstName, final String voDef)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final String appDefFilename = "/" + voDef.replaceAll("\\.", "/")
+        final String appDefFilename = '/' + voDef.replaceAll("\\.", "/")
                 + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
