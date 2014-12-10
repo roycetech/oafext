@@ -42,20 +42,23 @@ public final class ViewObjectAnswers {
     private static List<AttrDefMocker> initAttributeList(final String voInstName,
                                                          final AppModuleFixture<?> amFixture)
     {
-        final String voDef = amFixture.getVoNameDefMap().get(voInstName);
-        assert voDef != null;
+        final String voDefFull = amFixture
+            .getVoNameDefMap()
+            .get(voInstName);
+        assert voDefFull != null;
 
         final AppModuleMocker appModuleMocker = amFixture.getAppModuleMocker();
         final List<AttrDefMocker> attrDefMockerList = appModuleMocker
             .getAttrDefMockerMap()
-            .get(voDef);
+            .get(voDefFull);
         assert attrDefMockerList != null;
 
         if (attrDefMockerList.isEmpty()) {
-            final List<String> attrList = amFixture.getVoDefAttrListMap().get(
-                voInstName);
-            for (final String string : attrList) {
-                attrDefMockerList.add(new AttrDefMocker(string));
+            final List<String> attrList = amFixture
+                .getVoDefAttrListMap()
+                .get(voDefFull);
+            for (final String nextAttribute : attrList) {
+                attrDefMockerList.add(new AttrDefMocker(nextAttribute));
             }
         }
         return attrDefMockerList;
@@ -250,13 +253,13 @@ public final class ViewObjectAnswers {
                     throws Throwable
             {
                 final String attrName = (String) invocation.getArguments()[0];
-                final String voDef = amFixture.getVoNameDefMap().get(
+                final String voDefFull = amFixture.getVoNameDefMap().get(
                     mockVo.getName());
-                assert voDef != null;
+                assert voDefFull != null;
 
                 return amFixture
                     .getVoDefAttrListMap()
-                    .get(voDef)
+                    .get(voDefFull)
                     .indexOf(attrName);
             }
         }).when(mockVo);

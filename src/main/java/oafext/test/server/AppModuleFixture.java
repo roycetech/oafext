@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,8 @@ import org.xml.sax.SAXException;
 
 /**
  * TODO: Nested AM.
+ * 
+ * Support one level VO inheritance only.
  * 
  * This class will handle parsing AM definition, and VO definition. Delegate to
  * initialization is also done here so you can invoke it directly from test
@@ -76,12 +79,19 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     static final String FILE_SEP = File.separator;
 
 
-    /** View Object Instance to Type Name. e.g. FinFacilityVO1=FinFacilityVO. */
+    /**
+     * View Object Instance to Type Name. e.g.
+     * FinFacilityVO1=xxx.oracle.apps.xx.server.FinFacilityVO.
+     */
     private final transient Map<String, String> voNameDefMap;
 
 
-    /** View Object Instance name to View Object Definition. */
-    private final transient Map<String, String> voNameDefFullMap;
+    /**
+     * VO Definition to View Usage name list. (xx.SearchCountriesVO) to
+     * [SearchCountriesVO1, SearchCountriesVO2].
+     */
+    private final transient Map<String, List<String>> voDefNameListMap;
+
 
     /** View Object Instance name to View Object Class. */
     private final transient Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = new HashMap<String, Class<? extends ViewObjectImpl>>();
@@ -91,6 +101,13 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /** View Object Type (e.g. 'SomeVO') to Attribute List map. */
     private final transient Map<String, List<String>> voDefAttrListMap;
+
+    /**
+     * View Object Type (e.g. 'xx.SomeVOEx') to View Object Type (e.g.
+     * 'xx.SomeVO') map.
+     */
+    private final transient Map<String, String> voDefVoDefMap;
+
 
     /** Row class to view object Definition. */
     private final transient Map<Class<? extends Row>, String> rowClsVoDefMap = new HashMap<Class<? extends Row>, String>();
@@ -109,8 +126,9 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
         this.voDefAttrListMap = new HashMap<String, List<String>>();
-        this.voNameDefFullMap = new HashMap<String, String>();
         this.voNameDefMap = new HashMap<String, String>();
+        this.voDefVoDefMap = new HashMap<String, String>();
+        this.voDefNameListMap = new HashMap<String, List<String>>();
 
         final String amClassName = processAppModuleDef(pAppModuleDef, null);
         try {
@@ -204,7 +222,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
 
-            final String voDef = this.voNameDefFullMap.get(voInstName);
+            final String voDef = this.voNameDefMap.get(voInstName);
             assert voDef != null;
 
             parseVoAndRowType(voInstName, voDef);
@@ -268,7 +286,16 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                     final String voInstName = elem.getAttribute(Attribute.NAME);
                     final String voDef = elem.getAttribute(Attribute.VO_DEF);
 
-                    this.voNameDefFullMap.put(voInstName, voDef);
+                    this.voNameDefMap.put(voInstName, voDef);
+
+                    if (this.voDefNameListMap.get(voDef) == null) {
+                        this.voDefNameListMap.put(
+                            voDef,
+                            new ArrayList<String>());
+                    }
+                    final List<String> viewUsageList = this.voDefNameListMap
+                        .get(voDef);
+                    viewUsageList.add(voInstName);
                 }
             }
         }
@@ -280,14 +307,18 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * 
      * @param voInstName view object instance name.
      * @param voDef view object definition name.
+     * 
+     * @return parent class.
      */
     @SuppressWarnings({
             UNCHECKED,
             "PMD.AvoidCatchingGenericException" })
-    void parseVoAndRowType(final String voInstName, final String voDef)
+    String parseVoAndRowType(final String voInstName, final String voDef)
     {
+        LOGGER.info("voInstName: " + voInstName + ", voDef: " + voDef);
+
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final String appDefFilename = '/' + voDef.replaceAll("\\.", "/")
+        final String voDefFilename = '/' + voDef.replaceAll("\\.", "/")
                 + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
@@ -295,57 +326,120 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             final Document document = docBuilder.parse(this
                 .getClass()
-                .getResourceAsStream(appDefFilename));
+                .getResourceAsStream(voDefFilename));
             final Element root = document.getDocumentElement();
 
-            final String voDefName = root.getAttribute(Attribute.NAME);
-            this.voNameDefMap.put(voInstName, voDefName);
+            this.voNameDefMap.put(voInstName, voDef);
+            final String superVoDef = root.getAttribute(Attribute.SUPERVO);
+            LOGGER.info("superVoDef: " + superVoDef);
 
-            final String implClassName = root
-                .getAttribute(Attribute.OBJECT_IMPL_CLASS);
+            String voClassName;
+            if (superVoDef == null || "".equals(superVoDef.trim())) {
+                voClassName = root.getAttribute(Attribute.OBJECT_IMPL_CLASS);
+            } else {
+                parseVoAndRowType(
+                    this.voDefNameListMap.get(superVoDef).get(0),
+                    superVoDef);
 
+                this.voDefVoDefMap.put(voDef, superVoDef);
+                voClassName = getSuperVOClass(superVoDef);
+            }
+
+            LOGGER.info("voClassName: " + voClassName);
             this.voNameClassMap.put(
                 voInstName,
-                (Class<? extends ViewObjectImpl>) Class.forName(implClassName));
-
+                (Class<? extends ViewObjectImpl>) Class.forName(voClassName));
 
             final String rowClassName = root.getAttribute(Attribute.VOROW_IMPL);
             final Class<? extends Row> rowClass = (Class<? extends Row>) Class
                 .forName(rowClassName);
 
             this.voNameRowClsMap.put(voInstName, rowClass);
-            this.rowClsVoDefMap.put(rowClass, voDefName);
+            this.rowClsVoDefMap.put(rowClass, voDef);
 
-            processVoRootNode(voDefName, root);
+            processVoRootNode(voDef, root);
 
         } catch (final Exception exception) {
             LOGGER.error("Error on voInstName[" + voInstName
                     + "], definition: " + voDef, exception);
         }
+        return null;
     }
+
+    /**
+     * @param superVoDef
+     */
+    @SuppressWarnings("PMD.OnlyOneReturn" /* Two only. */)
+    private String getSuperVOClass(final String superVoDef)
+    {
+        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        final String voDefFilename = '/' + superVoDef.replaceAll("\\.", "/")
+                + ".xml";
+        try {
+            final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+            ignoreDtd(docBuilder);
+
+            final Document document = docBuilder.parse(this
+                .getClass()
+                .getResourceAsStream(voDefFilename));
+            final Element root = document.getDocumentElement();
+
+            return root.getAttribute(Attribute.OBJECT_IMPL_CLASS);
+        } catch (final ParserConfigurationException e) {
+            LOGGER.error("Error on superVoDef[" + superVoDef + "]", e);
+        } catch (final SAXException e) {
+            LOGGER.error("Error on superVoDef[" + superVoDef + "]", e);
+        } catch (final IOException e) {
+            LOGGER.error("Error on superVoDef[" + superVoDef + "]", e);
+        }
+        return null; //FAIL.
+    }
+
 
     /**
      * To use later when reading attribute list from VO.xml.
      * 
-     * @param root
+     * @param voTypeName e.g. SomeVO.
+     * @param root root view object element.
      */
-    private void processVoRootNode(final String voTypeName, final Element root)
+    private void processVoRootNode(final String voFullDefName,
+                                   final Element root)
     {
+        assert voFullDefName != null;
+
+
         final NodeList nodes = root.getChildNodes();
         if (nodes != null) {
 
-            final List<String> attrNames = new ArrayList<String>();
+            final List<String> currAttrNames = new LinkedList<String>();
             for (int i = 0; i < nodes.getLength(); i++) {
                 final Node childNode = nodes.item(i);
                 final String nodeName = childNode.getNodeName();
                 if (NodeName.ROW_ATTR.equals(nodeName)) {
                     final Element elem = (Element) childNode;
                     final String attrName = elem.getAttribute(Attribute.NAME);
-                    attrNames.add(attrName);
+                    currAttrNames.add(attrName);
 
                 }
             }
-            this.voDefAttrListMap.put(voTypeName, attrNames);
+
+            final String parentVoDef = this.voDefVoDefMap.get(voFullDefName);
+            if (parentVoDef == null) {
+                this.voDefAttrListMap.put(voFullDefName, currAttrNames);
+            } else {
+                final List<String> parentAttrList = this.voDefAttrListMap
+                    .get(parentVoDef);
+                final List<String> combinedAttrList = new LinkedList<String>();
+                combinedAttrList.addAll(parentAttrList);
+                combinedAttrList.addAll(currAttrNames);
+
+                this.voDefAttrListMap.put(voFullDefName, combinedAttrList);
+            }
+
+            LOGGER.info(voFullDefName + " has "
+                    + this.voDefAttrListMap.get(voFullDefName).size()
+                    + " attribute(s)");
+
         }
     }
 
@@ -404,6 +498,11 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
         /** Row class. */
         static final String VOROW_IMPL = "RowClass";
+
+        /** Extended VO. */
+        static final String SUPERVO = "Extends";
+
+
     }
 
 
@@ -444,11 +543,11 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
-     * @return the voNameDefFullMap
+     * @return the voNameDefMap
      */
-    Map<String, String> getVoNameDefFullMap()
+    Map<String, String> getVoNameDefMap()
     {
-        return this.voNameDefFullMap;
+        return this.voNameDefMap;
     }
 
     /**
@@ -466,15 +565,6 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     Map<Class<? extends Row>, String> getRowClsVoDefMap()
     {
         return this.rowClsVoDefMap;
-    }
-
-
-    /**
-     * @return the voNameDefMap
-     */
-    Map<String, String> getVoNameDefMap()
-    {
-        return this.voNameDefMap;
     }
 
 
