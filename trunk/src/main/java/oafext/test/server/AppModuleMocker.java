@@ -42,8 +42,8 @@ public class AppModuleMocker {
     /** */
     private final transient Map<String, ViewObjectMocker> voInstMockerMap;
 
-    /** View Object Def Name to List of Attributes. */
-    private final transient Map<String, List<AttrDefMocker>> attrDefMockerMap = new HashMap<String, List<AttrDefMocker>>();
+    /** View Object Definition Full Name to List of Attributes. */
+    private final transient Map<String, List<AttrDefMocker>> attrDefFullMockerMap = new HashMap<String, List<AttrDefMocker>>();
 
 
     /** */
@@ -89,19 +89,18 @@ public class AppModuleMocker {
 
         this.voInstMockerMap.put(voInstance, voMocker);
 
-        final String voDef = amFixture.getVoNameDefMap().get(voInstance);
-        assert voDef != null;
+        final String voDefFull = amFixture.getVoNameDefMap().get(voInstance);
+        assert voDefFull != null;
 
         final List<AttrDefMocker> attrDefMocker = new ArrayList<AttrDefMocker>();
-        final List<String> attrList = amFixture
-            .getVoDefAttrListMap()
-            .get(voDef);
+        final List<String> attrList = amFixture.getVoDefAttrListMap().get(
+            voDefFull);
         assert attrList != null;
         for (final String string : attrList) {
             attrDefMocker.add(new AttrDefMocker(string));
         }
 
-        this.attrDefMockerMap.put(voDef, attrDefMocker);
+        this.attrDefFullMockerMap.put(voDefFull, attrDefMocker);
 
 
         final String methName = "get" + voInstance;
@@ -188,7 +187,7 @@ public class AppModuleMocker {
      */
     Map<String, List<AttrDefMocker>> getAttrDefMockerMap()
     {
-        return this.attrDefMockerMap;
+        return this.attrDefFullMockerMap;
     }
 
 

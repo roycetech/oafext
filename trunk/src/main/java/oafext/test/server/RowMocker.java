@@ -53,14 +53,13 @@ public class RowMocker {
         this.attrValueMap = new HashMap<String, Object>();
 
 
-        final Map<Class<? extends Row>, String> rowClsVoDefMap = amFixture
+        final Map<Class<? extends Row>, String> rowClsVoDefFullMap = amFixture
             .getRowClsVoDefMap();
-        final String voDef = rowClsVoDefMap.get(rowClass);
-        assert voDef != null;
+        final String voDefFull = rowClsVoDefFullMap.get(rowClass);
+        assert voDefFull != null;
 
-        final List<String> attrList = amFixture
-            .getVoDefAttrListMap()
-            .get(voDef);
+        final List<String> attrList = amFixture.getVoDefAttrListMap().get(
+            voDefFull);
 
 
         /* getViewObj - anti zombie/anti final. */
