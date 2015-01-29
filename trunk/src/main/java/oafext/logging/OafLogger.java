@@ -130,6 +130,7 @@ public class OafLogger {
     /** Empty stream used to block System.out.println. */
     private static final PrintStream EMPTY_STREAM = new PrintStream(
         new OutputStream() {
+            @Override
             public void write(final int unused)
             {
                 //NO-OP
@@ -1223,13 +1224,6 @@ public class OafLogger {
             print(classNameDisp + methName + ":" + lineNo + SEP_MSG + "\n"
                     + stackTraceToString(message), level);
         }
-    }
-
-
-    /** Test method only. */
-    private void error()
-    {
-        throw new IllegalArgumentException("Testing Exception");
     }
 
     /**
