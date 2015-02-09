@@ -33,6 +33,7 @@ public final class RowSetIteratorAnswers {
 
 
     /** sl4j logger instance. */
+    @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory
         .getLogger(RowSetIteratorAnswers.class);
 
@@ -41,7 +42,7 @@ public final class RowSetIteratorAnswers {
 
 
     static <M> M mockGetRowAtRangeIndex(final M mockRsIter,
-                                        final ViewObjectImpl mockVo)
+            final ViewObjectImpl mockVo)
     {
 
         return Mockito.doAnswer(new Answer<Row>() {
@@ -66,7 +67,7 @@ public final class RowSetIteratorAnswers {
      * @param mockVo
      */
     static <M> M mockHasNext(final M mockRsIter,
-                             final RowSetIteratorMocker rsIterMocker)
+            final RowSetIteratorMocker rsIterMocker)
     {
         return Mockito.doAnswer(new Answer<Boolean>() {
 
@@ -82,8 +83,8 @@ public final class RowSetIteratorAnswers {
 
 
     static <M extends RowSetIterator> M mockNext(final M mockRsIter,
-                                                 final RowSetIteratorMocker rsIterMocker,
-                                                 final ViewObjectMocker voMocker)
+            final RowSetIteratorMocker rsIterMocker,
+            final ViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -118,8 +119,8 @@ public final class RowSetIteratorAnswers {
     }
 
     static <M> M mockPrevious(final M mockRsIter,
-                              final RowSetIteratorMocker rsIterMocker,
-                              final ViewObjectMocker voMocker)
+            final RowSetIteratorMocker rsIterMocker,
+            final ViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -149,7 +150,7 @@ public final class RowSetIteratorAnswers {
      * @param rowSetIterMocker
      */
     static <M> M mockReset(final M mockRsIter,
-                           final RowSetIteratorMocker rowSetIterMocker)
+            final RowSetIteratorMocker rowSetIterMocker)
     {
 
         return Mockito.doAnswer(new Answer<Object>() {
@@ -167,7 +168,7 @@ public final class RowSetIteratorAnswers {
     }
 
     static <M extends RowSetIterator> M mockCloseRsIterator(final M mockRsIter,
-                                                            final ViewObjectMocker voMocker)
+            final ViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -182,7 +183,7 @@ public final class RowSetIteratorAnswers {
     }
 
     static <M> M mockSetRangeSize(final M mockRsIter,
-                                  final RowSetIteratorMocker rowSetIterMocker)
+            final RowSetIteratorMocker rowSetIterMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -198,7 +199,7 @@ public final class RowSetIteratorAnswers {
     }
 
     static <M> M mockGetRowCount(final M mockRsIter,
-                                 final ViewObjectMocker voMocker)
+            final ViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Integer>() {
 
