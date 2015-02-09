@@ -50,8 +50,7 @@ public final class RowAnswers {
     }
 
     static <M> M mockGetAttributeInt(final M mockRow,
-                                     final List<String> attrList,
-                                     final RowMocker rowMocker)
+            final List<String> attrList, final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -68,7 +67,7 @@ public final class RowAnswers {
     }
 
     static <M> M mockGetAttributeString(final M mockRow,
-                                        final RowMocker rowMocker)
+            final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -98,7 +97,8 @@ public final class RowAnswers {
                     .thenAnswer(new Answer<ViewObject>() {
 
                         @Override
-                        public ViewObject answer(final InvocationOnMock invocation)
+                        public ViewObject answer(
+                                final InvocationOnMock invocation)
                                 throws Throwable
                         {
                             return mockVo;
@@ -139,8 +139,7 @@ public final class RowAnswers {
     }
 
     static <M> M mockSetAttributeInt(final M mockRow,
-                                     final List<String> attrList,
-                                     final RowMocker rowMocker)
+            final List<String> attrList, final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -161,7 +160,7 @@ public final class RowAnswers {
     }
 
     static <M> M mockSetAttributeString(final M mockRow,
-                                        final RowMocker rowMocker)
+            final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -182,8 +181,7 @@ public final class RowAnswers {
 
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     static void mockSetter(final Row mockRow, final Class<?> rowClass,
-                           final List<String> attrList,
-                           final RowMocker rowMocker)
+            final List<String> attrList, final RowMocker rowMocker)
     {
         final MockHelper helper = new MockHelper(); //NOPMD: Optimized Outside loop
         for (final String nextAttr : attrList) {
@@ -223,7 +221,7 @@ public final class RowAnswers {
 
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     static void mockGetter(final Row mockRow, final List<String> attrList,
-                           final RowMocker rowMocker)
+            final RowMocker rowMocker)
     {
         final MockHelper helper = new MockHelper(); //NOPMD: Optimized Outside loop
 
@@ -246,8 +244,7 @@ public final class RowAnswers {
                         public Object answer(final InvocationOnMock invocation)
                                 throws Throwable
                         {
-                            final Integer index = attrList.indexOf(nextAttr);
-                            return rowMocker.getAttrValueMap().get(index);
+                            return rowMocker.getAttrValueMap().get(nextAttr);
                         }
                     });
             } catch (final IllegalArgumentException e) {

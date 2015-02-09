@@ -25,7 +25,7 @@ public class MockHelper {
      * @param methodName method name.
      */
     @SuppressWarnings("PMD.OnlyOneReturn")
-    public Method findMethod(final Class klass, final String methodName)
+    public Method findMethod(final Class<?> klass, final String methodName)
     {
 
         for (final Method method : klass.getMethods()) {
@@ -73,7 +73,7 @@ public class MockHelper {
      * @param object
      */
     public Object invokeMethod(final Object object, final String methName,
-                               final Class<?>[] paramType, final Object[] args)
+            final Class<?>[] paramType, final Object[] args)
     {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {

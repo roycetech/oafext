@@ -30,6 +30,7 @@ public class RowSetIteratorMocker {
 
 
     /** sl4j logger instance. */
+    @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory
         .getLogger(RowSetIteratorMocker.class);
 

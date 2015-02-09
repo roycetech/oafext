@@ -22,12 +22,15 @@ import java.util.Map;
 
 import oafext.test.util.MockHelper;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
+import oracle.apps.fnd.framework.server.OADBTransaction;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
 
 import org.junit.After;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author royce
@@ -50,6 +53,10 @@ public class AppModuleMocker {
     private final transient MockHelper helper = new MockHelper();
 
 
+    /** sl4j logger instance. */
+    private static final Logger LOGGER = LoggerFactory
+        .getLogger(AppModuleMocker.class);
+
     /** */
     AppModuleMocker(
             final Class<? extends OAApplicationModuleImpl> appModuleClass) {
@@ -60,6 +67,11 @@ public class AppModuleMocker {
         /* findViewObject */
         AppModuleAnswers.mockFindViewObject(this.mockAm, this).findViewObject(
             Matchers.anyString());
+
+        /* getOADBTransaction */
+        final OADBTransaction mockTrx = Mockito.mock(OADBTransaction.class);
+        Mockito.doReturn(mockTrx).when(mockAm).getOADBTransaction();
+
     }
 
 
@@ -81,7 +93,7 @@ public class AppModuleMocker {
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     void mockViewObject(final AppModuleFixture<?> amFixture,
-                        final String voInstance)
+            final String voInstance)
     {
         final ViewObjectMocker voMocker = new ViewObjectMocker(
             amFixture,
@@ -118,7 +130,7 @@ public class AppModuleMocker {
      * @param pValues values to set.
      */
     public void initRowAtIndex(final String voInstance, final int index,
-                               final int[] pAttrs, final Object[] pValues)
+            final int[] pAttrs, final Object[] pValues)
     {
         assert this.voInstMockerMap.get(voInstance) != null;
 
