@@ -84,9 +84,9 @@ public class RowMocker {
             .setAttribute(Matchers.anyInt(), Matchers.any());
 
         /* setAttribute(String) */
-        RowAnswers
-            .mockSetAttributeInt(this.mockRow, attrList, this)
-            .setAttribute(Matchers.anyInt(), Matchers.any());
+        RowAnswers.mockSetAttributeString(this.mockRow, this).setAttribute(
+            Matchers.anyString(),
+            Matchers.any());
 
         /* set*(Object) */
         RowAnswers.mockSetter(this.mockRow, rowClass, attrList, this);
