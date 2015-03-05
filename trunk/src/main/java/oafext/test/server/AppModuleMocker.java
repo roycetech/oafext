@@ -93,7 +93,7 @@ public class AppModuleMocker {
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     void mockViewObject(final AppModuleFixture<?> amFixture,
-            final String voInstance)
+                        final String voInstance)
     {
         final ViewObjectMocker voMocker = new ViewObjectMocker(
             amFixture,
@@ -130,18 +130,27 @@ public class AppModuleMocker {
      * @param pValues values to set.
      */
     public void initRowAtIndex(final String voInstance, final int index,
-            final int[] pAttrs, final Object[] pValues)
+                               final int[] pAttrs, final Object[] pValues)
     {
         assert this.voInstMockerMap.get(voInstance) != null;
 
         final ViewObject viewObject = getMockAm().findViewObject(voInstance);
         assert viewObject != null;
 
-        final Row newRow = viewObject.createRow();
-        for (int i = 0; i < pValues.length; i++) {
-            newRow.setAttribute(pAttrs[i], pValues[i]);
+        final boolean isExisting = index < viewObject.getAllRowsInRange().length;
+        Row row;
+        if (isExisting) {
+            row = viewObject.getRowAtRangeIndex(index);
+        } else {
+            row = viewObject.createRow();
+            viewObject.insertRowAtRangeIndex(index, row);
         }
-        viewObject.insertRowAtRangeIndex(index, newRow);
+
+        for (int i = 0; i < pValues.length; i++) {
+            LOGGER
+                .info("pAttrs[i]=" + pAttrs[i] + ", pValues[i]=" + pValues[i]);
+            row.setAttribute(pAttrs[i], pValues[i]);
+        }
     }
 
     /**

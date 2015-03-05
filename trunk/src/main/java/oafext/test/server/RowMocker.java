@@ -61,7 +61,6 @@ public class RowMocker {
         final List<String> attrList = amFixture.getVoDefAttrListMap().get(
             voDefFull);
 
-
         /* getViewObj - anti zombie/anti final. */
         RowAnswers.mockGetViewObj(this.mockRow, mockVo);
 
@@ -76,7 +75,7 @@ public class RowMocker {
             Matchers.anyString());
 
         /* getKey() */
-        RowAnswers.mockGetKey(this.mockRow).getAttribute(Matchers.anyString());
+        RowAnswers.mockGetKey(this.mockRow).getKey();
 
         /* setAttribute(int) */
         RowAnswers
