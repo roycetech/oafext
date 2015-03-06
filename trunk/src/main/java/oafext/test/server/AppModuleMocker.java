@@ -147,8 +147,6 @@ public class AppModuleMocker {
         }
 
         for (int i = 0; i < pValues.length; i++) {
-            LOGGER
-                .info("pAttrs[i]=" + pAttrs[i] + ", pValues[i]=" + pValues[i]);
             row.setAttribute(pAttrs[i], pValues[i]);
         }
     }
