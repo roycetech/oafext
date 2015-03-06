@@ -46,8 +46,14 @@ public class RowMocker {
     private final transient Map<String, Object> attrValueMap;
 
 
+    /**
+     * @param mockVo
+     * @param rowClass
+     * @param amFixture
+     */
     RowMocker(final ViewObject mockVo, final Class<? extends Row> rowClass,
-            final AppModuleFixture<?> amFixture) {
+            final AppModuleFixture<?> amFixture, final ViewObjectMocker voMocker) {
+
         this.mockRow = Mockito.mock(rowClass);
 
         this.attrValueMap = new HashMap<String, Object>();
@@ -61,9 +67,12 @@ public class RowMocker {
         final List<String> attrList = amFixture.getVoDefAttrListMap().get(
             voDefFull);
 
+        /* remove(). */
+        RowAnswers.mockRemove(this.mockRow, voMocker, this).remove();
+
+
         /* getViewObj - anti zombie/anti final. */
         RowAnswers.mockGetViewObj(this.mockRow, mockVo);
-
 
         /* getAttribute(int) */
         RowAnswers
