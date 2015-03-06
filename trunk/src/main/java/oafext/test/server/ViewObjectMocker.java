@@ -47,7 +47,10 @@ public class ViewObjectMocker {
     /** */
     private final transient Map<String, RowSetIteratorMocker> rowSetIterMap = new HashMap<String, RowSetIteratorMocker>();
 
-    /** Temporary place holder for new rows. */
+    /**
+     * Temporary place holder for new rows. This is cleared when the row is
+     * actually inserted in the VO.
+     */
     private final transient Map<Row, RowMocker> newRowsMap = new HashMap<Row, RowMocker>();
 
 
@@ -92,8 +95,7 @@ public class ViewObjectMocker {
      * @param viewObjectName view instance name.
      */
     ViewObjectMocker(final AppModuleFixture<?> amFixture,
-
-    final String viewObjectName) {
+            final String viewObjectName) {
 
         final OAApplicationModuleImpl appModule = amFixture.getMockAppModule();
 
@@ -200,6 +202,13 @@ public class ViewObjectMocker {
 
     }
 
+
+    //TODO: What happens to currentRow if it is removed.  Does it now point to null or does it point to a dead row?
+    void remove(final RowMocker rowMocker)
+    {
+        this.rowMockerList.remove(rowMocker);
+    }
+
     /**
      * @return the mockVo
      */
@@ -292,7 +301,6 @@ public class ViewObjectMocker {
     {
         this.rangeStart = rangeStart;
     }
-
 
     /**
      * @return the executed

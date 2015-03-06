@@ -77,7 +77,8 @@ public final class ViewObjectAnswers {
                 final RowMocker rowMocker = new RowMocker(
                     mockVo,
                     rowClass,
-                    amFixture);
+                    amFixture,
+                    viewObjectMocker);
 
                 viewObjectMocker.getNewRowsMap().put(
                     rowMocker.getMockRow(),
