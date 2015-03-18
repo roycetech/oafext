@@ -33,7 +33,7 @@ public final class AppModuleAnswers {
 
 
     static <M> M mockFindViewObject(final M mockAppModule,
-            final AppModuleMocker amMocker)
+                                    final AppModuleMocker<?> amMocker)
     {
         return Mockito.doAnswer(new Answer<ViewObject>() {
 
@@ -42,7 +42,7 @@ public final class AppModuleAnswers {
                     throws Throwable
             {
                 final String voInstName = (String) invocation.getArguments()[0];
-                final ViewObjectMocker voMocker = amMocker
+                final BaseViewObjectMocker voMocker = amMocker
                     .getVoInstMockerMap()
                     .get(voInstName);
                 return voMocker.getMockVo();

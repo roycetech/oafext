@@ -34,16 +34,16 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author royce
- * 
+ *
  */
-public class AppModuleMocker {
+public class AppModuleMocker<A extends OAApplicationModuleImpl> {
 
 
     /** */
-    private final transient OAApplicationModuleImpl mockAm;
+    private final transient A mockAm;
 
     /** */
-    private final transient Map<String, ViewObjectMocker> voInstMockerMap;
+    private final transient Map<String, BaseViewObjectMocker> voInstMockerMap;
 
     /** View Object Definition Full Name to List of Attributes. */
     private final transient Map<String, List<AttrDefMocker>> attrDefFullMockerMap = new HashMap<String, List<AttrDefMocker>>();
@@ -57,12 +57,38 @@ public class AppModuleMocker {
     private static final Logger LOGGER = LoggerFactory
         .getLogger(AppModuleMocker.class);
 
-    /** */
-    AppModuleMocker(
-            final Class<? extends OAApplicationModuleImpl> appModuleClass) {
 
-        this.mockAm = Mockito.mock(appModuleClass);
-        this.voInstMockerMap = new HashMap<String, ViewObjectMocker>();
+    /** */
+    AppModuleMocker(final Class<A> appModuleClass) {
+        this(appModuleClass, false);
+    }
+
+
+    /**
+     * @param appModuleClass application module class.
+     * @param spyAm set to true if you need to spy the AM. This is not
+     *            recommended due to performance and design limitation when
+     *            using a single AM for model approach.
+     */
+    AppModuleMocker(final Class<A> appModuleClass, final boolean spyAm) {
+
+        assert appModuleClass != null;
+
+        if (spyAm) {
+            try {
+                final A appModule = appModuleClass.newInstance();
+                this.mockAm = Mockito.spy(appModule);
+            } catch (final InstantiationException e) {
+                throw new OafExtException(e.getMessage());
+            } catch (final IllegalAccessException e) {
+                throw new OafExtException(e.getMessage());
+            }
+
+        } else {
+            this.mockAm = Mockito.mock(appModuleClass);
+        }
+
+        this.voInstMockerMap = new HashMap<String, BaseViewObjectMocker>();
 
         /* findViewObject */
         AppModuleAnswers.mockFindViewObject(this.mockAm, this).findViewObject(
@@ -70,7 +96,7 @@ public class AppModuleMocker {
 
         /* getOADBTransaction */
         final OADBTransaction mockTrx = Mockito.mock(OADBTransaction.class);
-        Mockito.doReturn(mockTrx).when(mockAm).getOADBTransaction();
+        Mockito.doReturn(mockTrx).when(this.mockAm).getOADBTransaction();
 
     }
 
@@ -79,25 +105,60 @@ public class AppModuleMocker {
     void tearDown()
     {
         //Mockito.reset(this.mockAm);  //Don't reset.  App Module mocker is retained between calls.
-        for (final ViewObjectMocker voMocker : this.voInstMockerMap.values()) {
-            Mockito.reset(voMocker.getMockVo());
-            voMocker.tearDown();
-        }
+        //        for (final BaseViewObjectMocker voMocker : this.voInstMockerMap
+        //            .values()) {
+        //            Mockito.reset(voMocker.getMockVo());
+        //            voMocker.tearDown();
+        //        }
         this.voInstMockerMap.clear();
+        //Mockito.reset((Object) mockAm); Doing this will wipe mocks, re-mock may be performance heavy
     }
 
     /**
      * e.g. Mock getFinFacilityVO1.
-     * 
+     *
      * @param voInstance
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    void mockViewObject(final AppModuleFixture<?> amFixture,
-                        final String voInstance)
+    void mockViewObjectSingle(final AppModuleFixture<?> amFixture,
+                              final String voInstance)
     {
-        final ViewObjectMocker voMocker = new ViewObjectMocker(
+        final BaseViewObjectMocker voMocker = new BaseViewObjectMocker(
             amFixture,
-            voInstance);
+            voInstance,
+            BaseViewObjectMocker.ViewObjectType.Single,
+            new ViewObjectDefaultResponder());
+        mockViewObject_(voMocker);
+    }
+
+    /**
+     * e.g. Mock getFinFacilityVO1.
+     *
+     * @param voInstance
+     */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    void mockViewObjectHGrid(final AppModuleFixture<?> amFixture,
+                             final String voInstance, final int attrIdxChildren)
+    {
+        final ViewObjectHGridMocker voMocker = new ViewObjectHGridMocker(
+            amFixture,
+            voInstance,
+            attrIdxChildren);
+        mockViewObject_(voMocker);
+    }
+
+    /**
+     * e.g. Mock getFinFacilityVO1.
+     *
+     * @param voInstance
+     */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    void mockViewObject_(final BaseViewObjectMocker voMocker)
+    {
+        final AppModuleFixture<?> amFixture = voMocker.getAmFixture();
+        final String voInstance = voMocker
+            .getMockedVoState()
+            .getViewObjectName();
 
         this.voInstMockerMap.put(voInstance, voMocker);
 
@@ -124,6 +185,8 @@ public class AppModuleMocker {
 
 
     /**
+     * TODO: Optimize, this is slow.
+     *
      * @param voInstance view object instance name.
      * @param index row index.
      * @param pAttrs attribute to set.
@@ -156,8 +219,10 @@ public class AppModuleMocker {
      */
     public void setAllViewObjectExecuted()
     {
-        for (final ViewObjectMocker voMocker : this.voInstMockerMap.values()) {
-            voMocker.setExecuted(true);
+        for (final BaseViewObjectMocker voMocker : this.voInstMockerMap
+            .values()) {
+            final ViewObjectMockedState voState = voMocker.getMockedVoState();
+            voState.setExecuted(true);
         }
 
     }
@@ -165,21 +230,23 @@ public class AppModuleMocker {
     /**
      * Make calls to ViewObject.isExecuted return true for the given view object
      * instance..
-     * 
+     *
      * @param voInstance view object instance.
      */
     public void setViewObjectExecuted(final String voInstance)
     {
-        final ViewObjectMocker voMocker = this.voInstMockerMap.get(voInstance);
+        final BaseViewObjectMocker voMocker = this.voInstMockerMap
+            .get(voInstance);
         assert voMocker != null : "Invoke mockViewObject(String) before calling this.";
 
-        voMocker.setExecuted(true);
+        final ViewObjectMockedState voState = voMocker.getMockedVoState();
+        voState.setExecuted(true);
     }
 
     /**
      * @return the voInstMockerMap
      */
-    Map<String, ViewObjectMocker> getVoInstMockerMap()
+    Map<String, BaseViewObjectMocker> getVoInstMockerMap()
     {
         return this.voInstMockerMap;
     }
@@ -187,7 +254,7 @@ public class AppModuleMocker {
     /**
      * @return the mockAm
      */
-    OAApplicationModuleImpl getMockAm()
+    A getMockAm()
     {
         return this.mockAm;
     }
@@ -209,5 +276,13 @@ public class AppModuleMocker {
         return this.attrDefFullMockerMap;
     }
 
+
+}
+
+class OafExtException extends RuntimeException {
+
+    OafExtException(final String message) {
+        super(message);
+    }
 
 }

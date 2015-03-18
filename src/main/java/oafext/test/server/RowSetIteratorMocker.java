@@ -51,10 +51,10 @@ public class RowSetIteratorMocker {
     private transient int rangeCurrent = -1;
 
 
-    RowSetIteratorMocker(final String pName, final ViewObjectMocker voMocker) {
+    RowSetIteratorMocker(final String pName,
+            final BaseViewObjectMocker voMocker) {
 
         assert pName != null;
-
 
         this.mockRsIter = Mockito.mock(RowSetIterator.class);
         this.rangeEnd = voMocker.getRowMockerList().size();

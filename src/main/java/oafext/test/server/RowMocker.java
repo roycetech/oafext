@@ -25,15 +25,21 @@ import oracle.jbo.ViewObject;
 import org.junit.After;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * NOTE: Overloaded accessor method for VORowImpl is not supported.
- * 
+ *
  * @author royce
  */
 public class RowMocker {
 
+
+    /** sl4j logger instance. */
+    private static final Logger LOGGER = LoggerFactory
+        .getLogger(RowMocker.class);
 
     /** Wrapper for the final method getViewObject. */
     public static final String CUSTOM_GET_VO = "getViewObj";
@@ -52,7 +58,8 @@ public class RowMocker {
      * @param amFixture
      */
     RowMocker(final ViewObject mockVo, final Class<? extends Row> rowClass,
-            final AppModuleFixture<?> amFixture, final ViewObjectMocker voMocker) {
+            final AppModuleFixture<?> amFixture,
+            final BaseViewObjectMocker voMocker) {
 
         this.mockRow = Mockito.mock(rowClass);
 
@@ -67,13 +74,14 @@ public class RowMocker {
         final List<String> attrList = amFixture.getVoDefAttrListMap().get(
             voDefFull);
 
+        // final long baseline = System.currentTimeMillis();
+
         /* remove(). */
         RowAnswers.mockRemove(this.mockRow, voMocker, this).remove();
 
-
         /* getViewObj - anti zombie/anti final. */
         RowAnswers.mockGetViewObj(this.mockRow, mockVo);
-
+        //
         /* getAttribute(int) */
         RowAnswers
             .mockGetAttributeInt(this.mockRow, attrList, this)
@@ -102,6 +110,7 @@ public class RowMocker {
         /* get*() */
         RowAnswers.mockGetter(this.mockRow, attrList, this);
 
+        //LOGGER.info("Elapse: " + (baseline - System.currentTimeMillis()));
     }
 
     @After
