@@ -49,7 +49,8 @@ public final class RowAnswers {
 
     }
 
-    static <M> M mockRemove(final M mockRow, final ViewObjectMocker voMocker,
+    static <M> M mockRemove(final M mockRow,
+                            final BaseViewObjectMocker voMocker,
                             final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {

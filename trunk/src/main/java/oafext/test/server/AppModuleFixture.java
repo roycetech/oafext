@@ -28,7 +28,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import oafext.Constant;
 import oafext.logging.OafLogger;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.jbo.Row;
@@ -48,15 +47,15 @@ import org.xml.sax.SAXException;
 
 /**
  * TODO: Nested AM.
- * 
+ *
  * Support one level VO inheritance only.
- * 
+ *
  * This class will handle parsing AM definition, and VO definition. Delegate to
  * initialization is also done here so you can invoke it directly from test
  * class.
- * 
+ *
  * @author royce
- * 
+ *
  * @param <A> application module type.
  */
 public class AppModuleFixture<A extends OAApplicationModuleImpl> {
@@ -72,7 +71,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
     /** */
-    private final transient AppModuleMocker appModuleMocker;
+    private final transient AppModuleMocker<A> appModuleMocker;
 
 
     /** Platform independent path separator. */
@@ -120,8 +119,20 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @param pAppModuleDef (e.g. "xxx.oracle.apps.xx.module.server.SomeAM" )
      */
-    @SuppressWarnings(UNCHECKED)
     public AppModuleFixture(final String pAppModuleDef) {
+        this(pAppModuleDef, false);
+    }
+
+    /**
+     * @param pAppModuleDef (e.g. "xxx.oracle.apps.xx.module.server.SomeAM" )
+     * @param spyAm set to true if AM will be spied for AM based model. This is
+     *            slow, and inefficient. It is recommended to use service class
+     *            for model codes instead of a single AM.
+     */
+    @SuppressWarnings({
+            "rawtypes",
+            "unchecked" })
+    public AppModuleFixture(final String pAppModuleDef, final boolean spyAm) {
         LOGGER.info("pAppModuleDef: " + pAppModuleDef);
 
 
@@ -135,7 +146,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
             final Class<? extends OAApplicationModuleImpl> klass = (Class<? extends OAApplicationModuleImpl>) Class
                 .forName(amClassName);
 
-            this.appModuleMocker = new AppModuleMocker(klass);
+            this.appModuleMocker = new AppModuleMocker(klass, spyAm);
         } catch (final ClassNotFoundException e) {
             throw new InitException(e.getMessage() + pAppModuleDef, e);
         }
@@ -161,7 +172,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * Initialize view object row with attribute values.
-     * 
+     *
      * @param voInstance view object instance name.
      * @param index row index.
      * @param pAttrs attribute to set.
@@ -176,7 +187,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * Initialize view object row with attribute values.
-     * 
+     *
      * @param voInstance view object instance name.
      * @param index row index.
      * @param pAttrs attribute to set.
@@ -195,7 +206,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * Make calls to ViewObject.isExecuted return true for ALL view objects
      * under the application module.
-     * 
+     *
      */
     public void setAllViewObjectExecuted()
     {
@@ -205,7 +216,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * Make calls to ViewObject.isExecuted return true for the given view object
      * instance..voType
-     * 
+     *
      * @param voInstName view object instance.
      */
     public void setViewObjectExecuted(final String voInstName)
@@ -217,7 +228,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @param voInstName view object instance.
      */
-    public void mockViewObject(final String voInstName)
+    public void mockViewObjectSingle(final String voInstName)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -230,11 +241,35 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
         assert this.voNameClassMap.get(voInstName) != null;
 
-        this.appModuleMocker.mockViewObject(this, voInstName);
+        this.appModuleMocker.mockViewObjectSingle(this, voInstName);
     }
 
     /**
-     * 
+     * @param voInstName view object instance.
+     */
+    public void mockViewObjectHGrid(final String voInstName,
+                                    final int attrIdxChildren)
+    {
+        if (this.voNameClassMap.get(voInstName) == null) {
+            LOGGER.info("Initializing view object from xml: " + voInstName);
+
+            final String voDef = this.voNameDefMap.get(voInstName);
+            assert voDef != null;
+
+            parseVoAndRowType(voInstName, voDef);
+        }
+
+        assert this.voNameClassMap.get(voInstName) != null;
+
+        this.appModuleMocker.mockViewObjectHGrid(
+            this,
+            voInstName,
+            attrIdxChildren);
+    }
+
+
+    /**
+     *
      * @param pAppModuleDef
      * @param parentInstName Parent application module instance name.
      */
@@ -304,10 +339,10 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * Parses the view object definition XML file.
-     * 
+     *
      * @param voInstName view object instance name.
      * @param voDef view object definition name.
-     * 
+     *
      * @return parent class.
      */
     @SuppressWarnings({
@@ -331,7 +366,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
             this.voNameDefMap.put(voInstName, voDef);
             final String superVoDef = root.getAttribute(Attribute.SUPERVO);
-            LOGGER.info("superVoDef: " + superVoDef);
+            //LOGGER.info("superVoDef: " + superVoDef);
 
             String voClassName;
             if (superVoDef == null || "".equals(superVoDef.trim())) {
@@ -398,7 +433,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * To use later when reading attribute list from VO.xml.
-     * 
+     *
      * @param voTypeName e.g. SomeVO.
      * @param root root view object element.
      */
@@ -446,7 +481,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * This will prevent the DocumentBuilder from validating the DTD. Saves us
      * the trouble of dependence to online DTD resource.
-     * 
+     *
      * @param docBuilder DocumentBuilder instance.
      */
     private void ignoreDtd(final DocumentBuilder docBuilder)
@@ -536,10 +571,9 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         return this.voDefAttrListMap;
     }
 
-    @SuppressWarnings(Constant.UNCHECKED)
     public A getMockAppModule()
     {
-        return (A) this.appModuleMocker.getMockAm();
+        return this.appModuleMocker.getMockAm();
     }
 
     /**
@@ -553,7 +587,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @return the appModuleMocker
      */
-    AppModuleMocker getAppModuleMocker()
+    AppModuleMocker<A> getAppModuleMocker()
     {
         return this.appModuleMocker;
     }
