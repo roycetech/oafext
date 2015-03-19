@@ -13,18 +13,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.mock;
 
 
 /**
- * @author royce
+ * @version $Date$
  *
+ * @param <M> mock type.
  */
-public final class AttrDefAnswers {
+public interface Mocker<M> {
 
 
     /** */
-    private AttrDefAnswers() {}
-
+    M getMock();
 
 }

@@ -13,16 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.server.responder;
 
 import java.util.List;
 
 import oafext.Constant;
+import oafext.test.server.AppModuleFixture;
+import oafext.test.server.AppModuleMocker;
+import oafext.test.server.AttrDefMocker;
+import oafext.test.server.BaseViewObjectMocker;
+import oafext.test.server.RowMocker;
+import oafext.test.server.RowSetIteratorMocker;
+import oafext.test.server.ViewObjectMockState;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.jbo.AttributeDef;
 import oracle.jbo.Row;
 import oracle.jbo.RowSetIterator;
 import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -50,8 +58,7 @@ public abstract class BaseViewObjectResponder implements
 
 
     @Override
-    public void mockMethods(final ViewObjectImpl mockVo,
-                            final AppModuleFixture<?> amFixture,
+    public void mockMethods(final AppModuleFixture<?> amFixture,
                             final BaseViewObjectMocker voMocker)
     {
         final String voName = voMocker.getMockedVoState().getViewObjectName();
@@ -61,6 +68,8 @@ public abstract class BaseViewObjectResponder implements
         final Class<? extends Row> rowClass = amFixture
             .getVoNameRowClsMap()
             .get(voName);
+
+        final ViewObjectImpl mockVo = voMocker.getMock();
 
         /* getName() */
         Mockito.doReturn(voName).when(mockVo).getName();
@@ -84,58 +93,57 @@ public abstract class BaseViewObjectResponder implements
 
 
         /* setRangeSize(int) */
-        mockSetRangeSize(mockVo, voMocker).setRangeSize(Matchers.anyInt());
+        mockSetRangeSize(voMocker).setRangeSize(Matchers.anyInt());
 
         /* createRow() */
-        mockCreateRow(mockVo, amFixture, voMocker).createRow();
+        mockCreateRow(amFixture, voMocker).createRow();
 
         /* insertRow(Row) */
-        mockInsertRow(mockVo, voMocker).insertRow((Row) Matchers.any());
+        mockInsertRow(voMocker).insertRow((Row) Matchers.any());
 
         /* insertRowAtRangeIndex(int, Row) */
-        mockInsertRowAtRangeIndex(mockVo, voMocker).insertRowAtRangeIndex(
+        mockInsertRowAtRangeIndex(voMocker).insertRowAtRangeIndex(
             Matchers.anyInt(),
             (Row) Matchers.any());
 
         /* getCurrentRow() */
-        mockGetCurrentRow(mockVo, voMocker.getMockedVoState().getCurrentRow())
+        mockGetCurrentRow(voMocker, voMocker.getMockedVoState().getCurrentRow())
             .getCurrentRow();
 
         /* setCurrentRow() */
-        mockSetCurrentRow(mockVo, voMocker).setCurrentRow((Row) Matchers.any());
+        mockSetCurrentRow(voMocker).setCurrentRow((Row) Matchers.any());
 
         /* first() */
-        mockFirst(mockVo, voMocker).first();
+        mockFirst(voMocker).first();
 
         /* getRowCount() */
-        mockGetRowCount(mockVo, voMocker).getRowCount();
+        mockGetRowCount(voMocker).getRowCount();
 
         /* createRowSetIterator() */
-        mockCreateRowSetIterator(mockVo, voMocker).createRowSetIterator(
+        mockCreateRowSetIterator(voMocker).createRowSetIterator(
             Matchers.anyString());
 
         //getRowAtRangeIndex(int).
-        mockGetRowAtRangeIndex(mockVo, voMocker).getRowAtRangeIndex(
-            Matchers.anyInt());
+        mockGetRowAtRangeIndex(voMocker).getRowAtRangeIndex(Matchers.anyInt());
 
         //getAllRowsInRange().
-        mockGetAllRowsInRange(mockVo, voMocker).getAllRowsInRange();
+        mockGetAllRowsInRange(voMocker).getAllRowsInRange();
 
         //executeQuery().
-        mockExecuteQuery(mockVo, voMocker).executeQuery();
+        mockExecuteQuery(voMocker).executeQuery();
 
         //isExecuted().
-        mockIsExecuted(mockVo, voMocker).isExecuted();
+        mockIsExecuted(voMocker).isExecuted();
 
         //getAttributeDef().
-        mockGetAttributeDef(mockVo, amFixture).getAttributeDef(
+        mockGetAttributeDef(amFixture, voMocker).getAttributeDef(
             Matchers.anyInt());
 
         //getAttributeCount().
-        mockGetAttributeCount(mockVo, amFixture).getAttributeCount();
+        mockGetAttributeCount(amFixture, voMocker).getAttributeCount();
 
         //getAttributeIndexOf().
-        mockGetAttributeIndexOf(mockVo, amFixture).getAttributeIndexOf(
+        mockGetAttributeIndexOf(amFixture, voMocker).getAttributeIndexOf(
             Matchers.anyString());
 
     }
@@ -143,8 +151,7 @@ public abstract class BaseViewObjectResponder implements
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockCreateRow(final ViewObjectImpl mockVo,
-                                        final AppModuleFixture<?> amFixture,
+    public ViewObjectImpl mockCreateRow(final AppModuleFixture<?> amFixture,
                                         final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
@@ -153,27 +160,22 @@ public abstract class BaseViewObjectResponder implements
             public Row answer(final InvocationOnMock invocation)
                     throws Throwable
             {
+                final ViewObjectImpl mockVo = voMocker.getMock();
+
                 @SuppressWarnings(Constant.UNCHECKED)
-                final Class<? extends Row> rowClass = mockVo.getRowClass();
-
-
-                //                final long baseline = System.currentTimeMillis();
+                final Class<? extends ViewRowImpl> rowClass = mockVo
+                    .getRowClass();
 
                 final RowMocker rowMocker = new RowMocker(
-                    mockVo,
                     rowClass,
                     amFixture,
                     voMocker);
 
-                //                LOGGER.info(" new rowMocker elapsed: "
-                //                        + (System.currentTimeMillis() - baseline));
+                voMocker.getNewRowsMap().put(rowMocker.getMock(), rowMocker);
 
-                voMocker.getNewRowsMap().put(rowMocker.getMockRow(), rowMocker);
-
-                return rowMocker.getMockRow();
+                return rowMocker.getMock();
             }
-        })
-            .when(mockVo);
+        }).when(voMocker.getMock());
     }
 
     /**
@@ -182,8 +184,7 @@ public abstract class BaseViewObjectResponder implements
      * @return
      */
     @Override
-    public ViewObjectImpl mockCreateRowSetIterator(final ViewObjectImpl mockVo,
-                                                   final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockCreateRowSetIterator(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<RowSetIterator>() {
 
@@ -192,6 +193,7 @@ public abstract class BaseViewObjectResponder implements
                     throws Throwable
             {
                 final String iterName = invocation.getArguments()[0].toString();
+
                 assert iterName != null;
                 assert voMocker.getRowSetIterMap().get(iterName) == null;
 
@@ -200,20 +202,18 @@ public abstract class BaseViewObjectResponder implements
                     voMocker);
                 voMocker.getRowSetIterMap().put(iterName, rsIterMocker);
 
-                return rsIterMocker.getMockRsIter();
+                return rsIterMocker.getMock();
             }
         })
-            .when(mockVo);
+            .when(voMocker.getMock());
     }
-
 
     /**
      * @paraViewObjectImpl mockVo
      * @paraViewObjectImpl BaseViewObjectMocker
      */
     @Override
-    public ViewObjectImpl mockExecuteQuery(final ViewObjectImpl mockVo,
-                                           final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockExecuteQuery(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -221,20 +221,19 @@ public abstract class BaseViewObjectResponder implements
             public Object answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final ViewObjectMockedState voState = voMocker
-                    .getMockedVoState();
+                final ViewObjectMockState voState = voMocker.getMockedVoState();
                 voState.setExecuted(true);
                 return null;
             }
-        }).when(mockVo);
+        })
+            .when(voMocker.getMock());
     }
 
     /**
      * @paraViewObjectImpl mockVo
      */
     @Override
-    public ViewObjectImpl mockFirst(final ViewObjectImpl mockVo,
-                                    final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockFirst(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -248,20 +247,20 @@ public abstract class BaseViewObjectResponder implements
                 if (rowMockerList.isEmpty()) {
                     return null;
                 } else {
-                    final Row firstRow = rowMockerList.get(0).getMockRow();
-                    final ViewObjectMockedState voState = voMocker
+                    final Row firstRow = rowMockerList.get(0).getMock();
+                    final ViewObjectMockState voState = voMocker
                         .getMockedVoState();
                     voState.setRowPointer(firstRow);
                     return firstRow;
                 }
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
 
     @Override
-    public ViewObjectImpl mockGetAttributeCount(final ViewObjectImpl mockVo,
-                                                final AppModuleFixture<?> amFixture)
+    public ViewObjectImpl mockGetAttributeCount(final AppModuleFixture<?> amFixture,
+                                                final BaseViewObjectMocker voMocker)
     {
 
         return Mockito.doAnswer(new Answer<Integer>() {
@@ -271,13 +270,13 @@ public abstract class BaseViewObjectResponder implements
                     throws Throwable
             {
                 final List<AttrDefMocker> attrDefMockerList = initAttributeList(
-                    mockVo.getName(),
+                    voMocker.getMock().getName(),
                     amFixture);
 
                 return attrDefMockerList.size();
             }
         })
-            .when(mockVo);
+            .when(voMocker.getMock());
     }
 
     /**
@@ -285,8 +284,8 @@ public abstract class BaseViewObjectResponder implements
      * @paraViewObjectImpl BaseViewObjectMocker
      */
     @Override
-    public ViewObjectImpl mockGetAttributeDef(final ViewObjectImpl mockVo,
-                                              final AppModuleFixture<?> amFixture)
+    public ViewObjectImpl mockGetAttributeDef(final AppModuleFixture<?> amFixture,
+                                              final BaseViewObjectMocker voMocker)
     {
 
         return Mockito.doAnswer(new Answer<AttributeDef>() {
@@ -296,7 +295,7 @@ public abstract class BaseViewObjectResponder implements
                     throws Throwable
             {
                 final List<AttrDefMocker> attrDefMockerList = initAttributeList(
-                    mockVo.getName(),
+                    voMocker.getMock().getName(),
                     amFixture);
 
                 final Integer index = (Integer) invocation.getArguments()[0];
@@ -305,12 +304,12 @@ public abstract class BaseViewObjectResponder implements
                 return attrDefMockerList.get(index).getMockAttrDef();
             }
         })
-            .when(mockVo);
+            .when(voMocker.getMock());
     }
 
     @Override
-    public ViewObjectImpl mockGetAttributeIndexOf(final ViewObjectImpl mockVo,
-                                                  final AppModuleFixture<?> amFixture)
+    public ViewObjectImpl mockGetAttributeIndexOf(final AppModuleFixture<?> amFixture,
+                                                  final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Integer>() {
 
@@ -320,7 +319,7 @@ public abstract class BaseViewObjectResponder implements
             {
                 final String attrName = (String) invocation.getArguments()[0];
                 final String voDefFull = amFixture.getVoNameDefMap().get(
-                    mockVo.getName());
+                    voMocker.getMock().getName());
                 assert voDefFull != null;
 
                 return amFixture
@@ -328,12 +327,12 @@ public abstract class BaseViewObjectResponder implements
                     .get(voDefFull)
                     .indexOf(attrName);
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
 
     @Override
-    public ViewObjectImpl mockGetCurrentRow(final ViewObjectImpl mockVo,
+    public ViewObjectImpl mockGetCurrentRow(final BaseViewObjectMocker voMocker,
                                             final Row currentRow)
     {
         return Mockito.doAnswer(new Answer<Row>() {
@@ -344,16 +343,13 @@ public abstract class BaseViewObjectResponder implements
             {
                 return currentRow;
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
-    /**
-     * @paraViewObjectImpl mockVo
-     * @paraViewObjectImpl BaseViewObjectMocker
-     */
+
+    /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockIsExecuted(final ViewObjectImpl mockVo,
-                                         final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockIsExecuted(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Boolean>() {
 
@@ -361,11 +357,11 @@ public abstract class BaseViewObjectResponder implements
             public Boolean answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final ViewObjectMockedState voState = voMocker
-                    .getMockedVoState();
+                final ViewObjectMockState voState = voMocker.getMockedVoState();
                 return voState.isExecuted();
             }
-        }).when(mockVo);
+        })
+            .when(voMocker.getMock());
     }
 
 
@@ -373,8 +369,7 @@ public abstract class BaseViewObjectResponder implements
      * @paraViewObjectImpl mockVo
      */
     @Override
-    public ViewObjectImpl mockSetCurrentRow(final ViewObjectImpl mockVo,
-                                            final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockSetCurrentRow(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -382,23 +377,22 @@ public abstract class BaseViewObjectResponder implements
             public Object answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final ViewObjectMockedState voState = voMocker
-                    .getMockedVoState();
+                final ViewObjectMockState voState = voMocker.getMockedVoState();
                 voState.setCurrentRow((Row) invocation.getArguments()[0]);
                 return null;
             }
-        }).when(mockVo);
+        })
+            .when(voMocker.getMock());
     }
 
 
-    /**
+    /*
      * Consider putting insert locking after initialization. HGrid is not
      * allowed to insert do to limitation of modifying HGrid hierarchy in real
      * world.
      */
     @Override
-    public ViewObjectImpl mockInsertRow(final ViewObjectImpl mockVo,
-                                        final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockInsertRow(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -413,7 +407,7 @@ public abstract class BaseViewObjectResponder implements
                 voMocker.getRowMockerList().add(rowMocker);
                 return null;
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
 
@@ -423,8 +417,7 @@ public abstract class BaseViewObjectResponder implements
      * world.
      */
     @Override
-    public ViewObjectImpl mockInsertRowAtRangeIndex(final ViewObjectImpl mockVo,
-                                                    final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockInsertRowAtRangeIndex(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -444,12 +437,11 @@ public abstract class BaseViewObjectResponder implements
                 rowMockerList.add(index, rowMocker);
                 return null;
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
     @Override
-    public ViewObjectImpl mockSetRangeSize(final ViewObjectImpl mockVo,
-                                           final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockSetRangeSize(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -458,12 +450,12 @@ public abstract class BaseViewObjectResponder implements
                     throws Throwable
             {
                 final Integer size = (Integer) invocation.getArguments()[0];
-                final ViewObjectMockedState voState = voMocker
-                    .getMockedVoState();
+                final ViewObjectMockState voState = voMocker.getMockedVoState();
                 voState.setRangeSize(size);
                 return null;
             }
-        }).when(mockVo);
+        })
+            .when(voMocker.getMock());
     }
 
 

@@ -13,17 +13,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.server.responder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.server.AppModuleFixture;
+import oafext.test.server.BaseViewObjectMocker;
+import oafext.test.server.RowMocker;
 import oafext.test.util.MockHelper;
 import oracle.jbo.Key;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -34,24 +38,72 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author royce
- * 
+ *
  */
-public final class RowAnswers {
+public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
 
     /** */
     private static final Logger LOGGER = LoggerFactory
-        .getLogger(RowAnswers.class);
+        .getLogger(BaseRowResponder.class);
 
 
     /** */
-    private RowAnswers() {
+    public BaseRowResponder() {}
 
+    /** {@inheritDoc} */
+    @Override
+    public void mockMethods(final AppModuleFixture<?> amFixture,
+                            final RowMocker rowMocker,
+                            final Class<? extends Row> pRowClass)
+    {
+
+        final Map<Class<? extends Row>, String> rowClsVoDefFullMap = amFixture
+            .getRowClsVoDefMap();
+
+        final String voDefFull = rowClsVoDefFullMap.get(pRowClass);
+        assert voDefFull != null;
+
+        final List<String> attrList = amFixture.getVoDefAttrListMap().get(
+            voDefFull);
+
+
+        /* remove(). */
+        mockRemove(rowMocker).remove();
+
+        /* getViewObj - anti zombie/anti final. */
+        mockGetViewObj(rowMocker);
+
+        /* getAttribute(int) */
+        mockGetAttributeInt(attrList, rowMocker)
+            .getAttribute(Matchers.anyInt());
+
+        /* getAttribute(String) */
+        mockGetAttributeString(rowMocker).getAttribute(Matchers.anyString());
+
+        /* getKey() */
+        mockGetKey(rowMocker).getKey();
+
+        /* setAttribute(int) */
+        mockSetAttributeInt(attrList, rowMocker).setAttribute(
+            Matchers.anyInt(),
+            Matchers.any());
+
+        /* setAttribute(String) */
+        mockSetAttributeString(rowMocker).setAttribute(
+            Matchers.anyString(),
+            Matchers.any());
+
+        /* set*(Object) */
+        mockSetter(pRowClass, attrList, rowMocker);
+
+        /* get*() */
+        mockGetter(attrList, rowMocker);
     }
 
-    static <M> M mockRemove(final M mockRow,
-                            final BaseViewObjectMocker voMocker,
-                            final RowMocker rowMocker)
+    /** {@inheritDoc} */
+    @Override
+    public ViewRowImpl mockRemove(final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -59,15 +111,16 @@ public final class RowAnswers {
             public Object answer(final InvocationOnMock invocation)
                     throws Throwable
             {
+                final BaseViewObjectMocker voMocker = rowMocker.getVoMocker();
                 voMocker.remove(rowMocker);
                 return null;
             }
-        }).when(mockRow);
+        }).when(rowMocker.getMock());
     }
 
-    static <M> M mockGetAttributeInt(final M mockRow,
-                                     final List<String> attrList,
-                                     final RowMocker rowMocker)
+    @Override
+    public ViewRowImpl mockGetAttributeInt(final List<String> attrList,
+                                           final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -79,12 +132,13 @@ public final class RowAnswers {
                 final String attrName = attrList.get(index);
                 return rowMocker.getAttrValueMap().get(attrName);
             }
-        }).when(mockRow);
+        }).when(rowMocker.getMock());
 
     }
 
-    static <M> M mockGetAttributeString(final M mockRow,
-                                        final RowMocker rowMocker)
+    /** {@inheritDoc} */
+    @Override
+    public ViewRowImpl mockGetAttributeString(final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -95,29 +149,34 @@ public final class RowAnswers {
                 final String attrName = (String) invocation.getArguments()[0];
                 return rowMocker.getAttrValueMap().get(attrName);
             }
-        }).when(mockRow);
+        }).when(rowMocker.getMock());
 
     }
 
-    static void mockGetViewObj(final Row mockRow, final ViewObject mockVo)
+    /** {@inheritDoc} */
+    @Override
+    public void mockGetViewObj(final RowMocker rowMocker)
     {
         Method getViewObj = null; //NOPMD: null default, conditionally redefine.
         try {
-            getViewObj = mockRow.getClass().getDeclaredMethod(
-                RowMocker.CUSTOM_GET_VO,
-                new Class<?>[0]);
+            getViewObj = rowMocker
+                .getMock()
+                .getClass()
+                .getDeclaredMethod(RowMocker.CUSTOM_GET_VO, new Class<?>[0]);
 
             if (getViewObj != null) {
 
                 Mockito
-                    .when(getViewObj.invoke(mockRow, new Object[0]))
+                    .when(getViewObj.invoke(rowMocker.getMock(), new Object[0]))
                     .thenAnswer(new Answer<ViewObject>() {
 
                         @Override
                         public ViewObject answer(final InvocationOnMock invocation)
                                 throws Throwable
                         {
-                            return mockVo;
+                            final BaseViewObjectMocker voMocker = rowMocker
+                                .getVoMocker();
+                            return voMocker.getMock();
                         }
                     });
 
@@ -125,21 +184,22 @@ public final class RowAnswers {
             }
 
         } catch (final SecurityException e1) {
-            LOGGER.error(e1.getMessage(), e1);
+            BaseRowResponder.LOGGER.error(e1.getMessage(), e1);
         } catch (final NoSuchMethodException e1) {
-            LOGGER.error("Anti zombie method not found for: "
-                    + mockRow.getClass().getSimpleName(), e1);
+            BaseRowResponder.LOGGER.error("Anti zombie method not found for: "
+                    + rowMocker.getMock().getClass().getSimpleName(), e1);
         } catch (final IllegalArgumentException e) {
-            LOGGER.error(e.getMessage(), e);
+            BaseRowResponder.LOGGER.error(e.getMessage(), e);
         } catch (final IllegalAccessException e) {
-            LOGGER.error(e.getMessage(), e);
+            BaseRowResponder.LOGGER.error(e.getMessage(), e);
         } catch (final InvocationTargetException e) {
-            LOGGER.error(e.getMessage(), e);
+            BaseRowResponder.LOGGER.error(e.getMessage(), e);
         }
 
     }
 
-    static <M extends Row> M mockGetKey(final M mockRow)
+    @Override
+    public ViewRowImpl mockGetKey(final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Key>() {
 
@@ -147,16 +207,17 @@ public final class RowAnswers {
             public Key answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final Key key = Mockito.spy(new Key(new Object[] { mockRow
+                final Key key = Mockito.spy(new Key(new Object[] { rowMocker
+                    .getMock()
                     .getAttribute(0) }));
                 return key;
             }
-        }).when(mockRow);
+        }).when(rowMocker.getMock());
     }
 
-    static <M> M mockSetAttributeInt(final M mockRow,
-                                     final List<String> attrList,
-                                     final RowMocker rowMocker)
+    @Override
+    public ViewRowImpl mockSetAttributeInt(final List<String> attrList,
+                                           final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -173,11 +234,11 @@ public final class RowAnswers {
                 return null;
 
             }
-        }).when(mockRow);
+        }).when(rowMocker.getMock());
     }
 
-    static <M> M mockSetAttributeString(final M mockRow,
-                                        final RowMocker rowMocker)
+    @Override
+    public ViewRowImpl mockSetAttributeString(final RowMocker rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -193,11 +254,13 @@ public final class RowAnswers {
                 return null;
 
             }
-        }).when(mockRow);
+        }).when(rowMocker.getMock());
     }
 
+    /** {@inheritDoc} */
+    @Override
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    static void mockSetter(final Row mockRow, final Class<?> rowClass,
+    public void mockSetter(final Class<? extends Row> rowClass,
                            final List<String> attrList,
                            final RowMocker rowMocker)
     {
@@ -212,10 +275,11 @@ public final class RowAnswers {
             final Method method = helper.findMethod(rowClass, methodName);
 
             try {
-                Mockito
-                    .when(
-                        method.invoke(mockRow, new Object[] { Matchers.any() }))
-                    .thenAnswer(new Answer<Object>() {
+                Mockito.when(
+                    method.invoke(
+                        rowMocker.getMock(),
+                        new Object[] { Matchers.any() })).thenAnswer(
+                    new Answer<Object>() {
 
                         @Override
                         public Object answer(final InvocationOnMock invocation)
@@ -227,18 +291,20 @@ public final class RowAnswers {
                         }
                     });
             } catch (final IllegalArgumentException e) {
-                LOGGER.error(e.getMessage() + methodName, e);
+                BaseRowResponder.LOGGER.error(e.getMessage() + methodName, e);
             } catch (final IllegalAccessException e) {
-                LOGGER.error(e.getMessage(), e);
+                BaseRowResponder.LOGGER.error(e.getMessage(), e);
             } catch (final InvocationTargetException e) {
-                LOGGER.error(e.getMessage(), e);
+                BaseRowResponder.LOGGER.error(e.getMessage(), e);
             }
         }
     }
 
 
+    /** {@inheritDoc} */
+    @Override
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    static void mockGetter(final Row mockRow, final List<String> attrList,
+    public void mockGetter(final List<String> attrList,
                            final RowMocker rowMocker)
     {
         final MockHelper helper = new MockHelper(); //NOPMD: Optimized Outside loop
@@ -249,14 +315,15 @@ public final class RowAnswers {
                     + nextAttr.substring(0, 1).toUpperCase()
                     + nextAttr.substring(1);
 
-            final Method method = helper.findMethod(
-                mockRow.getClass(),
-                methodName);
+            final Method method = helper.findMethod(rowMocker
+                .getMock()
+                .getClass(), methodName);
             assert method != null;
 
             try {
-                Mockito.when(method.invoke(mockRow, new Object[0])).thenAnswer(
-                    new Answer<Object>() {
+                Mockito
+                    .when(method.invoke(rowMocker.getMock(), new Object[0]))
+                    .thenAnswer(new Answer<Object>() {
 
                         @Override
                         public Object answer(final InvocationOnMock invocation)
@@ -266,11 +333,11 @@ public final class RowAnswers {
                         }
                     });
             } catch (final IllegalArgumentException e) {
-                LOGGER.error(e.getMessage() + methodName, e);
+                BaseRowResponder.LOGGER.error(e.getMessage() + methodName, e);
             } catch (final IllegalAccessException e) {
-                LOGGER.error(e.getMessage(), e);
+                BaseRowResponder.LOGGER.error(e.getMessage(), e);
             } catch (final InvocationTargetException e) {
-                LOGGER.error(e.getMessage(), e);
+                BaseRowResponder.LOGGER.error(e.getMessage(), e);
             }
         }
     }

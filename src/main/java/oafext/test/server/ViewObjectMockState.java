@@ -22,12 +22,12 @@ import org.mockito.Mockito;
 
 /**
  * Mocked state of view object.
- * 
+ *
  * @author Royce Remulla
  * @version $Date$
  *
  */
-public class ViewObjectMockedState {
+public class ViewObjectMockState {
 
 
     /** */
@@ -58,15 +58,15 @@ public class ViewObjectMockedState {
     private transient int rangeSize = 1;
 
 
-    ViewObjectMockedState(final String pViewObjectName) {
-        viewObjectName = pViewObjectName;
+    ViewObjectMockState(final String pViewObjectName) {
+        this.viewObjectName = pViewObjectName;
     }
 
 
     /**
      * @return the currentRow
      */
-    Row getCurrentRow()
+    public Row getCurrentRow()
     {
         return this.currentRow;
     }
@@ -74,7 +74,7 @@ public class ViewObjectMockedState {
     /**
      * @param currentRow the currentRow to set
      */
-    void setCurrentRow(final Row currentRow)
+    public void setCurrentRow(final Row currentRow)
     {
         this.currentRow = currentRow;
     }
@@ -90,7 +90,7 @@ public class ViewObjectMockedState {
     /**
      * @param rowPointer the rowPointer to set
      */
-    void setRowPointer(final Row rowPointer)
+    public void setRowPointer(final Row rowPointer)
     {
         this.rowPointer = rowPointer;
     }
@@ -98,7 +98,7 @@ public class ViewObjectMockedState {
     /**
      * @return the rangeSize
      */
-    int getRangeSize()
+    public int getRangeSize()
     {
         return this.rangeSize;
     }
@@ -107,7 +107,7 @@ public class ViewObjectMockedState {
     /**
      * @param rangeSize the rangeSize to set
      */
-    void setRangeSize(final int rangeSize)
+    public void setRangeSize(final int rangeSize)
     {
         this.rangeSize = rangeSize;
     }
@@ -116,7 +116,7 @@ public class ViewObjectMockedState {
     /**
      * @return the rangeStart
      */
-    int getRangeStart()
+    public int getRangeStart()
     {
         return this.rangeStart;
     }
@@ -148,9 +148,9 @@ public class ViewObjectMockedState {
     }
 
 
-    String getViewObjectName()
+    public String getViewObjectName()
     {
-        return viewObjectName;
+        return this.viewObjectName;
     }
 
 

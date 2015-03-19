@@ -16,14 +16,14 @@
 package oafext.test.server;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import oracle.jbo.Row;
-import oracle.jbo.ViewObject;
+import oafext.test.mock.Mocker;
+import oafext.test.server.responder.BaseRowResponder;
+import oafext.test.server.responder.RowResponder;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.junit.After;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,22 +34,29 @@ import org.slf4j.LoggerFactory;
  *
  * @author royce
  */
-public class RowMocker {
+public class RowMocker implements Mocker<ViewRowImpl> {
 
 
     /** sl4j logger instance. */
     private static final Logger LOGGER = LoggerFactory
         .getLogger(RowMocker.class);
 
+
     /** Wrapper for the final method getViewObject. */
     public static final String CUSTOM_GET_VO = "getViewObj";
 
 
     /** */
-    private final transient Row mockRow;
+    private final transient ViewRowImpl mockRow;
 
     /** */
     private final transient Map<String, Object> attrValueMap;
+
+    /** */
+    private final BaseViewObjectMocker voMocker;
+
+    /** */
+    private final transient RowResponder<ViewRowImpl> responder = new BaseRowResponder();
 
 
     /**
@@ -57,58 +64,50 @@ public class RowMocker {
      * @param rowClass
      * @param amFixture
      */
-    RowMocker(final ViewObject mockVo, final Class<? extends Row> rowClass,
+    public RowMocker(final Class<? extends ViewRowImpl> pRowClass,
             final AppModuleFixture<?> amFixture,
-            final BaseViewObjectMocker voMocker) {
+            final BaseViewObjectMocker pVoMocker) {
 
-        this.mockRow = Mockito.mock(rowClass);
+        this.mockRow = Mockito.mock(pRowClass);
+        this.voMocker = pVoMocker;
 
         this.attrValueMap = new HashMap<String, Object>();
 
+        getResponder().mockMethods(amFixture, this, pRowClass);
 
-        final Map<Class<? extends Row>, String> rowClsVoDefFullMap = amFixture
-            .getRowClsVoDefMap();
-        final String voDefFull = rowClsVoDefFullMap.get(rowClass);
-        assert voDefFull != null;
-
-        final List<String> attrList = amFixture.getVoDefAttrListMap().get(
-            voDefFull);
-
-        // final long baseline = System.currentTimeMillis();
-
-        /* remove(). */
-        RowAnswers.mockRemove(this.mockRow, voMocker, this).remove();
-
-        /* getViewObj - anti zombie/anti final. */
-        RowAnswers.mockGetViewObj(this.mockRow, mockVo);
+        //        /* remove(). */
+        //        RowResponder.mockRemove(this.mockRow, voMocker, this).remove();
         //
-        /* getAttribute(int) */
-        RowAnswers
-            .mockGetAttributeInt(this.mockRow, attrList, this)
-            .getAttribute(Matchers.anyInt());
-
-        /* getAttribute(String) */
-        RowAnswers.mockGetAttributeString(this.mockRow, this).getAttribute(
-            Matchers.anyString());
-
-        /* getKey() */
-        RowAnswers.mockGetKey(this.mockRow).getKey();
-
-        /* setAttribute(int) */
-        RowAnswers
-            .mockSetAttributeInt(this.mockRow, attrList, this)
-            .setAttribute(Matchers.anyInt(), Matchers.any());
-
-        /* setAttribute(String) */
-        RowAnswers.mockSetAttributeString(this.mockRow, this).setAttribute(
-            Matchers.anyString(),
-            Matchers.any());
-
-        /* set*(Object) */
-        RowAnswers.mockSetter(this.mockRow, rowClass, attrList, this);
-
-        /* get*() */
-        RowAnswers.mockGetter(this.mockRow, attrList, this);
+        //        /* getViewObj - anti zombie/anti final. */
+        //        RowResponder.mockGetViewObj(this.mockRow, mockVo);
+        //        //
+        //        /* getAttribute(int) */
+        //        RowResponder
+        //            .mockGetAttributeInt(this.mockRow, attrList, this)
+        //            .getAttribute(Matchers.anyInt());
+        //
+        //        /* getAttribute(String) */
+        //        RowResponder.mockGetAttributeString(this.mockRow, this).getAttribute(
+        //            Matchers.anyString());
+        //
+        //        /* getKey() */
+        //        RowResponder.mockGetKey(this.mockRow).getKey();
+        //
+        //        /* setAttribute(int) */
+        //        RowResponder
+        //            .mockSetAttributeInt(this.mockRow, attrList, this)
+        //            .setAttribute(Matchers.anyInt(), Matchers.any());
+        //
+        //        /* setAttribute(String) */
+        //        RowResponder.mockSetAttributeString(this.mockRow, this).setAttribute(
+        //            Matchers.anyString(),
+        //            Matchers.any());
+        //
+        //        /* set*(Object) */
+        //        RowResponder.mockSetter(this.mockRow, rowClass, attrList, this);
+        //
+        //        /* get*() */
+        //        RowResponder.mockGetter(this.mockRow, attrList, this);
 
         //LOGGER.info("Elapse: " + (baseline - System.currentTimeMillis()));
     }
@@ -123,17 +122,31 @@ public class RowMocker {
     /**
      * @return the attrValueMap
      */
-    Map<String, Object> getAttrValueMap()
+    public Map<String, Object> getAttrValueMap()
     {
         return this.attrValueMap;
     }
 
     /**
-     * @return the mockRow
+     * @return the voMocker
      */
-    Row getMockRow()
+    public BaseViewObjectMocker getVoMocker()
+    {
+        return this.voMocker;
+    }
+
+    @Override
+    public ViewRowImpl getMock()
     {
         return this.mockRow;
+    }
+
+    /**
+     * @return the responder
+     */
+    public RowResponder<ViewRowImpl> getResponder()
+    {
+        return this.responder;
     }
 
 

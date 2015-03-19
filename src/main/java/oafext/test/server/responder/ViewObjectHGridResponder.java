@@ -13,8 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.server.responder;
 
+import oafext.test.server.BaseViewObjectMocker;
 import oracle.jbo.Row;
 import oracle.jbo.server.ViewObjectImpl;
 
@@ -32,8 +33,7 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
 
 
     @Override
-    public ViewObjectImpl mockGetAllRowsInRange(final ViewObjectImpl mockVo,
-                                                final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockGetAllRowsInRange(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row[]>() {
 
@@ -47,15 +47,14 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
                     return new Row[] { voMocker
                         .getRowMockerList()
                         .get(0)
-                        .getMockRow() };
+                        .getMock() };
                 }
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
     @Override
-    public ViewObjectImpl mockGetRowAtRangeIndex(final ViewObjectImpl mockVo,
-                                                 final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockGetRowAtRangeIndex(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -65,14 +64,13 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
             {
                 final Integer index = (Integer) invocation.getArguments()[0];
                 assert index == 0;
-                return voMocker.getRowMockerList().get(index).getMockRow();
+                return voMocker.getRowMockerList().get(index).getMock();
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
     @Override
-    public ViewObjectImpl mockGetRowCount(final ViewObjectImpl mockVo,
-                                          final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockGetRowCount(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -83,7 +81,7 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
                 throw new UnsupportedOperationException(
                     "TODO: Determine the behavior for this.");
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
 }

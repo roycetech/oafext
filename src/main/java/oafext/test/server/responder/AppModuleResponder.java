@@ -13,8 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.server.responder;
 
+import oafext.test.server.AppModuleMocker;
+import oafext.test.server.BaseViewObjectMocker;
+import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.jbo.ViewObject;
 
 import org.mockito.Mockito;
@@ -23,17 +26,18 @@ import org.mockito.stubbing.Answer;
 
 /**
  * @author royce
- *
+ * @param <A> specific application module type.
  */
-public final class AppModuleAnswers {
+public final class AppModuleResponder<A extends OAApplicationModuleImpl> {
 
 
-    /** */
-    private AppModuleAnswers() {}
-
-
-    static <M> M mockFindViewObject(final M mockAppModule,
-                                    final AppModuleMocker<?> amMocker)
+    /**
+     * @param mockAppModule mock application module.
+     * @param amMocker application module mocker.
+     * @return
+     */
+    public A mockFindViewObject(final A mockAppModule,
+                                final AppModuleMocker<?> amMocker)
     {
         return Mockito.doAnswer(new Answer<ViewObject>() {
 
@@ -45,7 +49,7 @@ public final class AppModuleAnswers {
                 final BaseViewObjectMocker voMocker = amMocker
                     .getVoInstMockerMap()
                     .get(voInstName);
-                return voMocker.getMockVo();
+                return voMocker.getMock();
             }
         })
             .when(mockAppModule);

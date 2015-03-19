@@ -246,6 +246,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * @param voInstName view object instance.
+     * @param attrIdxChildren attribute index of the children.
      */
     public void mockViewObjectHGrid(final String voInstName,
                                     final int attrIdxChildren)
@@ -558,7 +559,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @return the voNameRowClsMap
      */
-    Map<String, Class<? extends Row>> getVoNameRowClsMap()
+    public Map<String, Class<? extends Row>> getVoNameRowClsMap()
     {
         return this.voNameRowClsMap;
     }
@@ -566,20 +567,20 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @return the voClsAttrListMap
      */
-    Map<String, List<String>> getVoDefAttrListMap()
+    public Map<String, List<String>> getVoDefAttrListMap()
     {
         return this.voDefAttrListMap;
     }
 
     public A getMockAppModule()
     {
-        return this.appModuleMocker.getMockAm();
+        return this.appModuleMocker.getMock();
     }
 
     /**
      * @return the voNameDefMap
      */
-    Map<String, String> getVoNameDefMap()
+    public Map<String, String> getVoNameDefMap()
     {
         return this.voNameDefMap;
     }
@@ -587,7 +588,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @return the appModuleMocker
      */
-    AppModuleMocker<A> getAppModuleMocker()
+    public AppModuleMocker<A> getAppModuleMocker()
     {
         return this.appModuleMocker;
     }
@@ -596,7 +597,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @return the rowClsVoDefMap
      */
-    Map<Class<? extends Row>, String> getRowClsVoDefMap()
+    public Map<Class<? extends Row>, String> getRowClsVoDefMap()
     {
         return this.rowClsVoDefMap;
     }

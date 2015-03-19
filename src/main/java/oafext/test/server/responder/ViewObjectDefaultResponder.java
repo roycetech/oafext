@@ -13,11 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.server.responder;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import oafext.test.server.BaseViewObjectMocker;
+import oafext.test.server.RowMocker;
+import oafext.test.server.ViewObjectMockState;
 import oracle.jbo.Row;
 import oracle.jbo.server.ViewObjectImpl;
 
@@ -36,8 +39,7 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockGetAllRowsInRange(final ViewObjectImpl mockVo,
-                                                final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockGetAllRowsInRange(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row[]>() {
 
@@ -45,8 +47,7 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
             public Row[] answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final ViewObjectMockedState voState = voMocker
-                    .getMockedVoState();
+                final ViewObjectMockState voState = voMocker.getMockedVoState();
 
                 final List<Row> retval = new ArrayList<Row>();
 
@@ -59,17 +60,17 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
                     .getRangeSize() || fetchRangeAll)
                         && i < rowMockerList.size(); i++) {
 
-                    retval.add(rowMockerList.get(i).getMockRow());
+                    retval.add(rowMockerList.get(i).getMock());
                 }
                 return retval.toArray(new Row[retval.size()]);
             }
-        }).when(mockVo);
+        })
+            .when(voMocker.getMock());
     }
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockGetRowAtRangeIndex(final ViewObjectImpl mockVo,
-                                                 final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockGetRowAtRangeIndex(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -78,16 +79,15 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
                     throws Throwable
             {
                 final Integer index = (Integer) invocation.getArguments()[0];
-                return voMocker.getRowMockerList().get(index).getMockRow();
+                return voMocker.getRowMockerList().get(index).getMock();
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
 
     }
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockGetRowCount(final ViewObjectImpl mockVo,
-                                          final BaseViewObjectMocker voMocker)
+    public ViewObjectImpl mockGetRowCount(final BaseViewObjectMocker voMocker)
     {
         return Mockito.doAnswer(new Answer<Integer>() {
 
@@ -97,7 +97,7 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
             {
                 return voMocker.getRowMockerList().size();
             }
-        }).when(mockVo);
+        }).when(voMocker.getMock());
     }
 
 }
