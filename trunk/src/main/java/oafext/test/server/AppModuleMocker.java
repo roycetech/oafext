@@ -20,6 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.mock.Mocker;
+import oafext.test.server.responder.AppModuleResponder;
+import oafext.test.server.responder.ViewObjectDefaultResponder;
 import oafext.test.util.MockHelper;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.apps.fnd.framework.server.OADBTransaction;
@@ -35,8 +38,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author royce
  *
+ * @param <A>
  */
-public class AppModuleMocker<A extends OAApplicationModuleImpl> {
+public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
+        Mocker<A> {
 
 
     /** */
@@ -91,8 +96,9 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> {
         this.voInstMockerMap = new HashMap<String, BaseViewObjectMocker>();
 
         /* findViewObject */
-        AppModuleAnswers.mockFindViewObject(this.mockAm, this).findViewObject(
-            Matchers.anyString());
+        new AppModuleResponder<A>()
+            .mockFindViewObject(this.mockAm, this)
+            .findViewObject(Matchers.anyString());
 
         /* getOADBTransaction */
         final OADBTransaction mockTrx = Mockito.mock(OADBTransaction.class);
@@ -179,7 +185,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> {
         final String methName = "get" + voInstance;
         Mockito
             .when(getHelper().invokeMethod(this.mockAm, methName))
-            .thenReturn(voMocker.getMockVo());
+            .thenReturn(voMocker.getMock());
 
     }
 
@@ -197,7 +203,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> {
     {
         assert this.voInstMockerMap.get(voInstance) != null;
 
-        final ViewObject viewObject = getMockAm().findViewObject(voInstance);
+        final ViewObject viewObject = getMock().findViewObject(voInstance);
         assert viewObject != null;
 
         final boolean isExisting = index < viewObject.getAllRowsInRange().length;
@@ -221,7 +227,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> {
     {
         for (final BaseViewObjectMocker voMocker : this.voInstMockerMap
             .values()) {
-            final ViewObjectMockedState voState = voMocker.getMockedVoState();
+            final ViewObjectMockState voState = voMocker.getMockedVoState();
             voState.setExecuted(true);
         }
 
@@ -239,24 +245,16 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> {
             .get(voInstance);
         assert voMocker != null : "Invoke mockViewObject(String) before calling this.";
 
-        final ViewObjectMockedState voState = voMocker.getMockedVoState();
+        final ViewObjectMockState voState = voMocker.getMockedVoState();
         voState.setExecuted(true);
     }
 
     /**
      * @return the voInstMockerMap
      */
-    Map<String, BaseViewObjectMocker> getVoInstMockerMap()
+    public Map<String, BaseViewObjectMocker> getVoInstMockerMap()
     {
         return this.voInstMockerMap;
-    }
-
-    /**
-     * @return the mockAm
-     */
-    A getMockAm()
-    {
-        return this.mockAm;
     }
 
     /**
@@ -271,9 +269,16 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> {
     /**
      * @return the attrDefMockerLst
      */
-    Map<String, List<AttrDefMocker>> getAttrDefMockerMap()
+    public Map<String, List<AttrDefMocker>> getAttrDefMockerMap()
     {
         return this.attrDefFullMockerMap;
+    }
+
+
+    @Override
+    public A getMock()
+    {
+        return this.mockAm;
     }
 
 

@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.mock.Mocker;
+import oafext.test.server.responder.ViewObjectResponder;
 import oracle.jbo.Row;
 import oracle.jbo.server.ViewObjectImpl;
 
@@ -31,9 +33,11 @@ import org.mockito.Mockito;
  * This wraps the view object mock to extends its functionality beyond the
  * mocked methods.
  *
+ * Composite pattern used.
+ *
  * @author royce
  */
-public class BaseViewObjectMocker {
+public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
 
 
     /** */
@@ -54,6 +58,7 @@ public class BaseViewObjectMocker {
     private final transient Map<Row, RowMocker> newRowsMap = new HashMap<Row, RowMocker>();
 
 
+    /** */
     private final transient AppModuleFixture<?> amFixture;
 
     /** */
@@ -65,7 +70,7 @@ public class BaseViewObjectMocker {
 
 
     /** */
-    private final transient ViewObjectMockedState mockedVoState;
+    private final transient ViewObjectMockState mockedVoState;
 
 
     /**
@@ -84,7 +89,7 @@ public class BaseViewObjectMocker {
         this.viewObjectType = pVoType;
         this.voResponder = pVoResponder;
 
-        this.mockedVoState = new ViewObjectMockedState(pViewObjectName);
+        this.mockedVoState = new ViewObjectMockState(pViewObjectName);
 
 
         final Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = pAmFixture
@@ -96,7 +101,7 @@ public class BaseViewObjectMocker {
 
         this.mockVo = Mockito.mock(viewObjectClass);
 
-        getVoResponder().mockMethods(this.mockVo, pAmFixture, this);
+        getVoResponder().mockMethods(pAmFixture, this);
     }
 
 
@@ -107,34 +112,36 @@ public class BaseViewObjectMocker {
     }
 
 
-    //TODO: What happens to currentRow if it is removed.  Does it now point to null or does it point to a dead row?
-    void remove(final RowMocker rowMocker)
+    /**
+     * Removes the mocker and the mocked row along with it. <br/>
+     *
+     * <b>TODO</b>: What happens to currentRow if it is removed. Does it now
+     * point to null or does it point to a dead row?
+     *
+     * @param rowMocker row mocker instance to remove.
+     */
+    public void remove(final RowMocker rowMocker)
     {
         this.rowMockerList.remove(rowMocker);
     }
 
     /**
-     * @return the mockVo
-     */
-    ViewObjectImpl getMockVo()
-    {
-        return this.mockVo;
-    }
-
-
-    /**
      * @return the rowMockerList
      */
-    List<RowMocker> getRowMockerList()
+    public List<RowMocker> getRowMockerList()
     {
         return this.rowMockerList;
     }
 
+    public boolean isHGrid()
+    {
+        return ViewObjectType.HGrid == this.viewObjectType;
+    }
 
     /**
      * @return the rowSetIterMap
      */
-    Map<String, RowSetIteratorMocker> getRowSetIterMap()
+    public Map<String, RowSetIteratorMocker> getRowSetIterMap()
     {
         return this.rowSetIterMap;
     }
@@ -143,7 +150,7 @@ public class BaseViewObjectMocker {
     /**
      * @return the newRowsMap
      */
-    Map<Row, RowMocker> getNewRowsMap()
+    public Map<Row, RowMocker> getNewRowsMap()
     {
         return this.newRowsMap;
     }
@@ -172,7 +179,7 @@ public class BaseViewObjectMocker {
         Linked;
     }
 
-    ViewObjectMockedState getMockedVoState()
+    public ViewObjectMockState getMockedVoState()
     {
         return this.mockedVoState;
     }
@@ -180,6 +187,13 @@ public class BaseViewObjectMocker {
     ViewObjectResponder<ViewObjectImpl> getVoResponder()
     {
         return this.voResponder;
+    }
+
+
+    @Override
+    public ViewObjectImpl getMock()
+    {
+        return this.mockVo;
     }
 
 }

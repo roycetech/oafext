@@ -15,6 +15,8 @@
  */
 package oafext.test.server;
 
+import oafext.test.server.responder.ViewObjectHGridResponder;
+
 /**
  * @author royce
  */

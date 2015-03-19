@@ -15,6 +15,8 @@
  */
 package oafext.test.server;
 
+import oafext.test.mock.Mocker;
+import oafext.test.server.responder.RowSetIteratorResponder;
 import oracle.jbo.RowSetIterator;
 
 import org.mockito.Matchers;
@@ -24,9 +26,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author royce
- * 
+ *
  */
-public class RowSetIteratorMocker {
+public class RowSetIteratorMocker implements Mocker<RowSetIterator> {
 
 
     /** sl4j logger instance. */
@@ -39,154 +41,78 @@ public class RowSetIteratorMocker {
     private final transient RowSetIterator mockRsIter;
 
     /** */
-    private transient boolean hasNext = true;
+    private final transient IteratorMockState iterMockState;
+
 
     /** */
-    private transient int rangeStart;
-
-    /** */
-    private transient int rangeEnd = 1;
-
-    /** */
-    private transient int rangeCurrent = -1;
+    private final transient RowSetIteratorResponder<RowSetIterator> responder;
 
 
-    RowSetIteratorMocker(final String pName,
+    /**
+     * @param pName iterator name.
+     * @param voMocker view object mocker.
+     */
+    public RowSetIteratorMocker(final String pName,
             final BaseViewObjectMocker voMocker) {
 
         assert pName != null;
 
         this.mockRsIter = Mockito.mock(RowSetIterator.class);
-        this.rangeEnd = voMocker.getRowMockerList().size();
+        this.responder = new RowSetIteratorResponder<RowSetIterator>(
+            this.mockRsIter);
 
-        //LOGGER.info("New Iterator: " + pName + ',' + this.rangeEnd);
-
+        this.iterMockState = new IteratorMockState(voMocker
+            .getRowMockerList()
+            .size());
 
         /* getName() */
         Mockito.doReturn(pName).when(this.mockRsIter).getName();
 
         /* getRowAtRangeIndex() */
-        RowSetIteratorAnswers.mockGetRowAtRangeIndex(
-            this.mockRsIter,
-            voMocker.getMockVo()).getRowAtRangeIndex(Matchers.anyInt());
+        getResponder()
+            .mockGetRowAtRangeIndex(voMocker.getMock())
+            .getRowAtRangeIndex(Matchers.anyInt());
 
         /* getRowCount() */
-        RowSetIteratorAnswers
-            .mockGetRowCount(this.mockRsIter, voMocker)
-            .getRowCount();
+        getResponder().mockGetRowCount(voMocker).getRowCount();
 
 
         /* hasNext() */
-        RowSetIteratorAnswers.mockHasNext(this.mockRsIter, this).hasNext();
+        getResponder().mockHasNext(this).hasNext();
 
         /* next() */
-        RowSetIteratorAnswers.mockNext(this.mockRsIter, this, voMocker).next();
+        getResponder().mockNext(this, voMocker).next();
 
         /* previous() */
-        RowSetIteratorAnswers
-            .mockPrevious(this.mockRsIter, this, voMocker)
-            .previous();
+        getResponder().mockPrevious(this, voMocker).previous();
 
         /* setRangeSize(int) */
-        RowSetIteratorAnswers
-            .mockSetRangeSize(this.mockRsIter, this)
-            .setRangeSize(Matchers.anyInt());
+        getResponder().mockSetRangeSize(this).setRangeSize(Matchers.anyInt());
 
         /* closeRowSetIterator() */
-        RowSetIteratorAnswers
-            .mockCloseRsIterator(this.mockRsIter, voMocker)
-            .closeRowSetIterator();
+        getResponder().mockCloseRsIterator(voMocker).closeRowSetIterator();
 
         /* reset() */
-        RowSetIteratorAnswers.mockReset(this.mockRsIter, this).reset();
+        getResponder().mockReset(this).reset();
 
 
     }
 
-    /**
-     * @return the mockRsIter
-     */
-    RowSetIterator getMockRsIter()
+    RowSetIteratorResponder<RowSetIterator> getResponder()
+    {
+        return this.responder;
+    }
+
+    public IteratorMockState getIterMockState()
+    {
+        return this.iterMockState;
+    }
+
+    @Override
+    public RowSetIterator getMock()
     {
         return this.mockRsIter;
     }
 
-    /**
-     * @return the hasNext
-     */
-    boolean isHasNext()
-    {
-        return this.hasNext;
-    }
-
-    /**
-     * @param hasNext the hasNext to set
-     */
-    void setHasNext(final boolean hasNext)
-    {
-        this.hasNext = hasNext;
-    }
-
-    /**
-     * @return the rangeStart
-     */
-    int getRangeStart()
-    {
-        return this.rangeStart;
-    }
-
-    /**
-     * @param rangeStart the rangeStart to set
-     */
-    void setRangeStart(final int rangeStart)
-    {
-        this.rangeStart = rangeStart;
-    }
-
-    /**
-     * @return the rangeEnd
-     */
-    int getRangeEnd()
-    {
-        return this.rangeEnd;
-    }
-
-    /**
-     * @param rangeEnd the rangeEnd to set
-     */
-    void setRangeEnd(final int rangeEnd)
-    {
-        this.rangeEnd = rangeEnd;
-    }
-
-    /**
-     * @return the rangeCurrent
-     */
-    int getRangeCurrent()
-    {
-        return this.rangeCurrent;
-    }
-
-    void increment()
-    {
-        if (this.rangeCurrent < this.rangeEnd) {
-            this.rangeCurrent++;
-        }
-    }
-
-    void decrement()
-    {
-        if (this.rangeCurrent > this.rangeStart) {
-            this.rangeCurrent--;
-        }
-    }
-
-    /**
-     * @param rangeCurrent the rangeCurrent to set
-     */
-    void setRangeCurrent(final int rangeCurrent)
-    {
-        this.rangeCurrent = rangeCurrent;
-    }
 
 }

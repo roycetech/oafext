@@ -13,39 +13,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package oafext.test.server;
+package oafext.test.server.responder;
 
-import oracle.jbo.AttributeDef;
-
-import org.mockito.Mockito;
 
 /**
  * @author royce
  *
  */
-public class AttrDefMocker {
+public final class AttrDefAnswers {
 
 
     /** */
-    private final transient AttributeDef mockAttrDef;
+    private AttrDefAnswers() {}
 
-
-    /**
-     * @param attributeName attribute name.
-     */
-    public AttrDefMocker(final String attributeName) {
-        this.mockAttrDef = Mockito.mock(AttributeDef.class);
-
-        /* getName() */
-        Mockito.doReturn(attributeName).when(this.mockAttrDef).getName();
-    }
-
-    /**
-     * @return the mockAttrDef
-     */
-    public AttributeDef getMockAttrDef()
-    {
-        return this.mockAttrDef;
-    }
 
 }
