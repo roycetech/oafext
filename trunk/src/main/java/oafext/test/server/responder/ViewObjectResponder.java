@@ -30,12 +30,16 @@ import oracle.jbo.server.ViewObjectImpl;
 public interface ViewObjectResponder<M extends ViewObjectImpl> {
 
 
+    /**
+     * @param amFixture
+     * @param voMocker
+     */
     void mockMethods(final AppModuleFixture<?> amFixture,
                      final BaseViewObjectMocker voMocker);
 
+    /** */
     M mockCreateRow(final AppModuleFixture<?> amFixture,
                     final BaseViewObjectMocker voMocker);
-
 
     /**
      * @param voMocker

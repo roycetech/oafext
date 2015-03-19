@@ -29,6 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import oafext.logging.OafLogger;
+import oafext.test.mock.MockRowCallback;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.jbo.Row;
 import oracle.jbo.server.ViewObjectImpl;
@@ -228,7 +229,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @param voInstName view object instance.
      */
-    public void mockViewObjectSingle(final String voInstName)
+    public void mockViewObjectSingle(final String voInstName,
+                                     final MockRowCallback callback)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -240,16 +242,39 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         }
 
         assert this.voNameClassMap.get(voInstName) != null;
-
-        this.appModuleMocker.mockViewObjectSingle(this, voInstName);
+        this.appModuleMocker.mockViewObjectSingle(this, voInstName, callback);
     }
 
     /**
      * @param voInstName view object instance.
+     */
+    public void mockViewObjectSingle(final String voInstName)
+    {
+        mockViewObjectSingle(voInstName, null);
+    }
+
+
+    /**
+     * @param voInstName view object instance.
+     * @param attrIdxParent attribute index of the parent ID.
      * @param attrIdxChildren attribute index of the children.
      */
     public void mockViewObjectHGrid(final String voInstName,
+                                    final int attrIdxParent,
                                     final int attrIdxChildren)
+    {
+        mockViewObjectHGrid(voInstName, attrIdxParent, attrIdxChildren, null);
+    }
+
+    /**
+     * @param voInstName view object instance.
+     * @param attrIdxParent attribute index of the parent ID.
+     * @param attrIdxChildren attribute index of the children.
+     */
+    public void mockViewObjectHGrid(final String voInstName,
+                                    final int attrIdxParent,
+                                    final int attrIdxChildren,
+                                    final MockRowCallback callback)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -265,9 +290,10 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         this.appModuleMocker.mockViewObjectHGrid(
             this,
             voInstName,
-            attrIdxChildren);
+            attrIdxParent,
+            attrIdxChildren,
+            callback);
     }
-
 
     /**
      *
@@ -451,7 +477,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
             for (int i = 0; i < nodes.getLength(); i++) {
                 final Node childNode = nodes.item(i);
                 final String nodeName = childNode.getNodeName();
-                if (NodeName.ROW_ATTR.equals(nodeName)) {
+                if (NodeName.ROW_ATTR.equals(nodeName)
+                        || NodeName.VL_ACCESSOR.equals(nodeName)) {
                     final Element elem = (Element) childNode;
                     final String attrName = elem.getAttribute(Attribute.NAME);
                     currAttrNames.add(attrName);
@@ -516,6 +543,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         static final String APPMODULE = "AppModuleUsage";
         /** */
         static final String ROW_ATTR = "ViewAttribute";
+        /** */
+        static final String VL_ACCESSOR = "ViewLinkAccessor";
     }
 
 

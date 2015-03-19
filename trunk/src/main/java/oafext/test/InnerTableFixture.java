@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import oafext.logging.OafLogger;
-import oafext.test.util.MockHelper;
+import oafext.test.util.ReflectUtil;
 import oracle.apps.fnd.framework.webui.OAInnerDataObjectEnumerator;
 import oracle.jbo.Row;
 import oracle.jbo.RowSet;
@@ -35,7 +35,7 @@ public class InnerTableFixture {
     private final transient ObjectUtil objUtil = new ObjectUtil();
 
     /** */
-    private final transient MockHelper mockHelper = new MockHelper();
+    private final transient ReflectUtil mockHelper = new ReflectUtil();
 
     private final Class<?> rowType;
 
@@ -298,7 +298,7 @@ public class InnerTableFixture {
     }
 
 
-    public MockHelper getMockHelper()
+    public ReflectUtil getMockHelper()
     {
         return mockHelper;
     }

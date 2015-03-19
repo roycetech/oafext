@@ -26,11 +26,11 @@ import oafext.test.server.RowMocker;
 import oafext.test.server.RowSetIteratorMocker;
 import oafext.test.server.ViewObjectMockState;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
+import oracle.apps.fnd.framework.server.OAViewRowImpl;
 import oracle.jbo.AttributeDef;
 import oracle.jbo.Row;
 import oracle.jbo.RowSetIterator;
 import oracle.jbo.server.ViewObjectImpl;
-import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -52,9 +52,6 @@ public abstract class BaseViewObjectResponder implements
     /** sl4j logger instance. */
     private static final Logger LOGGER = LoggerFactory
         .getLogger(BaseViewObjectResponder.class);
-
-    /** */
-    BaseViewObjectResponder() {}
 
 
     @Override
@@ -163,16 +160,16 @@ public abstract class BaseViewObjectResponder implements
                 final ViewObjectImpl mockVo = voMocker.getMock();
 
                 @SuppressWarnings(Constant.UNCHECKED)
-                final Class<? extends ViewRowImpl> rowClass = mockVo
+                final Class<? extends OAViewRowImpl> rowClass = mockVo
                     .getRowClass();
 
                 final RowMocker rowMocker = new RowMocker(
                     rowClass,
                     amFixture,
                     voMocker);
-
                 voMocker.getNewRowsMap().put(rowMocker.getMock(), rowMocker);
 
+                voMocker.callClient(rowMocker);
                 return rowMocker.getMock();
             }
         }).when(voMocker.getMock());

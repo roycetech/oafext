@@ -23,10 +23,13 @@ import java.util.Map;
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.BaseViewObjectMocker;
 import oafext.test.server.RowMocker;
-import oafext.test.util.MockHelper;
+import oafext.test.server.ViewObjectHGridMocker;
+import oafext.test.util.ReflectUtil;
 import oracle.jbo.Key;
 import oracle.jbo.Row;
+import oracle.jbo.RowSet;
 import oracle.jbo.ViewObject;
+import oracle.jbo.domain.Number;
 import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Matchers;
@@ -37,9 +40,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This class was meant to represent the base functionality but HGrid type is
+ * incorporated as well due to redundancy required when separating
+ * implementation based inside inner class. Perhaps this can be enhance by
+ * finding a way around the language limitation.
+ *
  * @author royce
  *
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
 
@@ -48,20 +57,13 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
         .getLogger(BaseRowResponder.class);
 
 
-    /** */
-    public BaseRowResponder() {}
-
     /** {@inheritDoc} */
     @Override
     public void mockMethods(final AppModuleFixture<?> amFixture,
                             final RowMocker rowMocker,
                             final Class<? extends Row> pRowClass)
     {
-
-        final Map<Class<? extends Row>, String> rowClsVoDefFullMap = amFixture
-            .getRowClsVoDefMap();
-
-        final String voDefFull = rowClsVoDefFullMap.get(pRowClass);
+        final String voDefFull = amFixture.getRowClsVoDefMap().get(pRowClass);
         assert voDefFull != null;
 
         final List<String> attrList = amFixture.getVoDefAttrListMap().get(
@@ -71,8 +73,11 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
         /* remove(). */
         mockRemove(rowMocker).remove();
 
-        /* getViewObj - anti zombie/anti final. */
+        /* getViewObj() - anti zombie/final. */
         mockGetViewObj(rowMocker);
+
+        /* getAttributeCount() - anti zombie/final.  */
+        mockGetAttributeCount(attrList, rowMocker);
 
         /* getAttribute(int) */
         mockGetAttributeInt(attrList, rowMocker)
@@ -118,6 +123,50 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
         }).when(rowMocker.getMock());
     }
 
+
+    /** {@inheritDoc} */
+    @Override
+    public void mockGetAttributeCount(final List<String> attrList,
+                                      final RowMocker rowMocker)
+    {
+        Method getAttrCountMeth = null; //NOPMD: null default, conditionally redefine.
+        try {
+            getAttrCountMeth = rowMocker
+                .getMock()
+                .getClass()
+                .getDeclaredMethod(RowMocker.CUST_GET_ATTR_CNT, new Class<?>[0]);
+
+            if (getAttrCountMeth != null) {
+
+                Mockito
+                    .when(
+                        getAttrCountMeth.invoke(
+                            rowMocker.getMock(),
+                            new Object[0])).thenAnswer(new Answer<Integer>() {
+
+                        @Override
+                        public Integer answer(final InvocationOnMock invocation)
+                                throws Throwable
+                        {
+                            return attrList.size();
+                        }
+                    });
+            }
+
+        } catch (final SecurityException e1) {
+            BaseRowResponder.LOGGER.error(e1.getMessage(), e1);
+        } catch (final NoSuchMethodException e1) {
+            BaseRowResponder.LOGGER.error("Anti zombie method not found for: "
+                    + rowMocker.getMock().getClass().getSimpleName(), e1);
+        } catch (final IllegalArgumentException e) {
+            BaseRowResponder.LOGGER.error(e.getMessage(), e);
+        } catch (final IllegalAccessException e) {
+            BaseRowResponder.LOGGER.error(e.getMessage(), e);
+        } catch (final InvocationTargetException e) {
+            BaseRowResponder.LOGGER.error(e.getMessage(), e);
+        }
+    }
+
     @Override
     public ViewRowImpl mockGetAttributeInt(final List<String> attrList,
                                            final RowMocker rowMocker)
@@ -130,9 +179,37 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             {
                 final Integer index = (Integer) invocation.getArguments()[0];
                 final String attrName = attrList.get(index);
-                return rowMocker.getAttrValueMap().get(attrName);
+
+                Object attrValue;
+
+                if (isRowSetAttribute(rowMocker, index.intValue())) {
+                    final RowSet mockRowSet = Mockito.mock(RowSet.class);
+                    Mockito.doAnswer(new Answer<Row[]>() {
+
+                        @Override
+                        public Row[] answer(final InvocationOnMock invocation)
+                                throws Throwable
+                        {
+                            final String parentIdAttr = attrList.get(0);
+                            final Number parentId = (Number) rowMocker
+                                .getAttrValueMap()
+                                .get(parentIdAttr);
+
+                            final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) rowMocker
+                                .getVoMocker();
+                            return voHGridMocker.getChildren(parentId);
+                        }
+                    })
+                        .when(mockRowSet)
+                        .getAllRowsInRange();
+                    attrValue = mockRowSet;
+                } else {
+                    attrValue = rowMocker.getAttrValueMap().get(attrName);
+                }
+                return attrValue;
             }
-        }).when(rowMocker.getMock());
+        })
+            .when(rowMocker.getMock());
 
     }
 
@@ -195,7 +272,6 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
         } catch (final InvocationTargetException e) {
             BaseRowResponder.LOGGER.error(e.getMessage(), e);
         }
-
     }
 
     @Override
@@ -264,7 +340,6 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                            final List<String> attrList,
                            final RowMocker rowMocker)
     {
-        final MockHelper helper = new MockHelper(); //NOPMD: Optimized Outside loop
         for (final String nextAttr : attrList) {
 
             final String methodName = "set"
@@ -272,30 +347,36 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                     + nextAttr.substring(1);
 
 
-            final Method method = helper.findMethod(rowClass, methodName);
+            final Method method = ReflectUtil.findMethod(rowClass, methodName);
 
-            try {
-                Mockito.when(
-                    method.invoke(
-                        rowMocker.getMock(),
-                        new Object[] { Matchers.any() })).thenAnswer(
-                    new Answer<Object>() {
+            if (method != null) {
+                try {
+                    Mockito.when(
+                        method.invoke(
+                            rowMocker.getMock(),
+                            new Object[] { Matchers.any() })).thenAnswer(
+                        new Answer<Object>() {
 
-                        @Override
-                        public Object answer(final InvocationOnMock invocation)
-                                throws Throwable
-                        {
-                            final Object value = invocation.getArguments()[0];
-                            rowMocker.getAttrValueMap().put(nextAttr, value);
-                            return null;
-                        }
-                    });
-            } catch (final IllegalArgumentException e) {
-                BaseRowResponder.LOGGER.error(e.getMessage() + methodName, e);
-            } catch (final IllegalAccessException e) {
-                BaseRowResponder.LOGGER.error(e.getMessage(), e);
-            } catch (final InvocationTargetException e) {
-                BaseRowResponder.LOGGER.error(e.getMessage(), e);
+                            @Override
+                            public Object answer(final InvocationOnMock invocation)
+                                    throws Throwable
+                            {
+                                final Object value = invocation.getArguments()[0];
+                                rowMocker
+                                    .getAttrValueMap()
+                                    .put(nextAttr, value);
+                                return null;
+                            }
+                        });
+                } catch (final IllegalArgumentException e) {
+                    BaseRowResponder.LOGGER.error(
+                        e.getMessage() + methodName,
+                        e);
+                } catch (final IllegalAccessException e) {
+                    BaseRowResponder.LOGGER.error(e.getMessage(), e);
+                } catch (final InvocationTargetException e) {
+                    BaseRowResponder.LOGGER.error(e.getMessage(), e);
+                }
             }
         }
     }
@@ -307,17 +388,16 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     public void mockGetter(final List<String> attrList,
                            final RowMocker rowMocker)
     {
-        final MockHelper helper = new MockHelper(); //NOPMD: Optimized Outside loop
-
         for (final String nextAttr : attrList) {
 
             final String methodName = "get"
                     + nextAttr.substring(0, 1).toUpperCase()
                     + nextAttr.substring(1);
 
-            final Method method = helper.findMethod(rowMocker
+            final Method method = ReflectUtil.findMethod(rowMocker
                 .getMock()
                 .getClass(), methodName);
+
             assert method != null;
 
             try {
@@ -329,9 +409,41 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                         public Object answer(final InvocationOnMock invocation)
                                 throws Throwable
                         {
-                            return rowMocker.getAttrValueMap().get(nextAttr);
+                            if (isRowSetAttribute(
+                                rowMocker,
+                                attrList.indexOf(nextAttr))) {
+
+                                final RowSet mockRowSet = Mockito
+                                    .mock(RowSet.class);
+                                Mockito.doAnswer(new Answer<Row[]>() {
+
+                                    @Override
+                                    public Row[] answer(final InvocationOnMock invocation)
+                                            throws Throwable
+                                    {
+                                        final String parentIdAttr = attrList
+                                            .get(0);
+                                        final Number parentId = (Number) rowMocker
+                                            .getAttrValueMap()
+                                            .get(parentIdAttr);
+
+                                        final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) rowMocker
+                                            .getVoMocker();
+                                        return voHGridMocker
+                                            .getChildren(parentId);
+                                    }
+                                })
+                                    .when(mockRowSet)
+                                    .getAllRowsInRange();
+                                return mockRowSet;
+                            } else {
+                                return rowMocker
+                                    .getAttrValueMap()
+                                    .get(nextAttr);
+                            }
                         }
                     });
+
             } catch (final IllegalArgumentException e) {
                 BaseRowResponder.LOGGER.error(e.getMessage() + methodName, e);
             } catch (final IllegalAccessException e) {
@@ -340,6 +452,26 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                 BaseRowResponder.LOGGER.error(e.getMessage(), e);
             }
         }
+    }
+
+    /**
+     * Currently for HGrid type only.
+     *
+     * @param rowMocker
+     * @param attrIndex
+     * @return
+     */
+    @SuppressWarnings("PMD.OnlyOneReturn" /* Two only. */)
+    boolean isRowSetAttribute(final RowMocker rowMocker, final int attrIdx)
+    {
+        final BaseViewObjectMocker voMocker = rowMocker.getVoMocker();
+
+        final boolean isRowSet = false; //NOPMD: null default, conditionally redefine.
+        if (voMocker.isHGrid()) {
+            final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) voMocker;
+            return voHGridMocker.isChildAttribute(attrIdx);
+        }
+        return isRowSet;
     }
 
 
