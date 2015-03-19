@@ -10,22 +10,23 @@ import org.slf4j.LoggerFactory;
 /**
  * @author royce
  */
-public class MockHelper {
+public class ReflectUtil {
 
 
     /** */
     private static final Logger LOGGER = LoggerFactory
-        .getLogger(MockHelper.class);
+        .getLogger(ReflectUtil.class);
 
 
     /**
      * Find a method matching only the name.
-     * 
+     *
      * @param klass class to find method from.
      * @param methodName method name.
      */
     @SuppressWarnings("PMD.OnlyOneReturn")
-    public Method findMethod(final Class<?> klass, final String methodName)
+    public static Method findMethod(final Class<?> klass,
+                                    final String methodName)
     {
 
         for (final Method method : klass.getMethods()) {
@@ -39,12 +40,12 @@ public class MockHelper {
 
     /**
      * Helper method to swallow exception from reflection. Zero parameter only.
-     * 
+     *
      * @param mock mock to invoke method from.
      * @param methodName method name.
-     * 
+     *
      */
-    public Object invokeMethod(final Object mock, final String methodName)
+    public static Object invokeMethod(final Object mock, final String methodName)
     {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {
@@ -69,11 +70,13 @@ public class MockHelper {
 
     /**
      * Helper method to swallow exception from reflection. WET: With who!?
-     * 
+     *
      * @param object
      */
-    public Object invokeMethod(final Object object, final String methName,
-            final Class<?>[] paramType, final Object[] args)
+    public static Object invokeMethod(final Object object,
+                                      final String methName,
+                                      final Class<?>[] paramType,
+                                      final Object[] args)
     {
         Object retval = null; //NOPMD: null default, conditionally redefine.
         try {

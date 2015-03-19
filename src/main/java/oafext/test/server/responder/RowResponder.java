@@ -20,14 +20,13 @@ import java.util.List;
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.RowMocker;
 import oracle.jbo.Row;
-import oracle.jbo.server.ViewRowImpl;
 
 /**
  * @author royce
  *
  * @param <M> specific row implementation type.
  */
-public interface RowResponder<M extends ViewRowImpl> {
+public interface RowResponder<M extends Row> {
 
 
     /**
@@ -40,6 +39,24 @@ public interface RowResponder<M extends ViewRowImpl> {
     void mockMethods(final AppModuleFixture<?> amFixture,
                      final RowMocker rowMocker,
                      final Class<? extends Row> pRowClass);
+
+
+    /**
+     * Circumvent final method.
+     *
+     * @param attrList row attribute list.
+     * @param rowMocker row mocker.
+     * @return
+     */
+    void mockGetAttributeCount(final List<String> attrList,
+                               final RowMocker rowMocker);
+
+    /**
+     * Circumvent final method.
+     *
+     * @param rowMocker row mocker.
+     */
+    void mockGetViewObj(final RowMocker rowMocker);
 
 
     /**
@@ -65,12 +82,6 @@ public interface RowResponder<M extends ViewRowImpl> {
      */
     M mockGetAttributeString(final RowMocker rowMocker);
 
-    /**
-     * rtfc.
-     *
-     * @param rowMocker row mocker.
-     */
-    void mockGetViewObj(final RowMocker rowMocker);
 
     /**
      * rtfc.

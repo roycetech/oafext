@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.mock.MockRowCallback;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.ViewObjectResponder;
 import oracle.jbo.Row;
@@ -71,6 +72,9 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
 
     /** */
     private final transient ViewObjectMockState mockedVoState;
+
+    /** */
+    private transient MockRowCallback rowMockCallback;
 
 
     /**
@@ -194,6 +198,27 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
     public ViewObjectImpl getMock()
     {
         return this.mockVo;
+    }
+
+    /**
+     * This will allow client specific mock functionality.
+     *
+     * @param rowMocker row mocker instance.
+     */
+    public void callClient(final RowMocker rowMocker)
+    {
+        if (this.rowMockCallback != null) {
+            this.rowMockCallback.callback(rowMocker);
+        }
+    }
+
+
+    /**
+     * @param rowMockCallback the rowMockCallback to set
+     */
+    public void setRowMockCallback(final MockRowCallback rowMockCallback)
+    {
+        this.rowMockCallback = rowMockCallback;
     }
 
 }

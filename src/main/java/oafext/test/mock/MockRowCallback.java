@@ -15,17 +15,19 @@
  */
 package oafext.test.mock;
 
+import oafext.test.server.RowMocker;
+
 
 /**
  * @version $Date$
- *
- * @param <M> mock type.
  */
-public interface Mocker<M> {
+public interface MockRowCallback {
 
 
-    /** */
-    M getMock();
+    /**
+     * @param rowMocker row mocker instance.
+     */
+    void callback(RowMocker rowMocker);
 
 
 }

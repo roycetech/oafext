@@ -20,20 +20,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.mock.MockRowCallback;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.AppModuleResponder;
 import oafext.test.server.responder.ViewObjectDefaultResponder;
-import oafext.test.util.MockHelper;
+import oafext.test.util.ReflectUtil;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.apps.fnd.framework.server.OADBTransaction;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
+import oracle.jbo.domain.Number;
 
 import org.junit.After;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * @author royce
@@ -55,7 +58,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
 
 
     /** */
-    private final transient MockHelper helper = new MockHelper();
+    private final transient ReflectUtil helper = new ReflectUtil();
 
 
     /** sl4j logger instance. */
@@ -84,9 +87,9 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
                 final A appModule = appModuleClass.newInstance();
                 this.mockAm = Mockito.spy(appModule);
             } catch (final InstantiationException e) {
-                throw new OafExtException(e.getMessage());
+                throw new OafExtException(e);
             } catch (final IllegalAccessException e) {
-                throw new OafExtException(e.getMessage());
+                throw new OafExtException(e);
             }
 
         } else {
@@ -125,16 +128,29 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      *
      * @param voInstance
      */
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     void mockViewObjectSingle(final AppModuleFixture<?> amFixture,
-                              final String voInstance)
+                              final String voInstance,
+                              final MockRowCallback rowMockCallback)
     {
         final BaseViewObjectMocker voMocker = new BaseViewObjectMocker(
             amFixture,
             voInstance,
             BaseViewObjectMocker.ViewObjectType.Single,
             new ViewObjectDefaultResponder());
-        mockViewObject_(voMocker);
+        voMocker.setRowMockCallback(rowMockCallback);
+        mockViewObjectInternal(voMocker);
+    }
+
+    /**
+     * e.g. Mock getFinFacilityVO1.
+     *
+     * @param voInstance
+     */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    void mockViewObjectSingle(final AppModuleFixture<?> amFixture,
+                              final String voInstance)
+    {
+        mockViewObjectSingle(amFixture, voInstance, null);
     }
 
     /**
@@ -144,13 +160,17 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     void mockViewObjectHGrid(final AppModuleFixture<?> amFixture,
-                             final String voInstance, final int attrIdxChildren)
+                             final String voInstance, final int attrIdxParent,
+                             final int attrIdxChildren,
+                             final MockRowCallback rowMockCallback)
     {
         final ViewObjectHGridMocker voMocker = new ViewObjectHGridMocker(
             amFixture,
             voInstance,
+            attrIdxParent,
             attrIdxChildren);
-        mockViewObject_(voMocker);
+        voMocker.setRowMockCallback(rowMockCallback);
+        mockViewObjectInternal(voMocker);
     }
 
     /**
@@ -158,8 +178,26 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      *
      * @param voInstance
      */
+    void mockViewObjectHGrid(final AppModuleFixture<?> amFixture,
+                             final String voInstance, final int attrIdxParent,
+                             final int attrIdxChildren)
+    {
+        mockViewObjectHGrid(
+            amFixture,
+            voInstance,
+            attrIdxParent,
+            attrIdxChildren,
+            null);
+    }
+
+
+    /**
+     * e.g. Mock getFinFacilityVO1.
+     *
+     * @param voInstance
+     */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    void mockViewObject_(final BaseViewObjectMocker voMocker)
+    void mockViewObjectInternal(final BaseViewObjectMocker voMocker)
     {
         final AppModuleFixture<?> amFixture = voMocker.getAmFixture();
         final String voInstance = voMocker
@@ -184,7 +222,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
 
         final String methName = "get" + voInstance;
         Mockito
-            .when(getHelper().invokeMethod(this.mockAm, methName))
+            .when(ReflectUtil.invokeMethod(this.mockAm, methName))
             .thenReturn(voMocker.getMock());
 
     }
@@ -203,7 +241,11 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     {
         assert this.voInstMockerMap.get(voInstance) != null;
 
-        final ViewObject viewObject = getMock().findViewObject(voInstance);
+        final BaseViewObjectMocker voMocker = this.voInstMockerMap
+            .get(voInstance);
+
+
+        final ViewObject viewObject = voMocker.getMock();
         assert viewObject != null;
 
         final boolean isExisting = index < viewObject.getAllRowsInRange().length;
@@ -212,12 +254,19 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
             row = viewObject.getRowAtRangeIndex(index);
         } else {
             row = viewObject.createRow();
-            viewObject.insertRowAtRangeIndex(index, row);
         }
 
         for (int i = 0; i < pValues.length; i++) {
             row.setAttribute(pAttrs[i], pValues[i]);
         }
+
+        if (voMocker.isHGrid()) {
+            final ViewObjectHGridMocker voHgridMocker = (ViewObjectHGridMocker) voMocker;
+            final Number parentId = (Number) row.getAttribute(voHgridMocker
+                .getParentAttrIdx());
+            voHgridMocker.registerChild(parentId, row);
+        }
+        viewObject.insertRowAtRangeIndex(index, row);
     }
 
     /**
@@ -260,7 +309,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     /**
      * @return the helper
      */
-    MockHelper getHelper()
+    ReflectUtil getHelper()
     {
         return this.helper;
     }
@@ -284,10 +333,14 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
 
 }
 
+
+/**
+ * @version $Date: $
+ */
 class OafExtException extends RuntimeException {
 
-    OafExtException(final String message) {
-        super(message);
+    OafExtException(final Throwable cause) {
+        super(cause);
     }
 
 }

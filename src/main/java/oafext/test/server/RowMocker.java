@@ -21,6 +21,7 @@ import java.util.Map;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.BaseRowResponder;
 import oafext.test.server.responder.RowResponder;
+import oracle.apps.fnd.framework.server.OAViewRowImpl;
 import oracle.jbo.server.ViewRowImpl;
 
 import org.junit.After;
@@ -34,7 +35,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author royce
  */
-public class RowMocker implements Mocker<ViewRowImpl> {
+public class RowMocker implements Mocker<OAViewRowImpl> {
 
 
     /** sl4j logger instance. */
@@ -45,9 +46,15 @@ public class RowMocker implements Mocker<ViewRowImpl> {
     /** Wrapper for the final method getViewObject. */
     public static final String CUSTOM_GET_VO = "getViewObj";
 
+    /** Wrapper for the final method getAttributeCount. */
+    public static final String CUST_GET_ATTR_CNT = "getAttrCount";
+
 
     /** */
-    private final transient ViewRowImpl mockRow;
+    private final transient OAViewRowImpl mockRow;
+
+    /** */
+    private final transient Class<? extends OAViewRowImpl> rowClass;
 
     /** */
     private final transient Map<String, Object> attrValueMap;
@@ -56,60 +63,27 @@ public class RowMocker implements Mocker<ViewRowImpl> {
     private final BaseViewObjectMocker voMocker;
 
     /** */
-    private final transient RowResponder<ViewRowImpl> responder = new BaseRowResponder();
-
+    private final transient RowResponder<ViewRowImpl> responder;
 
     /**
-     * @param mockVo
-     * @param rowClass
-     * @param amFixture
+     * @param pRowClass row class.
+     * @param amFixture application module fixture.
+     * @param pVoMocker view object mocker.
      */
-    public RowMocker(final Class<? extends ViewRowImpl> pRowClass,
+    public RowMocker(final Class<? extends OAViewRowImpl> pRowClass,
             final AppModuleFixture<?> amFixture,
             final BaseViewObjectMocker pVoMocker) {
 
+        this.rowClass = pRowClass;
         this.mockRow = Mockito.mock(pRowClass);
         this.voMocker = pVoMocker;
+
+        this.responder = new BaseRowResponder();
 
         this.attrValueMap = new HashMap<String, Object>();
 
         getResponder().mockMethods(amFixture, this, pRowClass);
 
-        //        /* remove(). */
-        //        RowResponder.mockRemove(this.mockRow, voMocker, this).remove();
-        //
-        //        /* getViewObj - anti zombie/anti final. */
-        //        RowResponder.mockGetViewObj(this.mockRow, mockVo);
-        //        //
-        //        /* getAttribute(int) */
-        //        RowResponder
-        //            .mockGetAttributeInt(this.mockRow, attrList, this)
-        //            .getAttribute(Matchers.anyInt());
-        //
-        //        /* getAttribute(String) */
-        //        RowResponder.mockGetAttributeString(this.mockRow, this).getAttribute(
-        //            Matchers.anyString());
-        //
-        //        /* getKey() */
-        //        RowResponder.mockGetKey(this.mockRow).getKey();
-        //
-        //        /* setAttribute(int) */
-        //        RowResponder
-        //            .mockSetAttributeInt(this.mockRow, attrList, this)
-        //            .setAttribute(Matchers.anyInt(), Matchers.any());
-        //
-        //        /* setAttribute(String) */
-        //        RowResponder.mockSetAttributeString(this.mockRow, this).setAttribute(
-        //            Matchers.anyString(),
-        //            Matchers.any());
-        //
-        //        /* set*(Object) */
-        //        RowResponder.mockSetter(this.mockRow, rowClass, attrList, this);
-        //
-        //        /* get*() */
-        //        RowResponder.mockGetter(this.mockRow, attrList, this);
-
-        //LOGGER.info("Elapse: " + (baseline - System.currentTimeMillis()));
     }
 
     @After
@@ -136,7 +110,7 @@ public class RowMocker implements Mocker<ViewRowImpl> {
     }
 
     @Override
-    public ViewRowImpl getMock()
+    public OAViewRowImpl getMock()
     {
         return this.mockRow;
     }
@@ -147,6 +121,14 @@ public class RowMocker implements Mocker<ViewRowImpl> {
     public RowResponder<ViewRowImpl> getResponder()
     {
         return this.responder;
+    }
+
+    /**
+     * @return the rowClass
+     */
+    public Class<? extends OAViewRowImpl> getRowClass()
+    {
+        return this.rowClass;
     }
 
 
