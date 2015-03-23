@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import oafext.test.ViewCriteriaMocker;
 import oafext.test.mock.MockRowCallback;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.ViewObjectResponder;
@@ -51,6 +52,10 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
 
     /** */
     private final transient Map<String, RowSetIteratorMocker> rowSetIterMap = new HashMap<String, RowSetIteratorMocker>();
+
+    /** */
+    private transient ViewCriteriaMocker viewCritMocker;
+
 
     /**
      * Temporary place holder for new rows. This is cleared when the row is
@@ -219,6 +224,18 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
     public void setRowMockCallback(final MockRowCallback rowMockCallback)
     {
         this.rowMockCallback = rowMockCallback;
+    }
+
+
+    public ViewCriteriaMocker getViewCritMocker()
+    {
+        return this.viewCritMocker;
+    }
+
+
+    public void setViewCritMocker(final ViewCriteriaMocker viewCritMocker)
+    {
+        this.viewCritMocker = viewCritMocker;
     }
 
 }

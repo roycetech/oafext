@@ -18,6 +18,7 @@ package oafext.test.server.responder;
 import java.util.List;
 
 import oafext.Constant;
+import oafext.test.ViewCriteriaMocker;
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.AppModuleMocker;
 import oafext.test.server.AttrDefMocker;
@@ -204,6 +205,27 @@ public abstract class BaseViewObjectResponder implements
         })
             .when(voMocker.getMock());
     }
+
+    /**
+     * @paraViewObjectImpl mockVo
+     * @paraViewObjectImpl BaseViewObjectMocker
+     * @return
+     */
+    @Override
+    public ViewObjectImpl mockCreateViewCriteria(final BaseViewObjectMocker voMocker)
+    {
+        return Mockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                new ViewCriteriaMocker(voMocker);
+                return null;
+            }
+        }).when(voMocker.getMock());
+    }
+
 
     /**
      * @paraViewObjectImpl mockVo

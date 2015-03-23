@@ -25,19 +25,24 @@ import oracle.jbo.server.ViewObjectImpl;
  * Convention: Mock View object is always the first parameter if present.
  *
  * @author royce
+ *
+ * @param <M> mock type.
  */
 @SuppressWarnings("PMD.TooManyMethods")
 public interface ViewObjectResponder<M extends ViewObjectImpl> {
 
 
     /**
-     * @param amFixture
-     * @param voMocker
+     * @param amFixture application module fixture.
+     * @param voMocker view object mocker.
      */
     void mockMethods(final AppModuleFixture<?> amFixture,
                      final BaseViewObjectMocker voMocker);
 
-    /** */
+    /**
+     * @param amFixture application module fixture.
+     * @param voMocker view object mocker.
+     */
     M mockCreateRow(final AppModuleFixture<?> amFixture,
                     final BaseViewObjectMocker voMocker);
 
@@ -46,6 +51,10 @@ public interface ViewObjectResponder<M extends ViewObjectImpl> {
      */
     M mockCreateRowSetIterator(final BaseViewObjectMocker voMocker);
 
+    /**
+     * @param voMocker
+     */
+    M mockCreateViewCriteria(final BaseViewObjectMocker voMocker);
 
     /**
      * @param voMocker

@@ -415,8 +415,10 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
                                 final RowSet mockRowSet = Mockito
                                     .mock(RowSet.class);
-                                Mockito.doAnswer(new Answer<Row[]>() {
 
+
+                                //TODO: Need to refactor to simplify.
+                                Mockito.doAnswer(new Answer<Row[]>() {
                                     @Override
                                     public Row[] answer(final InvocationOnMock invocation)
                                             throws Throwable
@@ -435,6 +437,30 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                                 })
                                     .when(mockRowSet)
                                     .getAllRowsInRange();
+
+                                Mockito.doAnswer(new Answer<Row>() {
+                                    @Override
+                                    public Row answer(final InvocationOnMock invocation)
+                                            throws Throwable
+                                    {
+                                        final Integer index = (Integer) invocation
+                                            .getArguments()[0];
+
+                                        final String parentIdAttr = attrList
+                                            .get(0);
+                                        final Number parentId = (Number) rowMocker
+                                            .getAttrValueMap()
+                                            .get(parentIdAttr);
+
+                                        final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) rowMocker
+                                            .getVoMocker();
+                                        return voHGridMocker
+                                            .getChildren(parentId)[index];
+                                    }
+                                })
+                                    .when(mockRowSet)
+                                    .getRowAtRangeIndex(Matchers.anyInt());
+
                                 return mockRowSet;
                             } else {
                                 return rowMocker
