@@ -229,6 +229,15 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @param voInstName view object instance.
      */
+    public void mockViewObjectSingle(final String voInstName)
+    {
+        mockViewObjectSingle(voInstName, null);
+    }
+
+    /**
+     * @param voInstName view object instance.
+     * @param callback optional allow optional mocking for client codes.
+     */
     public void mockViewObjectSingle(final String voInstName,
                                      final MockRowCallback callback)
     {
@@ -247,15 +256,6 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
     /**
      * @param voInstName view object instance.
-     */
-    public void mockViewObjectSingle(final String voInstName)
-    {
-        mockViewObjectSingle(voInstName, null);
-    }
-
-
-    /**
-     * @param voInstName view object instance.
      * @param attrIdxParent attribute index of the parent ID.
      * @param attrIdxChildren attribute index of the children.
      */
@@ -270,6 +270,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * @param voInstName view object instance.
      * @param attrIdxParent attribute index of the parent ID.
      * @param attrIdxChildren attribute index of the children.
+     * @param callback
      */
     public void mockViewObjectHGrid(final String voInstName,
                                     final int attrIdxParent,

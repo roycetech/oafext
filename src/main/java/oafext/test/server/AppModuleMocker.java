@@ -239,7 +239,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     public void initRowAtIndex(final String voInstance, final int index,
                                final int[] pAttrs, final Object[] pValues)
     {
-        assert this.voInstMockerMap.get(voInstance) != null;
+        assert this.voInstMockerMap.get(voInstance) != null : "Invoke one of mockViewObject* before invoking this method.";
 
         final BaseViewObjectMocker voMocker = this.voInstMockerMap
             .get(voInstance);
