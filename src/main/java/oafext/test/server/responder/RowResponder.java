@@ -123,4 +123,23 @@ public interface RowResponder<M extends Row> {
      */
     void mockGetter(final List<String> attrList, final RowMocker rowMocker);
 
+    /**
+     * rtfc.
+     *
+     * @param attrList row attribute list.
+     * @param rowMocker row mocker.
+     */
+    M mockGetAttributeNames(final List<String> attrList,
+                            final RowMocker rowMocker);
+
+
+    /**
+     * rtfc.
+     *
+     * @param attrList row attribute list.
+     * @param rowMocker row mocker.
+     */
+    M mockToString(final List<String> attrList, final RowMocker rowMocker);
+
+
 }

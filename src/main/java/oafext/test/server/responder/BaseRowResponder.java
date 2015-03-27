@@ -17,9 +17,12 @@ package oafext.test.server.responder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import oafext.OafExtException;
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.BaseViewObjectMocker;
 import oafext.test.server.RowMocker;
@@ -29,6 +32,7 @@ import oracle.jbo.Key;
 import oracle.jbo.Row;
 import oracle.jbo.RowSet;
 import oracle.jbo.ViewObject;
+import oracle.jbo.domain.BlobDomain;
 import oracle.jbo.domain.Number;
 import oracle.jbo.server.ViewRowImpl;
 
@@ -104,6 +108,12 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
         /* get*() */
         mockGetter(attrList, rowMocker);
+
+        /* getAttributeNames() */
+        mockGetAttributeNames(attrList, rowMocker).getAttributeNames();
+
+        /* toString() */
+        mockToString(attrList, rowMocker).toString();
     }
 
     /** {@inheritDoc} */
@@ -351,6 +361,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
             if (method != null) {
                 try {
+
                     Mockito.when(
                         method.invoke(
                             rowMocker.getMock(),
@@ -368,6 +379,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                                 return null;
                             }
                         });
+
                 } catch (final IllegalArgumentException e) {
                     BaseRowResponder.LOGGER.error(
                         e.getMessage() + methodName,
@@ -401,6 +413,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             assert method != null;
 
             try {
+
                 Mockito
                     .when(method.invoke(rowMocker.getMock(), new Object[0]))
                     .thenAnswer(new Answer<Object>() {
@@ -498,6 +511,101 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             return voHGridMocker.isChildAttribute(attrIdx);
         }
         return isRowSet;
+    }
+
+    @Override
+    public ViewRowImpl mockGetAttributeNames(final List<String> attrList,
+                                             final RowMocker rowMocker)
+    {
+        return Mockito.doAnswer(new Answer<String[]>() {
+
+            @Override
+            public String[] answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                return attrList.toArray(new String[attrList.size()]);
+            }
+        }).when(rowMocker.getMock());
+    }
+
+    @Override
+    public ViewRowImpl mockToString(final List<String> attrList,
+                                    final RowMocker rowMocker)
+    {
+        return Mockito.doAnswer(new Answer<String>() {
+
+            boolean hasValue(final String string)
+            {
+                return string != null && !"".equals(string.trim());
+            }
+
+            boolean hasValue(final Object object)
+            {
+                return object != null && hasValue(object.toString());
+            }
+
+            @Override
+            public String answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final StringBuilder retval = new StringBuilder();
+                retval
+                    .append("Mock for OAViewRowImpl, hashCode: <not resolved>\n");
+
+                String methodName;
+                final Object[] emptyObj = {}; //NOPMD: Optimized outside loop.
+                final List<String> param = new ArrayList<String>();
+                for (final Method method : rowMocker.getRowClass().getMethods()) {
+                    methodName = method.getName();
+
+                    final String propName = methodName.substring(3);
+                    if (attrList.contains(propName)
+                            && methodName.startsWith("get")) {
+
+                        Object object;
+                        try {
+                            object = method.invoke(
+                                rowMocker.getMock(),
+                                emptyObj);
+                            if (object instanceof BlobDomain) {
+                                final StringBuilder paramValPair = new StringBuilder(); //NOPMD: necessary
+                                paramValPair.append(propName);
+                                paramValPair.append('=');
+                                paramValPair.append("$BLOB");
+                                param.add(paramValPair.toString());
+                            } else {
+                                if (hasValue(object)) {
+                                    final StringBuilder paramValPair = new StringBuilder(); //NOPMD: necessary
+                                    paramValPair.append(propName);
+                                    paramValPair.append('=');
+                                    paramValPair.append(object);
+                                    param.add(paramValPair.toString());
+                                }
+                            }
+
+                        } catch (final IllegalArgumentException e) {
+                            throw new OafExtException(e);
+                        } catch (final IllegalAccessException e) {
+                            throw new OafExtException(e);
+                        } catch (final InvocationTargetException e) {
+                            throw new OafExtException(e);
+                        }
+                    }
+                }
+                Collections.sort(param);
+                for (final String string : param) {
+                    retval.append(string);
+                    retval.append('\n');
+                }
+
+                retval.append('\n');
+                return retval.toString();
+
+
+            }
+        })
+            .when(rowMocker.getMock());
+
     }
 
 

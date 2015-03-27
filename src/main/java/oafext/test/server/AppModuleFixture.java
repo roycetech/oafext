@@ -270,7 +270,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * @param voInstName view object instance.
      * @param attrIdxParent attribute index of the parent ID.
      * @param attrIdxChildren attribute index of the children.
-     * @param callback
+     * @param callback mock row callback instance.
      */
     public void mockViewObjectHGrid(final String voInstName,
                                     final int attrIdxParent,
