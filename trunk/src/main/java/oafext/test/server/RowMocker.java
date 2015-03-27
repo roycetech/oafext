@@ -75,6 +75,7 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
             final BaseViewObjectMocker pVoMocker) {
 
         this.rowClass = pRowClass;
+
         this.mockRow = Mockito.mock(pRowClass);
         this.voMocker = pVoMocker;
 
