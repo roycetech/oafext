@@ -15,7 +15,7 @@
  */
 package oafext.test.server;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import oafext.test.mock.Mocker;
@@ -65,6 +65,9 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
     /** */
     private final transient RowResponder<ViewRowImpl> responder;
 
+    /** */
+    private transient boolean removed;
+
     /**
      * @param pRowClass row class.
      * @param amFixture application module fixture.
@@ -81,7 +84,7 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
 
         this.responder = new BaseRowResponder();
 
-        this.attrValueMap = new HashMap<String, Object>();
+        this.attrValueMap = new LinkedHashMap<String, Object>();
 
         getResponder().mockMethods(amFixture, this, pRowClass);
 
@@ -132,5 +135,13 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
         return this.rowClass;
     }
 
+    public boolean isRemoved()
+    {
+        return this.removed;
+    }
 
+    void setRemoved(final boolean removed)
+    {
+        this.removed = removed;
+    }
 }

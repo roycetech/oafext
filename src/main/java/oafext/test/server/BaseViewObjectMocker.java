@@ -118,6 +118,7 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
     void tearDown()
     {
         this.rowSetIterMap.clear();
+        this.rowMockerList.clear();
     }
 
 
@@ -131,6 +132,7 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
      */
     public void remove(final RowMocker rowMocker)
     {
+        rowMocker.setRemoved(true);
         this.rowMockerList.remove(rowMocker);
     }
 

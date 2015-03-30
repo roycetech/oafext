@@ -28,6 +28,7 @@ import oafext.test.server.BaseViewObjectMocker;
 import oafext.test.server.RowMocker;
 import oafext.test.server.ViewObjectHGridMocker;
 import oafext.test.util.ReflectUtil;
+import oracle.jbo.DeadViewRowAccessException;
 import oracle.jbo.Key;
 import oracle.jbo.Row;
 import oracle.jbo.RowSet;
@@ -523,9 +524,22 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             public String[] answer(final InvocationOnMock invocation)
                     throws Throwable
             {
+                checkDead(rowMocker);
                 return attrList.toArray(new String[attrList.size()]);
             }
         }).when(rowMocker.getMock());
+    }
+
+    void checkDead(final RowMocker rowMocker)
+    {
+        assert rowMocker != null;
+        if (rowMocker.isRemoved()) {
+            throw new DeadViewRowAccessException(rowMocker
+                .getAttrValueMap()
+                .values()
+                .iterator()
+                .next());
+        }
     }
 
     @Override
