@@ -579,6 +579,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
+     * For internal use only. Test case should not use this.
+     *
      * @return the voNameClassMap
      */
     Map<String, Class<? extends ViewObjectImpl>> getVoNameClassMap()
@@ -587,6 +589,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
+     * For internal use only. Test case should not use this.
+     *
      * @return the voNameRowClsMap
      */
     public Map<String, Class<? extends Row>> getVoNameRowClsMap()
@@ -595,6 +599,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
+     * For internal use only. Test case should not use this.
+     *
      * @return the voClsAttrListMap
      */
     public Map<String, List<String>> getVoDefAttrListMap()
@@ -608,6 +614,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
+     * For internal use only. Test case should not use this.
+     *
      * @return the voNameDefMap
      */
     public Map<String, String> getVoNameDefMap()
@@ -616,6 +624,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     }
 
     /**
+     * For internal use only. Test case should not use this.
+     *
      * @return the appModuleMocker
      */
     public AppModuleMocker<A> getAppModuleMocker()
@@ -625,6 +635,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
     /**
+     * For internal use only. Test case should not use this.
+     *
      * @return the rowClsVoDefMap
      */
     public Map<Class<? extends Row>, String> getRowClsVoDefMap()
