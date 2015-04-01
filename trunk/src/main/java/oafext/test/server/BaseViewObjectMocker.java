@@ -15,17 +15,14 @@
  */
 package oafext.test.server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import oafext.test.RowSetMocker;
 import oafext.test.ViewCriteriaMocker;
 import oafext.test.mock.MockRowCallback;
-import oafext.test.mock.Mocker;
 import oafext.test.server.responder.ViewObjectResponder;
-import oracle.jbo.Row;
 import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.junit.After;
 import org.mockito.Mockito;
@@ -38,48 +35,26 @@ import org.mockito.Mockito;
  * Composite pattern used.
  *
  * @author royce
+ *
+ * @param <V> view object type.
+ * @param <R> row type.
  */
-public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
-
-
-    /** */
-    private final transient ViewObjectImpl mockVo;
-
-
-    /** */
-    private final transient List<RowMocker> rowMockerList = new ArrayList<RowMocker>();
-
-
-    /** */
-    private final transient Map<String, RowSetIteratorMocker> rowSetIterMap = new HashMap<String, RowSetIteratorMocker>();
+public class BaseViewObjectMocker<V extends ViewObjectImpl, R extends ViewRowImpl>
+        extends RowSetMocker<V, R> {
 
     /** */
     private transient ViewCriteriaMocker viewCritMocker;
 
-
-    /**
-     * Temporary place holder for new rows. This is cleared when the row is
-     * actually inserted in the VO.
-     */
-    private final transient Map<Row, RowMocker> newRowsMap = new HashMap<Row, RowMocker>();
-
-
-    /** */
-    private final transient AppModuleFixture<?> amFixture;
 
     /** */
     private final transient ViewObjectType viewObjectType;
 
 
     /** */
-    private final transient ViewObjectResponder<ViewObjectImpl> voResponder;
-
-
-    /** */
-    private final transient ViewObjectMockState mockedVoState;
+    private final transient ViewObjectResponder<V, R> voResponder;
 
     /** */
-    private transient MockRowCallback rowMockCallback;
+    private transient MockRowCallback<R, V> rowMockCallback;
 
 
     /**
@@ -92,24 +67,22 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
      */
     BaseViewObjectMocker(final AppModuleFixture<?> pAmFixture,
             final String pViewObjectName, final ViewObjectType pVoType,
-            final ViewObjectResponder<ViewObjectImpl> pVoResponder) {
+            final ViewObjectResponder<V, R> pVoResponder) {
 
-        this.amFixture = pAmFixture;
+        super(pAmFixture, pViewObjectName);
         this.viewObjectType = pVoType;
         this.voResponder = pVoResponder;
 
-        this.mockedVoState = new ViewObjectMockState(pViewObjectName);
-
+        setRowSetMockState(new ViewObjectMockState(pViewObjectName));
 
         final Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = pAmFixture
             .getVoNameClassMap();
 
-        final Class<? extends ViewObjectImpl> viewObjectClass = voNameClassMap
+        @SuppressWarnings("unchecked")
+        final Class<V> viewObjectClass = (Class<V>) voNameClassMap
             .get(pViewObjectName);
 
-
-        this.mockVo = Mockito.mock(viewObjectClass);
-
+        setMock(Mockito.mock(viewObjectClass));
         getVoResponder().mockMethods(pAmFixture, this);
     }
 
@@ -117,8 +90,13 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
     @After
     void tearDown()
     {
-        this.rowSetIterMap.clear();
-        this.rowMockerList.clear();
+        assert getRowSetIterMap().isEmpty();
+        //this.rowSetIterMap.clear(); //TODO: Remove after test verification.
+        for (final RowMocker<R, V> rowMocker : getRowMockerList()) {
+            rowMocker.tearDown();
+        }
+
+        getRowMockerList().clear();
     }
 
 
@@ -130,51 +108,22 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
      *
      * @param rowMocker row mocker instance to remove.
      */
-    public void remove(final RowMocker rowMocker)
+    public void remove(final RowMocker<R, V> rowMocker)
     {
         rowMocker.setRemoved(true);
-        this.rowMockerList.remove(rowMocker);
+        getRowMockerList().remove(rowMocker);
     }
 
-    /**
-     * @return the rowMockerList
-     */
-    public List<RowMocker> getRowMockerList()
-    {
-        return this.rowMockerList;
-    }
 
     public boolean isHGrid()
     {
         return ViewObjectType.HGrid == this.viewObjectType;
     }
 
-    /**
-     * @return the rowSetIterMap
-     */
-    public Map<String, RowSetIteratorMocker> getRowSetIterMap()
-    {
-        return this.rowSetIterMap;
-    }
 
-
-    /**
-     * @return the newRowsMap
-     */
-    public Map<Row, RowMocker> getNewRowsMap()
-    {
-        return this.newRowsMap;
-    }
-
-    ViewObjectType getViewObjectType()
+    public ViewObjectType getViewObjectType()
     {
         return this.viewObjectType;
-    }
-
-
-    AppModuleFixture<?> getAmFixture()
-    {
-        return this.amFixture;
     }
 
     /** */
@@ -192,19 +141,12 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
 
     public ViewObjectMockState getMockedVoState()
     {
-        return this.mockedVoState;
+        return (ViewObjectMockState) super.getRowSetMockState();
     }
 
-    ViewObjectResponder<ViewObjectImpl> getVoResponder()
+    ViewObjectResponder<V, R> getVoResponder()
     {
         return this.voResponder;
-    }
-
-
-    @Override
-    public ViewObjectImpl getMock()
-    {
-        return this.mockVo;
     }
 
     /**
@@ -212,7 +154,7 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
      *
      * @param rowMocker row mocker instance.
      */
-    public void callClient(final RowMocker rowMocker)
+    public void callClient(final RowMocker<R, V> rowMocker)
     {
         if (this.rowMockCallback != null) {
             this.rowMockCallback.callback(rowMocker);
@@ -223,7 +165,7 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
     /**
      * @param rowMockCallback the rowMockCallback to set
      */
-    public void setRowMockCallback(final MockRowCallback rowMockCallback)
+    public void setRowMockCallback(final MockRowCallback<R, V> rowMockCallback)
     {
         this.rowMockCallback = rowMockCallback;
     }
@@ -238,6 +180,18 @@ public class BaseViewObjectMocker implements Mocker<ViewObjectImpl> {
     public void setViewCritMocker(final ViewCriteriaMocker viewCritMocker)
     {
         this.viewCritMocker = viewCritMocker;
+    }
+
+    /**
+     * Down cast.
+     *
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public V getMock()
+    {
+        return (V) super.getMock();
     }
 
 }

@@ -23,11 +23,17 @@ import java.util.Map;
 import oafext.test.server.responder.ViewObjectHGridResponder;
 import oracle.jbo.Row;
 import oracle.jbo.domain.Number;
+import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 /**
  * @author royce
+ *
+ * @param <V> view object type.
+ * @param <R> row type.
  */
-public class ViewObjectHGridMocker extends BaseViewObjectMocker {
+public class ViewObjectHGridMocker<V extends ViewObjectImpl, R extends ViewRowImpl>
+        extends BaseViewObjectMocker<V, R> {
 
 
     /** Simple view linking for HGrid. */
@@ -57,7 +63,7 @@ public class ViewObjectHGridMocker extends BaseViewObjectMocker {
             pAmFixture,
             pViewObjectName,
             BaseViewObjectMocker.ViewObjectType.HGrid,
-            new ViewObjectHGridResponder());
+            new ViewObjectHGridResponder<V, R>());
 
         this.parentAttrIdx = pParentAttrIdx;
         this.childAttrIdx = pChildAttrIdx;

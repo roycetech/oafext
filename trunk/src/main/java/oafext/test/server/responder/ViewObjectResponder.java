@@ -17,8 +17,8 @@ package oafext.test.server.responder;
 
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.BaseViewObjectMocker;
-import oracle.jbo.Row;
 import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 /**
  * This mocks more complex behavior using Answer class.<br/>
@@ -26,10 +26,12 @@ import oracle.jbo.server.ViewObjectImpl;
  *
  * @author royce
  *
- * @param <M> mock type.
+ * @param <M> View Object type.
+ * @param <R> Row type.
  */
 @SuppressWarnings("PMD.TooManyMethods")
-public interface ViewObjectResponder<M extends ViewObjectImpl> {
+public interface ViewObjectResponder<M extends ViewObjectImpl, R extends ViewRowImpl>
+        extends RowSetResponder<M, R> {
 
 
     /**
@@ -37,94 +39,42 @@ public interface ViewObjectResponder<M extends ViewObjectImpl> {
      * @param voMocker view object mocker.
      */
     void mockMethods(final AppModuleFixture<?> amFixture,
-                     final BaseViewObjectMocker voMocker);
+                     final BaseViewObjectMocker<M, R> voMocker);
+
+    /**
+     * @param voMocker view object mocker.
+     */
+    M mockCreateViewCriteria(final BaseViewObjectMocker<M, R> voMocker);
 
     /**
      * @param amFixture application module fixture.
      * @param voMocker view object mocker.
      */
-    M mockCreateRow(final AppModuleFixture<?> amFixture,
-                    final BaseViewObjectMocker voMocker);
-
-    /**
-     * @param voMocker
-     */
-    M mockCreateRowSetIterator(final BaseViewObjectMocker voMocker);
-
-    /**
-     * @param voMocker
-     */
-    M mockCreateViewCriteria(final BaseViewObjectMocker voMocker);
-
-    /**
-     * @param voMocker
-     */
-    M mockExecuteQuery(final BaseViewObjectMocker voMocker);
-
-    /**
-     * @param mockVo
-     */
-    M mockFirst(final BaseViewObjectMocker voMocker);
-
-    /**
-     * @param mockVo
-     * @param BaseViewObjectMocker
-     */
-    M mockGetAllRowsInRange(final BaseViewObjectMocker voMocker);
-
-    /** */
     M mockGetAttributeCount(final AppModuleFixture<?> amFixture,
-                            final BaseViewObjectMocker voMocker);
+                            final BaseViewObjectMocker<M, R> voMocker);
 
     /**
-     * @param mockVo
-     * @param BaseViewObjectMocker
+     * @param amFixture application module fixture.
+     * @param voMocker view object mocker.
      */
     M mockGetAttributeDef(final AppModuleFixture<?> amFixture,
-                          final BaseViewObjectMocker voMocker);
-
-
-    /** */
-    M mockGetAttributeIndexOf(final AppModuleFixture<?> amFixture,
-                              final BaseViewObjectMocker voMocker);
+                          final BaseViewObjectMocker<M, R> voMocker);
 
 
     /**
+     * @param amFixture application module fixture.
      * @param voMocker view object mocker.
-     * @param currentRow row to set as current.
-     * @return
      */
-    M mockGetCurrentRow(final BaseViewObjectMocker voMocker,
-                        final Row currentRow);
+    M mockGetAttributeIndexOf(final AppModuleFixture<?> amFixture,
+                              final BaseViewObjectMocker<M, R> voMocker);
 
-    /**
-     * @param mockVo
-     * @param BaseViewObjectMocker
-     */
-    M mockGetRowAtRangeIndex(final BaseViewObjectMocker voMocker);
 
-    /**
-     * @param mockVo
-     */
-    M mockGetRowCount(final BaseViewObjectMocker voMocker);
+    //    /**
+    //     * @param amFixture application module fixture.
+    //     * @param voMocker view object mocker.
+    //     */
+    //    M mockToString(final AppModuleFixture<?> amFixture,
+    //                   final BaseViewObjectMocker<M, R> voMocker);
 
-    /**
-     * @param mockVo
-     * @param BaseViewObjectMocker
-     */
-    M mockIsExecuted(final BaseViewObjectMocker voMocker);
 
-    /**
-     * @param mockVo
-     */
-    M mockSetCurrentRow(final BaseViewObjectMocker voMocker);
-
-    /** */
-    M mockInsertRow(final BaseViewObjectMocker voMocker);
-
-    /** */
-    M mockInsertRowAtRangeIndex(final BaseViewObjectMocker voMocker);
-
-    /** */
-    M mockSetRangeSize(final BaseViewObjectMocker voMocker);
 }

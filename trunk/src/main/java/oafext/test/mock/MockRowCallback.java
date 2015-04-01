@@ -16,18 +16,23 @@
 package oafext.test.mock;
 
 import oafext.test.server.RowMocker;
+import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 
 /**
  * @version $Date$
+ *
+ * @param <M> specific Row type.
+ * @param <V> View Object type.
  */
-public interface MockRowCallback {
+public interface MockRowCallback<M extends ViewRowImpl, V extends ViewObjectImpl> {
 
 
     /**
      * @param rowMocker row mocker instance.
      */
-    void callback(RowMocker rowMocker);
+    void callback(RowMocker<M, V> rowMocker);
 
 
 }

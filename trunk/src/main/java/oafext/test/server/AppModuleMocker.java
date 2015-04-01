@@ -24,18 +24,18 @@ import oafext.test.mock.MockRowCallback;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.AppModuleResponder;
 import oafext.test.server.responder.ViewObjectDefaultResponder;
-import oafext.test.util.ReflectUtil;
+import oafext.util.ReflectUtil;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.apps.fnd.framework.server.OADBTransaction;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
 import oracle.jbo.domain.Number;
+import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.junit.After;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -51,19 +51,15 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     private final transient A mockAm;
 
     /** */
-    private final transient Map<String, BaseViewObjectMocker> voInstMockerMap;
+    private final transient Map<String, BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl>> voInstMockerMap;
 
     /** View Object Definition Full Name to List of Attributes. */
-    private final transient Map<String, List<AttrDefMocker>> attrDefFullMockerMap = new HashMap<String, List<AttrDefMocker>>();
+    private final transient Map<String, List<AttrDefMocker>> defMockerMap = new HashMap<String, List<AttrDefMocker>>();
 
 
-    /** */
-    private final transient ReflectUtil helper = new ReflectUtil();
-
-
-    /** sl4j logger instance. */
-    private static final Logger LOGGER = LoggerFactory
-        .getLogger(AppModuleMocker.class);
+    //    /** sl4j logger instance. */
+    //    private static final Logger LOGGER = LoggerFactory
+    //        .getLogger(AppModuleMocker.class);
 
 
     /** */
@@ -96,7 +92,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
             this.mockAm = Mockito.mock(appModuleClass);
         }
 
-        this.voInstMockerMap = new HashMap<String, BaseViewObjectMocker>();
+        this.voInstMockerMap = new HashMap<String, BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl>>();
 
         /* findViewObject */
         new AppModuleResponder<A>()
@@ -127,12 +123,13 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * e.g. Mock getFinFacilityVO1.
      *
      * @param voInstance
+     * @param <R> specific Row Type.
      */
-    void mockViewObjectSingle(final AppModuleFixture<?> amFixture,
-                              final String voInstance,
-                              final MockRowCallback rowMockCallback)
+    <V extends ViewObjectImpl, R extends ViewRowImpl> void mockViewObjectSingle(final AppModuleFixture<?> amFixture,
+                                                                                final String voInstance,
+                                                                                final MockRowCallback<R, V> rowMockCallback)
     {
-        final BaseViewObjectMocker voMocker = new BaseViewObjectMocker(
+        final BaseViewObjectMocker<V, R> voMocker = new BaseViewObjectMocker<V, R>(
             amFixture,
             voInstance,
             BaseViewObjectMocker.ViewObjectType.Single,
@@ -159,7 +156,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * @param voInstance
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    void mockViewObjectHGrid(final AppModuleFixture<?> amFixture,
+    void mockViewObjectHGrid(final AppModuleFixture<A> amFixture,
                              final String voInstance, final int attrIdxParent,
                              final int attrIdxChildren,
                              final MockRowCallback rowMockCallback)
@@ -178,7 +175,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      *
      * @param voInstance
      */
-    void mockViewObjectHGrid(final AppModuleFixture<?> amFixture,
+    void mockViewObjectHGrid(final AppModuleFixture<A> amFixture,
                              final String voInstance, final int attrIdxParent,
                              final int attrIdxChildren)
     {
@@ -197,7 +194,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * @param voInstance
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    void mockViewObjectInternal(final BaseViewObjectMocker voMocker)
+    void mockViewObjectInternal(final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker)
     {
         final AppModuleFixture<?> amFixture = voMocker.getAmFixture();
         final String voInstance = voMocker
@@ -217,7 +214,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
             attrDefMocker.add(new AttrDefMocker(string));
         }
 
-        this.attrDefFullMockerMap.put(voDefFull, attrDefMocker);
+        this.defMockerMap.put(voDefFull, attrDefMocker);
 
 
         final String methName = "get" + voInstance;
@@ -239,11 +236,11 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     public void initRowAtIndex(final String voInstance, final int index,
                                final int[] pAttrs, final Object[] pValues)
     {
-        assert this.voInstMockerMap.get(voInstance) != null : "Invoke one of mockViewObject* before invoking this method.";
+        assert this.voInstMockerMap.get(voInstance) != null : "Invoke one of mockViewObject*("
+                + voInstance + ") before invoking this method.";
 
-        final BaseViewObjectMocker voMocker = this.voInstMockerMap
+        final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker = this.voInstMockerMap
             .get(voInstance);
-
 
         final ViewObject viewObject = voMocker.getMock();
         assert viewObject != null;
@@ -274,7 +271,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      */
     public void setAllViewObjectExecuted()
     {
-        for (final BaseViewObjectMocker voMocker : this.voInstMockerMap
+        for (final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker : this.voInstMockerMap
             .values()) {
             final ViewObjectMockState voState = voMocker.getMockedVoState();
             voState.setExecuted(true);
@@ -290,7 +287,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      */
     public void setViewObjectExecuted(final String voInstance)
     {
-        final BaseViewObjectMocker voMocker = this.voInstMockerMap
+        final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker = this.voInstMockerMap
             .get(voInstance);
         assert voMocker != null : "Invoke mockViewObject(String) before calling this.";
 
@@ -301,26 +298,17 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     /**
      * @return the voInstMockerMap
      */
-    public Map<String, BaseViewObjectMocker> getVoInstMockerMap()
+    public Map<String, BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl>> getVoInstMockerMap()
     {
         return this.voInstMockerMap;
     }
-
-    /**
-     * @return the helper
-     */
-    ReflectUtil getHelper()
-    {
-        return this.helper;
-    }
-
 
     /**
      * @return the attrDefMockerLst
      */
     public Map<String, List<AttrDefMocker>> getAttrDefMockerMap()
     {
-        return this.attrDefFullMockerMap;
+        return this.defMockerMap;
     }
 
 

@@ -23,18 +23,18 @@ import java.util.List;
 import java.util.Map;
 
 import oafext.OafExtException;
+import oafext.test.RowSetMocker;
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.BaseViewObjectMocker;
 import oafext.test.server.RowMocker;
 import oafext.test.server.ViewObjectHGridMocker;
-import oafext.test.util.ReflectUtil;
+import oafext.util.ReflectUtil;
 import oracle.jbo.DeadViewRowAccessException;
 import oracle.jbo.Key;
-import oracle.jbo.Row;
 import oracle.jbo.RowSet;
 import oracle.jbo.ViewObject;
 import oracle.jbo.domain.BlobDomain;
-import oracle.jbo.domain.Number;
+import oracle.jbo.server.ViewObjectImpl;
 import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Matchers;
@@ -51,10 +51,17 @@ import org.slf4j.LoggerFactory;
  * finding a way around the language limitation.
  *
  * @author royce
- *
+ * @param <R> specific row implementation type.
+ * @param <V> View Object type.
  */
-@SuppressWarnings("PMD.TooManyMethods")
-public class BaseRowResponder implements RowResponder<ViewRowImpl> {
+@SuppressWarnings({
+        "PMD.TooManyMethods",
+        "PMD.GodClass",
+        "PMD.CyclomaticComplexity",
+        "PMD.ModifiedCyclomaticComplexity",
+        "PMD.StdCyclomaticComplexity" })
+public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
+        implements RowResponder<R, V> {
 
 
     /** */
@@ -65,14 +72,14 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     /** {@inheritDoc} */
     @Override
     public void mockMethods(final AppModuleFixture<?> amFixture,
-                            final RowMocker rowMocker,
-                            final Class<? extends Row> pRowClass)
+                            final RowMocker<R, V> rowMocker,
+                            final Class<R> pRowClass)
     {
         final String voDefFull = amFixture.getRowClsVoDefMap().get(pRowClass);
         assert voDefFull != null;
 
-        final List<String> attrList = amFixture.getVoDefAttrListMap().get(
-            voDefFull);
+        final List<String> attrList =
+                amFixture.getVoDefAttrListMap().get(voDefFull);
 
 
         /* remove(). */
@@ -119,7 +126,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
     /** {@inheritDoc} */
     @Override
-    public ViewRowImpl mockRemove(final RowMocker rowMocker)
+    public R mockRemove(final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -127,7 +134,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             public Object answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final BaseViewObjectMocker voMocker = rowMocker.getVoMocker();
+                final BaseViewObjectMocker<V, R> voMocker =
+                        rowMocker.getVoMocker();
                 voMocker.remove(rowMocker);
                 return null;
             }
@@ -138,14 +146,17 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     /** {@inheritDoc} */
     @Override
     public void mockGetAttributeCount(final List<String> attrList,
-                                      final RowMocker rowMocker)
+                                      final RowMocker<R, V> rowMocker)
     {
         Method getAttrCountMeth = null; //NOPMD: null default, conditionally redefine.
         try {
-            getAttrCountMeth = rowMocker
-                .getMock()
-                .getClass()
-                .getDeclaredMethod(RowMocker.CUST_GET_ATTR_CNT, new Class<?>[0]);
+            getAttrCountMeth =
+                    rowMocker
+                        .getMock()
+                        .getClass()
+                        .getDeclaredMethod(
+                            RowMocker.CUST_GET_ATTR_CNT,
+                            new Class<?>[0]);
 
             if (getAttrCountMeth != null) {
 
@@ -179,8 +190,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     }
 
     @Override
-    public ViewRowImpl mockGetAttributeInt(final List<String> attrList,
-                                           final RowMocker rowMocker)
+    public R mockGetAttributeInt(final List<String> attrList,
+                                 final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -191,42 +202,23 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                 final Integer index = (Integer) invocation.getArguments()[0];
                 final String attrName = attrList.get(index);
 
-                Object attrValue;
-
-                if (isRowSetAttribute(rowMocker, index.intValue())) {
-                    final RowSet mockRowSet = Mockito.mock(RowSet.class);
-                    Mockito.doAnswer(new Answer<Row[]>() {
-
-                        @Override
-                        public Row[] answer(final InvocationOnMock invocation)
-                                throws Throwable
-                        {
-                            final String parentIdAttr = attrList.get(0);
-                            final Number parentId = (Number) rowMocker
-                                .getAttrValueMap()
-                                .get(parentIdAttr);
-
-                            final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) rowMocker
-                                .getVoMocker();
-                            return voHGridMocker.getChildren(parentId);
-                        }
-                    })
-                        .when(mockRowSet)
-                        .getAllRowsInRange();
-                    attrValue = mockRowSet;
-                } else {
-                    attrValue = rowMocker.getAttrValueMap().get(attrName);
+                if (isRowSetAttribute(rowMocker, index.intValue())
+                        && rowMocker.getAttrValueMap().get(attrName) == null) {
+                    final RowSetMocker<V, R> rowSetMocker =
+                            RowSetMocker.<V, R> newInstance(rowMocker);
+                    rowMocker.getAttrValueMap().put(
+                        attrName,
+                        rowSetMocker.getMock());
                 }
-                return attrValue;
+                return rowMocker.getAttrValueMap().get(attrName);
             }
-        })
-            .when(rowMocker.getMock());
+        }).when(rowMocker.getMock());
 
     }
 
     /** {@inheritDoc} */
     @Override
-    public ViewRowImpl mockGetAttributeString(final RowMocker rowMocker)
+    public R mockGetAttributeString(final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -243,14 +235,17 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
     /** {@inheritDoc} */
     @Override
-    public void mockGetViewObj(final RowMocker rowMocker)
+    public void mockGetViewObj(final RowMocker<R, V> rowMocker)
     {
         Method getViewObj = null; //NOPMD: null default, conditionally redefine.
         try {
-            getViewObj = rowMocker
-                .getMock()
-                .getClass()
-                .getDeclaredMethod(RowMocker.CUSTOM_GET_VO, new Class<?>[0]);
+            getViewObj =
+                    rowMocker
+                        .getMock()
+                        .getClass()
+                        .getDeclaredMethod(
+                            RowMocker.CUSTOM_GET_VO,
+                            new Class<?>[0]);
 
             if (getViewObj != null) {
 
@@ -262,8 +257,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                         public ViewObject answer(final InvocationOnMock invocation)
                                 throws Throwable
                         {
-                            final BaseViewObjectMocker voMocker = rowMocker
-                                .getVoMocker();
+                            final BaseViewObjectMocker<V, R> voMocker =
+                                    rowMocker.getVoMocker();
                             return voMocker.getMock();
                         }
                     });
@@ -286,7 +281,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     }
 
     @Override
-    public ViewRowImpl mockGetKey(final RowMocker rowMocker)
+    public R mockGetKey(final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<Key>() {
 
@@ -294,17 +289,18 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             public Key answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final Key key = Mockito.spy(new Key(new Object[] { rowMocker
-                    .getMock()
-                    .getAttribute(0) }));
+                final Key key =
+                        Mockito.spy(new Key(new Object[] { rowMocker
+                            .getMock()
+                            .getAttribute(0) }));
                 return key;
             }
         }).when(rowMocker.getMock());
     }
 
     @Override
-    public ViewRowImpl mockSetAttributeInt(final List<String> attrList,
-                                           final RowMocker rowMocker)
+    public R mockSetAttributeInt(final List<String> attrList,
+                                 final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -315,8 +311,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                 final Integer index = (Integer) invocation.getArguments()[0];
                 final Object value = invocation.getArguments()[1];
                 final String attrName = attrList.get(index);
-                final Map<String, Object> attrValueMap = rowMocker
-                    .getAttrValueMap();
+                final Map<String, Object> attrValueMap =
+                        rowMocker.getAttrValueMap();
                 attrValueMap.put(attrName, value);
                 return null;
 
@@ -325,7 +321,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     }
 
     @Override
-    public ViewRowImpl mockSetAttributeString(final RowMocker rowMocker)
+    public R mockSetAttributeString(final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<Object>() {
 
@@ -335,8 +331,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
             {
                 final String attrName = (String) invocation.getArguments()[0];
                 final Object value = invocation.getArguments()[1];
-                final Map<String, Object> attrValueMap = rowMocker
-                    .getAttrValueMap();
+                final Map<String, Object> attrValueMap =
+                        rowMocker.getAttrValueMap();
                 attrValueMap.put(attrName, value);
                 return null;
 
@@ -347,15 +343,15 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     /** {@inheritDoc} */
     @Override
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    public void mockSetter(final Class<? extends Row> rowClass,
+    public void mockSetter(final Class<R> rowClass,
                            final List<String> attrList,
-                           final RowMocker rowMocker)
+                           final RowMocker<R, V> rowMocker)
     {
         for (final String nextAttr : attrList) {
 
-            final String methodName = "set"
-                    + nextAttr.substring(0, 1).toUpperCase()
-                    + nextAttr.substring(1);
+            final String methodName =
+                    "set" + nextAttr.substring(0, 1).toUpperCase()
+                            + nextAttr.substring(1);
 
 
             final Method method = ReflectUtil.findMethod(rowClass, methodName);
@@ -373,7 +369,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                             public Object answer(final InvocationOnMock invocation)
                                     throws Throwable
                             {
-                                final Object value = invocation.getArguments()[0];
+                                final Object value =
+                                        invocation.getArguments()[0];
                                 rowMocker
                                     .getAttrValueMap()
                                     .put(nextAttr, value);
@@ -399,17 +396,18 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     @Override
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public void mockGetter(final List<String> attrList,
-                           final RowMocker rowMocker)
+                           final RowMocker<R, V> rowMocker)
     {
         for (final String nextAttr : attrList) {
 
-            final String methodName = "get"
-                    + nextAttr.substring(0, 1).toUpperCase()
-                    + nextAttr.substring(1);
+            final String methodName =
+                    "get" + nextAttr.substring(0, 1).toUpperCase()
+                            + nextAttr.substring(1);
 
-            final Method method = ReflectUtil.findMethod(rowMocker
-                .getMock()
-                .getClass(), methodName);
+            final Method method =
+                    ReflectUtil.findMethod(
+                        rowMocker.getMock().getClass(),
+                        methodName);
 
             assert method != null;
 
@@ -423,64 +421,24 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                         public Object answer(final InvocationOnMock invocation)
                                 throws Throwable
                         {
+
                             if (isRowSetAttribute(
                                 rowMocker,
-                                attrList.indexOf(nextAttr))) {
+                                attrList.indexOf(nextAttr))
+                                    && rowMocker
+                                        .getAttrValueMap()
+                                        .get(nextAttr) == null) {
 
-                                final RowSet mockRowSet = Mockito
-                                    .mock(RowSet.class);
+                                final RowSetMocker<V, R> rowSetMocker =
+                                        RowSetMocker
+                                            .<V, R> newInstance(rowMocker);
 
-
-                                //TODO: Need to refactor to simplify.
-                                Mockito.doAnswer(new Answer<Row[]>() {
-                                    @Override
-                                    public Row[] answer(final InvocationOnMock invocation)
-                                            throws Throwable
-                                    {
-                                        final String parentIdAttr = attrList
-                                            .get(0);
-                                        final Number parentId = (Number) rowMocker
-                                            .getAttrValueMap()
-                                            .get(parentIdAttr);
-
-                                        final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) rowMocker
-                                            .getVoMocker();
-                                        return voHGridMocker
-                                            .getChildren(parentId);
-                                    }
-                                })
-                                    .when(mockRowSet)
-                                    .getAllRowsInRange();
-
-                                Mockito.doAnswer(new Answer<Row>() {
-                                    @Override
-                                    public Row answer(final InvocationOnMock invocation)
-                                            throws Throwable
-                                    {
-                                        final Integer index = (Integer) invocation
-                                            .getArguments()[0];
-
-                                        final String parentIdAttr = attrList
-                                            .get(0);
-                                        final Number parentId = (Number) rowMocker
-                                            .getAttrValueMap()
-                                            .get(parentIdAttr);
-
-                                        final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) rowMocker
-                                            .getVoMocker();
-                                        return voHGridMocker
-                                            .getChildren(parentId)[index];
-                                    }
-                                })
-                                    .when(mockRowSet)
-                                    .getRowAtRangeIndex(Matchers.anyInt());
-
-                                return mockRowSet;
-                            } else {
-                                return rowMocker
-                                    .getAttrValueMap()
-                                    .get(nextAttr);
+                                rowMocker.getAttrValueMap().put(
+                                    nextAttr,
+                                    rowSetMocker.getMock());
                             }
+
+                            return rowMocker.getAttrValueMap().get(nextAttr);
                         }
                     });
 
@@ -502,21 +460,22 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
      * @return
      */
     @SuppressWarnings("PMD.OnlyOneReturn" /* Two only. */)
-    boolean isRowSetAttribute(final RowMocker rowMocker, final int attrIdx)
+    boolean isRowSetAttribute(final RowMocker<R, V> rowMocker, final int attrIdx)
     {
-        final BaseViewObjectMocker voMocker = rowMocker.getVoMocker();
+        final BaseViewObjectMocker<V, R> voMocker = rowMocker.getVoMocker();
 
         final boolean isRowSet = false; //NOPMD: null default, conditionally redefine.
         if (voMocker.isHGrid()) {
-            final ViewObjectHGridMocker voHGridMocker = (ViewObjectHGridMocker) voMocker;
+            final ViewObjectHGridMocker<V, R> voHGridMocker =
+                    (ViewObjectHGridMocker<V, R>) voMocker;
             return voHGridMocker.isChildAttribute(attrIdx);
         }
         return isRowSet;
     }
 
     @Override
-    public ViewRowImpl mockGetAttributeNames(final List<String> attrList,
-                                             final RowMocker rowMocker)
+    public R mockGetAttributeNames(final List<String> attrList,
+                                   final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<String[]>() {
 
@@ -530,7 +489,7 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
         }).when(rowMocker.getMock());
     }
 
-    void checkDead(final RowMocker rowMocker)
+    void checkDead(final RowMocker<R, V> rowMocker)
     {
         assert rowMocker != null;
         if (rowMocker.isRemoved()) {
@@ -543,8 +502,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
     }
 
     @Override
-    public ViewRowImpl mockToString(final List<String> attrList,
-                                    final RowMocker rowMocker)
+    public R mockToString(final List<String> attrList,
+                          final RowMocker<R, V> rowMocker)
     {
         return Mockito.doAnswer(new Answer<String>() {
 
@@ -563,8 +522,8 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
                     throws Throwable
             {
                 final StringBuilder retval = new StringBuilder();
-                retval
-                    .append("Mock for OAViewRowImpl, hashCode: <not resolved>\n");
+                retval.append("Mock for OafExt, hashCode: "
+                        + rowMocker.getMock().hashCode() + "\n");
 
                 String methodName;
                 final Object[] emptyObj = {}; //NOPMD: Optimized outside loop.
@@ -578,21 +537,26 @@ public class BaseRowResponder implements RowResponder<ViewRowImpl> {
 
                         Object object;
                         try {
-                            object = method.invoke(
-                                rowMocker.getMock(),
-                                emptyObj);
+                            object =
+                                    method.invoke(rowMocker.getMock(), emptyObj);
                             if (object instanceof BlobDomain) {
-                                final StringBuilder paramValPair = new StringBuilder(); //NOPMD: necessary
-                                paramValPair.append(propName);
-                                paramValPair.append('=');
-                                paramValPair.append("$BLOB");
+                                final StringBuilder paramValPair =
+                                        new StringBuilder(); //NOPMD: necessary
+                                paramValPair
+                                    .append(propName)
+                                    .append('=')
+                                    .append("$BLOB");
                                 param.add(paramValPair.toString());
                             } else {
                                 if (hasValue(object)) {
-                                    final StringBuilder paramValPair = new StringBuilder(); //NOPMD: necessary
-                                    paramValPair.append(propName);
-                                    paramValPair.append('=');
-                                    paramValPair.append(object);
+                                    final StringBuilder paramValPair =
+                                            new StringBuilder(); //NOPMD: necessary
+                                    paramValPair.append(propName).append('=');
+                                    if (object instanceof RowSet) {
+                                        paramValPair.append("$RowSet");
+                                    } else {
+                                        paramValPair.append(object);
+                                    }
                                     param.add(paramValPair.toString());
                                 }
                             }

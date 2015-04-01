@@ -15,9 +15,12 @@
  */
 package oafext.test.server;
 
+import oafext.test.RowSetMocker;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.RowSetIteratorResponder;
 import oracle.jbo.RowSetIterator;
+import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -27,8 +30,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author royce
  *
+ * @param <V> View Object type.
+ * @param <R> Row type.
  */
-public class RowSetIteratorMocker implements Mocker<RowSetIterator> {
+public class RowSetIteratorMocker<V extends ViewObjectImpl, R extends ViewRowImpl>
+        implements Mocker<RowSetIterator> {
 
 
     /** sl4j logger instance. */
@@ -38,59 +44,54 @@ public class RowSetIteratorMocker implements Mocker<RowSetIterator> {
 
 
     /** */
-    private final transient RowSetIterator mockRsIter;
+    private final transient RowSetIterator mockIter;
 
     /** */
     private final transient IteratorMockState iterMockState;
 
 
     /** */
-    private final transient RowSetIteratorResponder<RowSetIterator> responder;
+    private final transient RowSetIteratorResponder<V, R> responder;
 
 
     /**
      * @param pName iterator name.
-     * @param voMocker view object mocker.
+     * @param rowSetMocker row set mocker.
      */
     public RowSetIteratorMocker(final String pName,
-            final BaseViewObjectMocker voMocker) {
+            final RowSetMocker<V, R> rowSetMocker) {
 
         assert pName != null;
+        this.mockIter = Mockito.mock(RowSetIterator.class);
+        this.responder = new RowSetIteratorResponder(this.mockIter);
 
-        this.mockRsIter = Mockito.mock(RowSetIterator.class);
-        this.responder = new RowSetIteratorResponder<RowSetIterator>(
-            this.mockRsIter);
-
-        this.iterMockState = new IteratorMockState(voMocker
-            .getRowMockerList()
-            .size());
+        this.iterMockState = new IteratorMockState();
 
         /* getName() */
-        Mockito.doReturn(pName).when(this.mockRsIter).getName();
+        Mockito.doReturn(pName).when(this.mockIter).getName();
 
         /* getRowAtRangeIndex() */
-        getResponder()
-            .mockGetRowAtRangeIndex(voMocker.getMock())
-            .getRowAtRangeIndex(Matchers.anyInt());
+        getResponder().mockGetRowAtRangeIndex(rowSetMocker).getRowAtRangeIndex(
+            Matchers.anyInt());
 
         /* getRowCount() */
-        getResponder().mockGetRowCount(voMocker).getRowCount();
+        getResponder().mockGetRowCount(rowSetMocker).getRowCount();
 
 
         /* hasNext() */
         getResponder().mockHasNext(this).hasNext();
 
         /* next() */
-        getResponder().mockNext(this, voMocker).next();
+        getResponder().mockNext(this, rowSetMocker).next();
 
         /* previous() */
-        getResponder().mockPrevious(this, voMocker).previous();
+        getResponder().mockPrevious(this, rowSetMocker).previous();
 
         /* setRangeSize(int) */
         getResponder().mockSetRangeSize(this).setRangeSize(Matchers.anyInt());
 
         /* closeRowSetIterator() */
-        getResponder().mockCloseRsIterator(voMocker).closeRowSetIterator();
+        getResponder().mockCloseRsIterator(rowSetMocker).closeRowSetIterator();
 
         /* reset() */
         getResponder().mockReset(this).reset();
@@ -98,7 +99,7 @@ public class RowSetIteratorMocker implements Mocker<RowSetIterator> {
 
     }
 
-    RowSetIteratorResponder<RowSetIterator> getResponder()
+    RowSetIteratorResponder<V, R> getResponder()
     {
         return this.responder;
     }
@@ -111,7 +112,7 @@ public class RowSetIteratorMocker implements Mocker<RowSetIterator> {
     @Override
     public RowSetIterator getMock()
     {
-        return this.mockRsIter;
+        return this.mockIter;
     }
 
 

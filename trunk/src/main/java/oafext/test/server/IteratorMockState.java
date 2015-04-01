@@ -15,6 +15,10 @@
  */
 package oafext.test.server;
 
+import oracle.jbo.Row;
+
+import org.mockito.Mockito;
+
 
 /**
  * Mock state of RowSetIterator.
@@ -31,7 +35,8 @@ public class IteratorMockState {
     /** */
     private transient boolean hasNext = true;
 
-    /** */
+
+    /** Range Start. */
     private transient int rangeStart;
 
     /** */
@@ -40,10 +45,29 @@ public class IteratorMockState {
     /** */
     private transient int rangeCurrent = RANGE_B4_FIRST;
 
+    /** */
+    private transient Row currentRow;
 
-    IteratorMockState(final int pRangeEnd) {
-        this.rangeEnd = pRangeEnd;
-    }
+    /** Range Size. */
+    private transient int rangeSize = 1;
+
+
+    /** Internal row iterator pointer. #first(), #next, #last(), #reset(). */
+    private transient Row rowPointer = BEFORE_FIRST_ROW;
+
+
+    /** Pointer is NULL, before the fist row. */
+    public static final Row BEFORE_FIRST_ROW = Mockito.mock(Row.class);
+
+    /** Pointer is NULL, after the last row. */
+    public static final Row AFTER_LAST_ROW = Mockito.mock(Row.class);
+
+
+    //    IteratorMockState(final int pRangeEnd) {
+    //        this.rangeEnd = pRangeEnd;
+    //    }
+
+    //IteratorMockState() {}
 
     /**
      * @return the hasNext
@@ -91,6 +115,9 @@ public class IteratorMockState {
     public void setRangeEnd(final int rangeEnd)
     {
         this.rangeEnd = rangeEnd;
+        if (this.rangeSize == 1) {
+            this.rangeSize = rangeEnd;
+        }
     }
 
     /**
@@ -123,13 +150,79 @@ public class IteratorMockState {
         this.rangeCurrent = RANGE_B4_FIRST;
     }
 
-
     /**
-     * @param rangeCurrent the rangeCurrent to set
+     * @return the currentRow
      */
-    private void setRangeCurrent(final int rangeCurrent)
+    public Row getCurrentRow()
     {
-        this.rangeCurrent = rangeCurrent;
+        return this.currentRow;
     }
 
+    /**
+     * @param currentRow the currentRow to set
+     */
+    public void setCurrentRow(final Row currentRow)
+    {
+        this.currentRow = currentRow;
+    }
+
+    /**
+     * @return the rowPointer
+     */
+    Row getRowPointer()
+    {
+        return this.rowPointer;
+    }
+
+    /**
+     * @param rowPointer the rowPointer to set
+     */
+    public void setRowPointer(final Row rowPointer)
+    {
+        this.rowPointer = rowPointer;
+    }
+
+    /**
+     * @return the rangeSize
+     */
+    public int getRangeSize()
+    {
+        return this.rangeSize;
+    }
+
+
+    /**
+     * @param rangeSize the rangeSize to set
+     */
+    public void setRangeSize(final int rangeSize)
+    {
+        this.rangeSize = rangeSize;
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        final StringBuilder strBuilder = new StringBuilder();
+        strBuilder
+            .append(getClass().getSimpleName())
+            .append(" Hash Code: ")
+            .append(hashCode())
+            .append('\n')
+            .append("Start=")
+            .append(this.rangeStart)
+            .append("\nEnd=")
+            .append(this.rangeEnd)
+            .append("\nSize=")
+            .append(this.rangeSize)
+            .append("\nHas Next=")
+            .append(this.hasNext)
+            .append("\ncurrent=")
+            .append(this.currentRow)
+            .append("\nRange current=")
+            .append(this.rangeCurrent);
+
+        return strBuilder.toString();
+    }
 }

@@ -15,30 +15,27 @@
  */
 package oafext.test.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import oafext.test.mock.Mocker;
 
 /**
- * Mocked state of view object.
+ * Base class for Iterable mockers.
  *
- * @author Royce Remulla
  * @version $Date$
- *
+ * @param <M> mock type.
  */
-public class ViewObjectMockState extends RowSetMockState {
+public abstract class AbstractIteratorMocker<M> implements Mocker<M> {
 
 
     /** */
-    private final transient String viewObjectName;
+    private final transient Map<String, RowSetIteratorMocker> rowSetIterMap = new HashMap<>();
 
 
-    ViewObjectMockState(final String pViewObjectName) {
-        this.viewObjectName = pViewObjectName;
-    }
-
-
-    public String getViewObjectName()
+    public Map<String, RowSetIteratorMocker> getRowSetIterMap()
     {
-        return this.viewObjectName;
+        return this.rowSetIterMap;
     }
-
 
 }
