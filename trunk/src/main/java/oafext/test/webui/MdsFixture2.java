@@ -153,13 +153,6 @@ public class MdsFixture2 {
 
 
     /** */
-    private final transient StringUtil strUtil = new StringUtil();
-
-    /** */
-    //private final transient ReflectUtil refUtil = new ReflectUtil();
-
-
-    /** */
     private final transient MdsFixtureHelper helper = new MdsFixtureHelper();
 
 
@@ -170,7 +163,7 @@ public class MdsFixture2 {
 
     MdsFixture2(final String pMdsPath, final MdsFixture2 parent) {
 
-        assert getStrUtil().hasValue(pMdsPath);
+        assert StringUtil.hasValue(pMdsPath);
 
         this.mdsPath = pMdsPath;
 
@@ -262,8 +255,8 @@ public class MdsFixture2 {
 
             final URL resource = getClass().getResource(mdsFilename);
 
-            final Document document = docBuilder.parse(new File(resource
-                .getFile()));
+            final Document document =
+                    docBuilder.parse(new File(resource.getFile()));
             final Element root = document.getDocumentElement();
 
             if (extRegionId != null) {
@@ -379,9 +372,9 @@ public class MdsFixture2 {
         final String webBeanId = elem.getAttribute("id");
 
 
-        final String parentWebBeanId = ((Element) elem
-            .getParentNode()
-            .getParentNode()).getAttribute("id");
+        final String parentWebBeanId =
+                ((Element) elem.getParentNode().getParentNode())
+                    .getAttribute("id");
 
         //        LOGGER.info(webBeanId + " -> " + parentWebBeanId);
         if ("".equals(parentWebBeanId)) {
@@ -414,13 +407,12 @@ public class MdsFixture2 {
         //LOGGER.info(getStrUtil().space(level) + nodeName + " - " + webBeanId);
 
         if ("oa:pageLayout".equals(nodeName)) {
-            this.pageLayout = (OAPageLayoutBean) mockBean(
-                webBeanId,
-                this.mdsPath);
+            this.pageLayout =
+                    (OAPageLayoutBean) mockBean(webBeanId, this.mdsPath);
         }
 
         output
-            .append(getStrUtil().space(level))
+            .append(String.format("%2s", ""))
             .append(nodeName)
             .append(" - ")
             .append(webBeanId);
@@ -430,7 +422,7 @@ public class MdsFixture2 {
         output.append(", show=" + attrShow + ", locked=" + attrReadOnly);
         final String attrExtends = elem.getAttribute("extends");
 
-        if (getStrUtil().hasValue(attrExtends)) {
+        if (StringUtil.hasValue(attrExtends)) {
 
             if (getHelper().getPackage(attrExtends) != null
                     && getHelper().getPackage(attrExtends).equals(
@@ -464,8 +456,8 @@ public class MdsFixture2 {
         if (this.beanIdChildrenMap.get(parentBeanId) == null) {
             this.beanIdChildrenMap.put(parentBeanId, new ArrayList<String>());
         }
-        final List<String> childWebBeans = this.beanIdChildrenMap
-            .get(parentBeanId);
+        final List<String> childWebBeans =
+                this.beanIdChildrenMap.get(parentBeanId);
         childWebBeans.add(childBeanId);
     }
 
@@ -537,7 +529,8 @@ public class MdsFixture2 {
                 //                Assert.fail("WebBeanId [" + webBeanId + "]  was not found in "
                 //                        + this.mdsPath);
             } else {
-                final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
+                final String webBeanMdsPath =
+                        getWebBeanMdsPath(this, webBeanId);
                 if (webBeanMdsPath == null) {
 
                     /**
@@ -582,12 +575,11 @@ public class MdsFixture2 {
         assert fixture != null;
 
         OAWebBean mockBean;
-        final String elemName = fixture.beanIdElementMap
-            .get(webBeanId)
-            .getNodeName();
+        final String elemName =
+                fixture.beanIdElementMap.get(webBeanId).getNodeName();
         final String oaWebBeanType = buildOaWebBeanType(elemName);
-        final Class<? extends OAWebBean> oaClass = OABeanUtil
-            .getOABeanClass(oaWebBeanType);
+        final Class<? extends OAWebBean> oaClass =
+                OABeanUtil.getOABeanClass(oaWebBeanType);
 
         if (READONLY_TYPES.contains(oaClass)) {
             this.beanIdLockMap.put(webBeanId, true);
@@ -678,7 +670,7 @@ public class MdsFixture2 {
             //                curreWebBeanId = CONTAINER_ID_MAP.get(webBeanId);
             //            }
 
-            while (retval && getStrUtil().hasValue(curreWebBeanId)) {
+            while (retval && StringUtil.hasValue(curreWebBeanId)) {
                 retval = getRenderedState(curreWebBeanId);
                 curreWebBeanId = this.beanIdParentIdMap.get(curreWebBeanId);
             }
@@ -773,15 +765,6 @@ public class MdsFixture2 {
         return "OA" + arr[1].substring(0, 1).toUpperCase()
                 + arr[1].substring(1) + "Bean";
     }
-
-    /**
-     * @return the strUtil
-     */
-    public StringUtil getStrUtil()
-    {
-        return this.strUtil;
-    }
-
 
     /**
      * @return the helper
