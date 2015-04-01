@@ -17,28 +17,40 @@ package oafext.test.server;
 
 
 /**
- * Mocked state of view object.
+ * Mocked state of RowSet.
  *
  * @author Royce Remulla
  * @version $Date$
  *
  */
-public class ViewObjectMockState extends RowSetMockState {
+public class RowSetMockState extends IteratorMockState {
 
 
-    /** */
-    private final transient String viewObjectName;
+    /** isExecuted flag. */
+    private transient boolean executed;
 
 
-    ViewObjectMockState(final String pViewObjectName) {
-        this.viewObjectName = pViewObjectName;
-    }
-
-
-    public String getViewObjectName()
+    /**
+     * @return the executed
+     */
+    public boolean isExecuted()
     {
-        return this.viewObjectName;
+        return this.executed;
     }
 
 
+    /**
+     * @param executed the executed to set
+     */
+    public void setExecuted(final boolean executed)
+    {
+        this.executed = executed;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        return super.toString() + "\nExecuted: " + this.executed;
+    }
 }

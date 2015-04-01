@@ -18,29 +18,27 @@ package oafext.test.server;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import oafext.test.RowSetMocker;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.BaseRowResponder;
 import oafext.test.server.responder.RowResponder;
-import oracle.apps.fnd.framework.server.OAViewRowImpl;
+import oracle.jbo.server.ViewObjectImpl;
 import oracle.jbo.server.ViewRowImpl;
 
 import org.junit.After;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
  * NOTE: Overloaded accessor method for VORowImpl is not supported.
  *
  * @author royce
+ *
+ * @param <R> Row type.
+ * @param <V> View Object type.
  */
-public class RowMocker implements Mocker<OAViewRowImpl> {
-
-
-    /** sl4j logger instance. */
-    private static final Logger LOGGER = LoggerFactory
-        .getLogger(RowMocker.class);
+public class RowMocker<R extends ViewRowImpl, V extends ViewObjectImpl>
+        implements Mocker<R> {
 
 
     /** Wrapper for the final method getViewObject. */
@@ -49,47 +47,53 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
     /** Wrapper for the final method getAttributeCount. */
     public static final String CUST_GET_ATTR_CNT = "getAttrCount";
 
+    /** */
+    private final transient AppModuleFixture<?> amFixture;
 
     /** */
-    private final transient OAViewRowImpl mockRow;
+    private final transient R mockRow;
 
     /** */
-    private final transient Class<? extends OAViewRowImpl> rowClass;
+    private final transient Class<R> rowClass;
 
     /** */
     private final transient Map<String, Object> attrValueMap;
 
     /** */
-    private final BaseViewObjectMocker voMocker;
+    private final transient BaseViewObjectMocker<V, R> voMocker;
 
     /** */
-    private final transient RowResponder<ViewRowImpl> responder;
+    private transient RowSetMocker<V, R> rowSetMocker;
 
     /** */
+    private final transient RowResponder<R, V> responder;
+
+    /** Row state when removed. */
     private transient boolean removed;
 
     /**
      * @param pRowClass row class.
-     * @param amFixture application module fixture.
+     * @param pAmFixture application module fixture.
      * @param pVoMocker view object mocker.
      */
-    public RowMocker(final Class<? extends OAViewRowImpl> pRowClass,
-            final AppModuleFixture<?> amFixture,
-            final BaseViewObjectMocker pVoMocker) {
+    public RowMocker(final Class<R> pRowClass,
+            final AppModuleFixture<?> pAmFixture,
+            final BaseViewObjectMocker<V, R> pVoMocker) {
 
         this.rowClass = pRowClass;
-
+        this.amFixture = pAmFixture;
         this.mockRow = Mockito.mock(pRowClass);
         this.voMocker = pVoMocker;
 
-        this.responder = new BaseRowResponder();
+        this.responder = new BaseRowResponder<R, V>();
 
         this.attrValueMap = new LinkedHashMap<String, Object>();
 
-        getResponder().mockMethods(amFixture, this, pRowClass);
+        getResponder().mockMethods(this.amFixture, this, pRowClass);
 
     }
 
+    @SuppressWarnings("unchecked")
     @After
     void tearDown()
     {
@@ -108,13 +112,13 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
     /**
      * @return the voMocker
      */
-    public BaseViewObjectMocker getVoMocker()
+    public BaseViewObjectMocker<V, R> getVoMocker()
     {
         return this.voMocker;
     }
 
     @Override
-    public OAViewRowImpl getMock()
+    public R getMock()
     {
         return this.mockRow;
     }
@@ -122,7 +126,7 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
     /**
      * @return the responder
      */
-    public RowResponder<ViewRowImpl> getResponder()
+    public RowResponder<R, V> getResponder()
     {
         return this.responder;
     }
@@ -130,7 +134,7 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
     /**
      * @return the rowClass
      */
-    public Class<? extends OAViewRowImpl> getRowClass()
+    public Class<R> getRowClass()
     {
         return this.rowClass;
     }
@@ -144,4 +148,48 @@ public class RowMocker implements Mocker<OAViewRowImpl> {
     {
         this.removed = removed;
     }
+
+    /**
+     * @return the rowSetMocker
+     */
+    public RowSetMocker<V, R> getRowSetMocker()
+    {
+        return this.rowSetMocker;
+    }
+
+    /**
+     * @return the amFixture
+     */
+    public AppModuleFixture<?> getAmFixture()
+    {
+        return this.amFixture;
+    }
+
+    /**
+     * @param rowSetMocker the rowSetMocker to set
+     */
+    public void setRowSetMocker(final RowSetMocker<V, R> rowSetMocker)
+    {
+        this.rowSetMocker = rowSetMocker;
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+
+        final StringBuilder strBuilder = new StringBuilder();
+        strBuilder
+            .append(this.getClass().getSimpleName())
+            .append('\n')
+            .append(this.rowClass)
+            .append('\n')
+            .append("Removed: ")
+            .append(this.removed)
+            .append('\n')
+            .append(this.mockRow);
+        return strBuilder.toString();
+    }
+
 }

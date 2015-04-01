@@ -31,10 +31,6 @@ public class ViewCriteriaMocker implements Mocker<ViewCriteria> {
 
 
     /** */
-    private final transient BaseViewObjectMocker voMocker;
-
-
-    /** */
     private final transient ViewCriteria mockViewCrit;
 
     /** */
@@ -44,13 +40,13 @@ public class ViewCriteriaMocker implements Mocker<ViewCriteria> {
     /**
      * @param pVoMocker view object mocker instance.
      */
-    public ViewCriteriaMocker(final BaseViewObjectMocker pVoMocker) {
-        this.voMocker = pVoMocker;
-        this.voMocker.setViewCritMocker(this);
+    public ViewCriteriaMocker(final BaseViewObjectMocker<?, ?> pVoMocker) {
+        final BaseViewObjectMocker<?, ?> voMocker = pVoMocker;
+        //this.voMocker.setViewCritMocker(this);
         this.mockViewCrit = Mockito.mock(ViewCriteria.class);
 
         //        Mockito.doAnswer(new Answer<Object>).when()
-        //        
+        //
         //        ViewCriteriaR
 
     }

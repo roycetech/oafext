@@ -18,11 +18,13 @@ package oafext.test.server.responder;
 import java.util.ArrayList;
 import java.util.List;
 
-import oafext.test.server.BaseViewObjectMocker;
+import oafext.test.RowSetMocker;
 import oafext.test.server.RowMocker;
-import oafext.test.server.ViewObjectMockState;
+import oafext.test.server.RowSetMockState;
 import oracle.jbo.Row;
+import oracle.jbo.RowSet;
 import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -32,14 +34,17 @@ import org.mockito.stubbing.Answer;
  * Default ViewObject method responder. Used for simple view objects.
  *
  * @author royce
+ * @param <R> Row type.
+ * @param <V> View Object type.
  */
 @SuppressWarnings("PMD.TooManyMethods")
-public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
+public final class ViewObjectDefaultResponder<V extends ViewObjectImpl, R extends ViewRowImpl>
+        extends BaseViewObjectResponder<V, R> {
 
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockGetAllRowsInRange(final BaseViewObjectMocker voMocker)
+    public RowSet mockGetAllRowsInRange(final RowSetMocker<V, R> rowSetMocker)
     {
         return Mockito.doAnswer(new Answer<Row[]>() {
 
@@ -47,16 +52,17 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
             public Row[] answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                final ViewObjectMockState voState = voMocker.getMockedVoState();
+                final RowSetMockState rsMockState = rowSetMocker
+                    .getRowSetMockState();
 
                 final List<Row> retval = new ArrayList<Row>();
 
-                final List<RowMocker> rowMockerList = voMocker
+                final List<RowMocker<R, V>> rowMockerList = rowSetMocker
                     .getRowMockerList();
 
-                final boolean fetchRangeAll = voState.getRangeSize() == -1;
+                final boolean fetchRangeAll = rsMockState.getRangeSize() == -1;
 
-                for (int i = voState.getRangeStart(); (i < voState
+                for (int i = rsMockState.getRangeStart(); (i < rsMockState
                     .getRangeSize() || fetchRangeAll)
                         && i < rowMockerList.size(); i++) {
 
@@ -64,13 +70,12 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
                 }
                 return retval.toArray(new Row[retval.size()]);
             }
-        })
-            .when(voMocker.getMock());
+        }).when(rowSetMocker.getMock());
     }
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockGetRowAtRangeIndex(final BaseViewObjectMocker voMocker)
+    public RowSet mockGetRowAtRangeIndex(final RowSetMocker<V, R> rowSetMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -79,15 +84,15 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
                     throws Throwable
             {
                 final Integer index = (Integer) invocation.getArguments()[0];
-                return voMocker.getRowMockerList().get(index).getMock();
+                return rowSetMocker.getRowMockerList().get(index).getMock();
             }
-        }).when(voMocker.getMock());
+        }).when(rowSetMocker.getMock());
 
     }
 
     /** {@inheritDoc} */
     @Override
-    public ViewObjectImpl mockGetRowCount(final BaseViewObjectMocker voMocker)
+    public RowSet mockGetRowCount(final RowSetMocker<V, R> rowSetMocker)
     {
         return Mockito.doAnswer(new Answer<Integer>() {
 
@@ -95,9 +100,9 @@ public final class ViewObjectDefaultResponder extends BaseViewObjectResponder {
             public Integer answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                return voMocker.getRowMockerList().size();
+                return rowSetMocker.getRowMockerList().size();
             }
-        }).when(voMocker.getMock());
+        }).when(rowSetMocker.getMock());
     }
 
 }

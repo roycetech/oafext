@@ -15,9 +15,11 @@
  */
 package oafext.test.server.responder;
 
-import oafext.test.server.BaseViewObjectMocker;
+import oafext.test.RowSetMocker;
 import oracle.jbo.Row;
+import oracle.jbo.RowSet;
 import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -29,11 +31,12 @@ import org.mockito.stubbing.Answer;
  * @author royce
  */
 @SuppressWarnings("PMD.TooManyMethods")
-public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
+public final class ViewObjectHGridResponder<V extends ViewObjectImpl, R extends ViewRowImpl>
+        extends BaseViewObjectResponder<V, R> {
 
 
     @Override
-    public ViewObjectImpl mockGetAllRowsInRange(final BaseViewObjectMocker voMocker)
+    public RowSet mockGetAllRowsInRange(final RowSetMocker<V, R> rowSetMocker)
     {
         return Mockito.doAnswer(new Answer<Row[]>() {
 
@@ -41,20 +44,20 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
             public Row[] answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                if (voMocker.getRowMockerList().isEmpty()) {
+                if (rowSetMocker.getRowMockerList().isEmpty()) {
                     return new Row[0];
                 } else {
-                    return new Row[] { voMocker
+                    return new Row[] { rowSetMocker
                         .getRowMockerList()
                         .get(0)
                         .getMock() };
                 }
             }
-        }).when(voMocker.getMock());
+        }).when(rowSetMocker.getMock());
     }
 
     @Override
-    public ViewObjectImpl mockGetRowAtRangeIndex(final BaseViewObjectMocker voMocker)
+    public RowSet mockGetRowAtRangeIndex(final RowSetMocker<V, R> rowSetMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -64,13 +67,13 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
             {
                 final Integer index = (Integer) invocation.getArguments()[0];
                 assert index == 0;
-                return voMocker.getRowMockerList().get(index).getMock();
+                return rowSetMocker.getRowMockerList().get(index).getMock();
             }
-        }).when(voMocker.getMock());
+        }).when(rowSetMocker.getMock());
     }
 
     @Override
-    public ViewObjectImpl mockGetRowCount(final BaseViewObjectMocker voMocker)
+    public RowSet mockGetRowCount(final RowSetMocker<V, R> rowSetMocker)
     {
         return Mockito.doAnswer(new Answer<Row>() {
 
@@ -81,7 +84,7 @@ public final class ViewObjectHGridResponder extends BaseViewObjectResponder {
                 throw new UnsupportedOperationException(
                     "TODO: Determine the behavior for this.");
             }
-        }).when(voMocker.getMock());
+        }).when(rowSetMocker.getMock());
     }
 
 }

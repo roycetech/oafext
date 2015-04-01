@@ -46,7 +46,7 @@ public final class AppModuleResponder<A extends OAApplicationModuleImpl> {
                     throws Throwable
             {
                 final String voInstName = (String) invocation.getArguments()[0];
-                final BaseViewObjectMocker voMocker = amMocker
+                final BaseViewObjectMocker<?, ?> voMocker = amMocker
                     .getVoInstMockerMap()
                     .get(voInstName);
                 return voMocker.getMock();

@@ -19,14 +19,18 @@ import java.util.List;
 
 import oafext.test.server.AppModuleFixture;
 import oafext.test.server.RowMocker;
-import oracle.jbo.Row;
+import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 /**
  * @author royce
  *
  * @param <M> specific row implementation type.
+ * @param <V> View Object type.
  */
-public interface RowResponder<M extends Row> {
+@SuppressWarnings("PMD.TooManyMethods")
+/* Dependent on existing Oracle design. */
+public interface RowResponder<M extends ViewRowImpl, V extends ViewObjectImpl> {
 
 
     /**
@@ -37,8 +41,7 @@ public interface RowResponder<M extends Row> {
      * @param pRowClass row class.
      */
     void mockMethods(final AppModuleFixture<?> amFixture,
-                     final RowMocker rowMocker,
-                     final Class<? extends Row> pRowClass);
+                     final RowMocker<M, V> rowMocker, final Class<M> pRowClass);
 
 
     /**
@@ -49,14 +52,14 @@ public interface RowResponder<M extends Row> {
      * @return
      */
     void mockGetAttributeCount(final List<String> attrList,
-                               final RowMocker rowMocker);
+                               final RowMocker<M, V> rowMocker);
 
     /**
      * Circumvent final method.
      *
      * @param rowMocker row mocker.
      */
-    void mockGetViewObj(final RowMocker rowMocker);
+    void mockGetViewObj(final RowMocker<M, V> rowMocker);
 
 
     /**
@@ -64,7 +67,7 @@ public interface RowResponder<M extends Row> {
      *
      * @param rowMocker row mocker.
      */
-    M mockRemove(final RowMocker rowMocker);
+    M mockRemove(final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
@@ -73,14 +76,15 @@ public interface RowResponder<M extends Row> {
      * @param rowMocker row mocker.
      * @return
      */
-    M mockGetAttributeInt(final List<String> attrList, final RowMocker rowMocker);
+    M mockGetAttributeInt(final List<String> attrList,
+                          final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
      *
      * @param rowMocker row mocker.
      */
-    M mockGetAttributeString(final RowMocker rowMocker);
+    M mockGetAttributeString(final RowMocker<M, V> rowMocker);
 
 
     /**
@@ -88,7 +92,7 @@ public interface RowResponder<M extends Row> {
      *
      * @param rowMocker row mocker.
      */
-    M mockGetKey(final RowMocker rowMocker);
+    M mockGetKey(final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
@@ -96,14 +100,15 @@ public interface RowResponder<M extends Row> {
      * @param attrList row attribute list.
      * @param rowMocker row mocker.
      */
-    M mockSetAttributeInt(final List<String> attrList, final RowMocker rowMocker);
+    M mockSetAttributeInt(final List<String> attrList,
+                          final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
      *
      * @param rowMocker row mocker.
      */
-    M mockSetAttributeString(final RowMocker rowMocker);
+    M mockSetAttributeString(final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
@@ -112,8 +117,8 @@ public interface RowResponder<M extends Row> {
      * @param attrList row attribute list.
      * @param rowMocker row mocker.
      */
-    void mockSetter(Class<? extends Row> rowClass, final List<String> attrList,
-                    final RowMocker rowMocker);
+    void mockSetter(Class<M> rowClass, final List<String> attrList,
+                    final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
@@ -121,7 +126,7 @@ public interface RowResponder<M extends Row> {
      * @param attrList row attribute list.
      * @param rowMocker row mocker.
      */
-    void mockGetter(final List<String> attrList, final RowMocker rowMocker);
+    void mockGetter(final List<String> attrList, final RowMocker<M, V> rowMocker);
 
     /**
      * rtfc.
@@ -130,7 +135,7 @@ public interface RowResponder<M extends Row> {
      * @param rowMocker row mocker.
      */
     M mockGetAttributeNames(final List<String> attrList,
-                            final RowMocker rowMocker);
+                            final RowMocker<M, V> rowMocker);
 
 
     /**
@@ -139,7 +144,7 @@ public interface RowResponder<M extends Row> {
      * @param attrList row attribute list.
      * @param rowMocker row mocker.
      */
-    M mockToString(final List<String> attrList, final RowMocker rowMocker);
+    M mockToString(final List<String> attrList, final RowMocker<M, V> rowMocker);
 
 
 }

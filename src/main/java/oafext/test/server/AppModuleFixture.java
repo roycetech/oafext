@@ -32,7 +32,9 @@ import oafext.logging.OafLogger;
 import oafext.test.mock.MockRowCallback;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.jbo.Row;
+import oracle.jbo.RowSet;
 import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -59,6 +61,9 @@ import org.xml.sax.SAXException;
  *
  * @param <A> application module type.
  */
+@SuppressWarnings({
+        "PMD.GodClass",
+        "PMD.TooManyMethods" })
 public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
@@ -97,7 +102,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     private final transient Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = new HashMap<String, Class<? extends ViewObjectImpl>>();
 
     /** View Object Instance name to mock View Object Row type. */
-    private final transient Map<String, Class<? extends Row>> voNameRowClsMap = new HashMap<String, Class<? extends Row>>();
+    private final transient Map<String, Class<? extends ViewRowImpl>> voNameRowClsMap = new HashMap<String, Class<? extends ViewRowImpl>>();
 
     /** View Object Type (e.g. 'SomeVO') to Attribute List map. */
     private final transient Map<String, List<String>> voDefAttrListMap;
@@ -144,8 +149,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
         final String amClassName = processAppModuleDef(pAppModuleDef, null);
         try {
-            final Class<? extends OAApplicationModuleImpl> klass = (Class<? extends OAApplicationModuleImpl>) Class
-                .forName(amClassName);
+            final Class<A> klass = (Class<A>) Class.forName(amClassName);
 
             this.appModuleMocker = new AppModuleMocker(klass, spyAm);
         } catch (final ClassNotFoundException e) {
@@ -237,9 +241,10 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @param voInstName view object instance.
      * @param callback optional allow optional mocking for client codes.
+     * @param <R> specific Row Type.
      */
-    public void mockViewObjectSingle(final String voInstName,
-                                     final MockRowCallback callback)
+    <V extends ViewObjectImpl & RowSet, R extends ViewRowImpl> void mockViewObjectSingle(final String voInstName,
+                                                                                         final MockRowCallback<R, V> callback)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -271,11 +276,12 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * @param attrIdxParent attribute index of the parent ID.
      * @param attrIdxChildren attribute index of the children.
      * @param callback mock row callback instance.
+     * @param <R> specific Row Type.
      */
-    public void mockViewObjectHGrid(final String voInstName,
-                                    final int attrIdxParent,
-                                    final int attrIdxChildren,
-                                    final MockRowCallback callback)
+    public <R extends ViewRowImpl> void mockViewObjectHGrid(final String voInstName,
+                                                            final int attrIdxParent,
+                                                            final int attrIdxChildren,
+                                                            final MockRowCallback<R, ?> callback)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -414,7 +420,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                 (Class<? extends ViewObjectImpl>) Class.forName(voClassName));
 
             final String rowClassName = root.getAttribute(Attribute.VOROW_IMPL);
-            final Class<? extends Row> rowClass = (Class<? extends Row>) Class
+            final Class<? extends ViewRowImpl> rowClass = (Class<? extends ViewRowImpl>) Class
                 .forName(rowClassName);
 
             this.voNameRowClsMap.put(voInstName, rowClass);
@@ -593,7 +599,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      *
      * @return the voNameRowClsMap
      */
-    public Map<String, Class<? extends Row>> getVoNameRowClsMap()
+    public Map<String, Class<? extends ViewRowImpl>> getVoNameRowClsMap()
     {
         return this.voNameRowClsMap;
     }

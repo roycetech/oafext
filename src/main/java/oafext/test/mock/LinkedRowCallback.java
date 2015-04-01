@@ -16,18 +16,24 @@
 package oafext.test.mock;
 
 import oafext.test.server.RowMocker;
+import oracle.jbo.server.ViewObjectImpl;
+import oracle.jbo.server.ViewRowImpl;
 
 
 /**
  * @version $Date$
+ *
+ * @param <R> specific Row type.
+ * @param <V> View Object type.
  */
-public abstract class LinkedRowCallback implements MockRowCallback {
+public abstract class LinkedRowCallback<R extends ViewRowImpl, V extends ViewObjectImpl>
+        implements MockRowCallback<R, V> {
 
     /** */
-    private transient LinkedRowCallback nextCallback;
+    private transient LinkedRowCallback<R, V> nextCallback;
 
     @Override
-    public final void callback(final RowMocker rowMocker)
+    public final void callback(final RowMocker<R, V> rowMocker)
     {
         executeCallback(rowMocker);
         if (this.nextCallback != null) {
@@ -35,7 +41,7 @@ public abstract class LinkedRowCallback implements MockRowCallback {
         }
     }
 
-    protected abstract void executeCallback(final RowMocker rowMocker);
+    protected abstract void executeCallback(final RowMocker<R, V> rowMocker);
 
 
     /**
@@ -43,9 +49,9 @@ public abstract class LinkedRowCallback implements MockRowCallback {
      *
      * @param pNextCallback next RowCallBack.
      */
-    public LinkedRowCallback add(final LinkedRowCallback pNextCallback)
+    public LinkedRowCallback<R, V> add(final LinkedRowCallback<R, V> pNextCallback)
     {
-        LinkedRowCallback tail = this;
+        LinkedRowCallback<R, V> tail = this;
         while (tail.hasNext()) {
             tail = next();
         }
@@ -53,7 +59,7 @@ public abstract class LinkedRowCallback implements MockRowCallback {
         return this;
     }
 
-    LinkedRowCallback next()
+    LinkedRowCallback<R, V> next()
     {
         return this.nextCallback;
     }
@@ -63,7 +69,7 @@ public abstract class LinkedRowCallback implements MockRowCallback {
         return this.nextCallback != null;
     }
 
-    void setNext(final LinkedRowCallback pNextCallback)
+    void setNext(final LinkedRowCallback<R, V> pNextCallback)
     {
         this.nextCallback = pNextCallback;
     }
