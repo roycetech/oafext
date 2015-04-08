@@ -63,40 +63,21 @@ public class RowSetIteratorMocker<V extends ViewObjectImpl, R extends ViewRowImp
 
         assert pName != null;
         this.mockIter = Mockito.mock(RowSetIterator.class);
-        this.responder = new RowSetIteratorResponder(this.mockIter);
+        this.responder = new RowSetIteratorResponder<V, R>(this.mockIter);
 
         this.iterMockState = new IteratorMockState();
 
-        /* getName() */
         Mockito.doReturn(pName).when(this.mockIter).getName();
 
-        /* getRowAtRangeIndex() */
         getResponder().mockGetRowAtRangeIndex(rowSetMocker).getRowAtRangeIndex(
             Matchers.anyInt());
-
-        /* getRowCount() */
         getResponder().mockGetRowCount(rowSetMocker).getRowCount();
-
-
-        /* hasNext() */
         getResponder().mockHasNext(this).hasNext();
-
-        /* next() */
         getResponder().mockNext(this, rowSetMocker).next();
-
-        /* previous() */
         getResponder().mockPrevious(this, rowSetMocker).previous();
-
-        /* setRangeSize(int) */
         getResponder().mockSetRangeSize(this).setRangeSize(Matchers.anyInt());
-
-        /* closeRowSetIterator() */
         getResponder().mockCloseRsIterator(rowSetMocker).closeRowSetIterator();
-
-        /* reset() */
         getResponder().mockReset(this).reset();
-
-
     }
 
     RowSetIteratorResponder<V, R> getResponder()
