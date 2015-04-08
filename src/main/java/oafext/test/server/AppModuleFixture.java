@@ -99,10 +99,12 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
     /** View Object Instance name to View Object Class. */
-    private final transient Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = new HashMap<String, Class<? extends ViewObjectImpl>>();
+    private final transient Map<String, Class<? extends ViewObjectImpl>> voNameClassMap =
+            new HashMap<String, Class<? extends ViewObjectImpl>>();
 
     /** View Object Instance name to mock View Object Row type. */
-    private final transient Map<String, Class<? extends ViewRowImpl>> voNameRowClsMap = new HashMap<String, Class<? extends ViewRowImpl>>();
+    private final transient Map<String, Class<? extends ViewRowImpl>> voNameRowClsMap =
+            new HashMap<String, Class<? extends ViewRowImpl>>();
 
     /** View Object Type (e.g. 'SomeVO') to Attribute List map. */
     private final transient Map<String, List<String>> voDefAttrListMap;
@@ -115,7 +117,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
     /** Row class to view object Definition. */
-    private final transient Map<Class<? extends Row>, String> rowClsVoDefMap = new HashMap<Class<? extends Row>, String>();
+    private final transient Map<Class<? extends Row>, String> rowClsVoDefMap =
+            new HashMap<Class<? extends Row>, String>();
 
 
     /** rtfc. */
@@ -185,7 +188,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      */
     @SuppressWarnings("PMD.UseVarargs")
     public void initRowAtIndex(final String voInstance, final int index,
-                               final int[] pAttrs, final Object[] pValues)
+                               final Integer[] pAttrs, final Object[] pValues)
     {
         this.appModuleMocker.initRowAtIndex(voInstance, index, pAttrs, pValues);
     }
@@ -204,7 +207,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         this.appModuleMocker.initRowAtIndex(
             voInstance,
             index,
-            new int[] { pAttrs },
+            new Integer[] { pAttrs },
             new Object[] { pValues });
     }
 
@@ -318,13 +321,12 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
             docBuilder = dbf.newDocumentBuilder();
             ignoreDtd(docBuilder);
             getLogger().info("App Def Filename: " + path);
-            final Document document = docBuilder.parse(this
-                .getClass()
-                .getResourceAsStream(path));
+            final Document document =
+                    docBuilder.parse(this.getClass().getResourceAsStream(path));
 
             final Element root = document.getDocumentElement();
-            final String amClass = root
-                .getAttribute(Attribute.OBJECT_IMPL_CLASS);
+            final String amClass =
+                    root.getAttribute(Attribute.OBJECT_IMPL_CLASS);
             processAmRootNode(root, parentInstName);
             return amClass;
 
@@ -362,8 +364,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                             voDef,
                             new ArrayList<String>());
                     }
-                    final List<String> viewUsageList = this.voDefNameListMap
-                        .get(voDef);
+                    final List<String> viewUsageList =
+                            this.voDefNameListMap.get(voDef);
                     viewUsageList.add(voInstName);
                 }
             }
@@ -387,15 +389,15 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         LOGGER.info("voInstName: " + voInstName + ", voDef: " + voDef);
 
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final String voDefFilename = '/' + voDef.replaceAll("\\.", "/")
-                + ".xml";
+        final String voDefFilename =
+                '/' + voDef.replaceAll("\\.", "/") + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             ignoreDtd(docBuilder);
 
-            final Document document = docBuilder.parse(this
-                .getClass()
-                .getResourceAsStream(voDefFilename));
+            final Document document =
+                    docBuilder.parse(this.getClass().getResourceAsStream(
+                        voDefFilename));
             final Element root = document.getDocumentElement();
 
             this.voNameDefMap.put(voInstName, voDef);
@@ -420,8 +422,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                 (Class<? extends ViewObjectImpl>) Class.forName(voClassName));
 
             final String rowClassName = root.getAttribute(Attribute.VOROW_IMPL);
-            final Class<? extends ViewRowImpl> rowClass = (Class<? extends ViewRowImpl>) Class
-                .forName(rowClassName);
+            final Class<? extends ViewRowImpl> rowClass =
+                    (Class<? extends ViewRowImpl>) Class.forName(rowClassName);
 
             this.voNameRowClsMap.put(voInstName, rowClass);
             this.rowClsVoDefMap.put(rowClass, voDef);
@@ -442,15 +444,15 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     private String getSuperVOClass(final String superVoDef)
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final String voDefFilename = '/' + superVoDef.replaceAll("\\.", "/")
-                + ".xml";
+        final String voDefFilename =
+                '/' + superVoDef.replaceAll("\\.", "/") + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             ignoreDtd(docBuilder);
 
-            final Document document = docBuilder.parse(this
-                .getClass()
-                .getResourceAsStream(voDefFilename));
+            final Document document =
+                    docBuilder.parse(this.getClass().getResourceAsStream(
+                        voDefFilename));
             final Element root = document.getDocumentElement();
 
             return root.getAttribute(Attribute.OBJECT_IMPL_CLASS);
@@ -497,8 +499,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
             if (parentVoDef == null) {
                 this.voDefAttrListMap.put(voFullDefName, currAttrNames);
             } else {
-                final List<String> parentAttrList = this.voDefAttrListMap
-                    .get(parentVoDef);
+                final List<String> parentAttrList =
+                        this.voDefAttrListMap.get(parentVoDef);
                 final List<String> combinedAttrList = new LinkedList<String>();
                 combinedAttrList.addAll(parentAttrList);
                 combinedAttrList.addAll(currAttrNames);
