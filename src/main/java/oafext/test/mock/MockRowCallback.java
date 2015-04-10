@@ -31,8 +31,9 @@ public interface MockRowCallback<M extends ViewRowImpl, V extends ViewObjectImpl
 
     /**
      * @param rowMocker row mocker instance.
+     * @param setUp distinguish call back to test setup or actual execution.
      */
-    void callback(RowMocker<M, V> rowMocker);
+    void callback(RowMocker<M, V> rowMocker, boolean setUp);
 
 
 }

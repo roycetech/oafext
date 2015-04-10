@@ -118,6 +118,10 @@ public class IteratorMockState {
         if (this.rangeSize == 1) {
             this.rangeSize = rangeEnd;
         }
+        if (this.rangeSize <= this.rangeStart) {
+            setHasNext(false);
+        }
+
     }
 
     /**

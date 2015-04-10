@@ -32,12 +32,14 @@ public abstract class LinkedRowCallback<R extends ViewRowImpl, V extends ViewObj
     /** */
     private transient LinkedRowCallback<R, V> nextCallback;
 
+    /** {@inheritDoc} */
     @Override
-    public final void callback(final RowMocker<R, V> rowMocker)
+    public final void callback(final RowMocker<R, V> rowMocker,
+                               final boolean setUp)
     {
         executeCallback(rowMocker);
         if (this.nextCallback != null) {
-            this.nextCallback.callback(rowMocker);
+            this.nextCallback.callback(rowMocker, setUp);
         }
     }
 

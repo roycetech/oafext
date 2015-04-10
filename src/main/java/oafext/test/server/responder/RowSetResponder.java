@@ -115,6 +115,16 @@ public interface RowSetResponder<V extends ViewObjectImpl, R extends ViewRowImpl
     RowSet mockSetRangeSize(final RowSetMocker<V, R> rowSetMocker);
 
     /**
+     * @param rowSetMocker view object mocker.
+     */
+    RowSet mockGetRangeIndexOf(final RowSetMocker<V, R> rowSetMocker);
+
+    /**
+     * @param rowSetMocker view object mocker.
+     */
+    RowSet mockLast(final RowSetMocker<V, R> rowSetMocker);
+
+    /**
      * @param amFixture application module fixture.
      * @param rowSetMocker view object mocker.
      */

@@ -75,12 +75,12 @@ public class BaseViewObjectMocker<V extends ViewObjectImpl, R extends ViewRowImp
 
         setRowSetMockState(new ViewObjectMockState(pViewObjectName));
 
-        final Map<String, Class<? extends ViewObjectImpl>> voNameClassMap = pAmFixture
-            .getVoNameClassMap();
+        final Map<String, Class<? extends ViewObjectImpl>> voNameClassMap =
+                pAmFixture.getVoNameClassMap();
 
         @SuppressWarnings("unchecked")
-        final Class<V> viewObjectClass = (Class<V>) voNameClassMap
-            .get(pViewObjectName);
+        final Class<V> viewObjectClass =
+                (Class<V>) voNameClassMap.get(pViewObjectName);
 
         setMock(Mockito.mock(viewObjectClass));
         getVoResponder().mockMethods(pAmFixture, this);
@@ -153,11 +153,12 @@ public class BaseViewObjectMocker<V extends ViewObjectImpl, R extends ViewRowImp
      * This will allow client specific mock functionality.
      *
      * @param rowMocker row mocker instance.
+     * @param setUp {@link oafext.test.mock.MockRowCallback#callback(RowMocker, boolean)}
      */
-    public void callClient(final RowMocker<R, V> rowMocker)
+    public void callClient(final RowMocker<R, V> rowMocker, final boolean setUp)
     {
         if (this.rowMockCallback != null) {
-            this.rowMockCallback.callback(rowMocker);
+            this.rowMockCallback.callback(rowMocker, setUp);
         }
     }
 

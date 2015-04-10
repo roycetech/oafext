@@ -64,71 +64,34 @@ public class BaseRowSetResponder<V extends ViewObjectImpl, R extends ViewRowImpl
 
         final ViewObjectImpl mockVo = voMocker.getMock();
 
-        /* getName() */
         Mockito.doReturn(voName).when(mockVo).getName();
-
-        /* getApplicationModule() */
         Mockito.doReturn(appModule).when(mockVo).getApplicationModule();
-
-        /* getRowClass() */
         Mockito.doReturn(rowClass).when(mockVo).getRowClass();
-
-        /* getFullName() */
         Mockito
             .when(mockVo.getFullName())
             .thenReturn("Mock Full Name" + voName);
 
-        /* getViewObject() */
         Mockito.when(mockVo.getViewObject()).thenReturn(mockVo);
-
-        /* getRowSet() */
         Mockito.when(mockVo.getRowSet()).thenReturn(mockVo);
-
-
-        /* setRangeSize(int) */
         mockSetRangeSize(rowSetMocker).setRangeSize(Matchers.anyInt());
-
-        /* createRow() */
         mockCreateRow(amFixture, rowSetMocker).createRow();
-
-        /* insertRow(Row) */
         mockInsertRow(rowSetMocker).insertRow((Row) Matchers.any());
-
-        /* insertRowAtRangeIndex(int, Row) */
         mockInsertRowAtRangeIndex(rowSetMocker).insertRowAtRangeIndex(
             Matchers.anyInt(),
             (Row) Matchers.any());
-
-        /* getCurrentRow() */
         mockGetCurrentRow(rowSetMocker).getCurrentRow();
-
-        /* setCurrentRow() */
         mockSetCurrentRow(rowSetMocker).setCurrentRow((Row) Matchers.any());
-
-        /* first() */
         mockFirst(rowSetMocker).first();
-
-        /* getRowCount() */
+        mockLast(rowSetMocker).last();
         mockGetRowCount(rowSetMocker).getRowCount();
-
-        /* createRowSetIterator() */
         mockCreateRowSetIterator(rowSetMocker).createRowSetIterator(
             Matchers.anyString());
-
-        //getRowAtRangeIndex(int).
         mockGetRowAtRangeIndex(rowSetMocker).getRowAtRangeIndex(
             Matchers.anyInt());
-
-        //getAllRowsInRange().
         mockGetAllRowsInRange(rowSetMocker).getAllRowsInRange();
-
-        //executeQuery().
         mockExecuteQuery(rowSetMocker).executeQuery();
-
-        //isExecuted().
         mockIsExecuted(rowSetMocker).isExecuted();
-
-        //isExecuted().
+        mockGetRangeIndexOf(rowSetMocker).getRangeIndexOf((Row) Matchers.any());
         mockToString(amFixture, rowSetMocker).toString();
 
     }
@@ -151,7 +114,7 @@ public class BaseRowSetResponder<V extends ViewObjectImpl, R extends ViewRowImpl
                 final RowMocker<R, V> rowMocker =
                         new RowMocker<R, V>(rowClass, amFixture, voMocker);
                 voMocker.getNewRowsMap().put(rowMocker.getMock(), rowMocker);
-                voMocker.callClient(rowMocker);
+                voMocker.callClient(rowMocker, false);
                 return rowMocker.getMock();
             }
         }).when(rowSetMocker.getMock());
@@ -451,6 +414,61 @@ public class BaseRowSetResponder<V extends ViewObjectImpl, R extends ViewRowImpl
                 }
 
                 return strBuilder.toString();
+            }
+        }).when(rowSetMocker.getMock());
+    }
+
+
+    @Override
+    public RowSet mockGetRangeIndexOf(final RowSetMocker<V, R> rowSetMocker)
+    {
+        return Mockito.doAnswer(new Answer<Integer>() {
+
+            @Override
+            public Integer answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final Row param = (Row) invocation.getArguments()[0];
+                if (param != null) {
+                    for (int i = 0; i < rowSetMocker.getRowMockerList().size(); i++) {
+                        if (param.equals(rowSetMocker
+                            .getRowMockerList()
+                            .get(i)
+                            .getMock())) {
+                            return i;
+                        }
+                    }
+                }
+                return -1;
+            }
+        })
+            .when(rowSetMocker.getMock());
+    }
+
+
+    @Override
+    public RowSet mockLast(final RowSetMocker<V, R> rowSetMocker)
+    {
+        return Mockito.doAnswer(new Answer<Row>() {
+
+            @Override
+            public Row answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                final List<RowMocker<R, V>> rowMockerList =
+                        rowSetMocker.getRowMockerList();
+                if (rowMockerList.isEmpty()) {
+                    return null;
+                } else {
+                    final Row lastRow =
+                            rowMockerList
+                                .get(rowMockerList.size() - 1)
+                                .getMock();
+                    final RowSetMockState rsMockState =
+                            rowSetMocker.getRowSetMockState();
+                    rsMockState.setRowPointer(lastRow);
+                    return lastRow;
+                }
             }
         }).when(rowSetMocker.getMock());
     }

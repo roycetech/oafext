@@ -246,8 +246,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * @param callback optional allow optional mocking for client codes.
      * @param <R> specific Row Type.
      */
-    <V extends ViewObjectImpl & RowSet, R extends ViewRowImpl> void mockViewObjectSingle(final String voInstName,
-                                                                                         final MockRowCallback<R, V> callback)
+    public <V extends ViewObjectImpl & RowSet, R extends ViewRowImpl> void mockViewObjectSingle(final String voInstName,
+                                                                                                final MockRowCallback<R, V> callback)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
