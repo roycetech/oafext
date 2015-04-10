@@ -238,14 +238,21 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * @param pAttrs attribute to set.
      * @param pValues values to set.
      */
-    public void initRowAtIndex(final String voInstance, final int index,
-                               final Integer[] pAttrs, final Object[] pValues)
+    public <V extends ViewObjectImpl, R extends ViewRowImpl> void initRowAtIndex(final String voInstance,
+                                                                                 final int index,
+                                                                                 final Integer[] pAttrs,
+                                                                                 final Object[] pValues)
     {
         assert this.voInstMockerMap.get(voInstance) != null : "Invoke one of mockViewObject*("
                 + voInstance + ") before invoking this method.";
 
-        final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker =
-                this.voInstMockerMap.get(voInstance);
+        assert pAttrs.length == pValues.length : "Attribute Indeces must be equal to Values. "
+                + pAttrs.length + " != " + pValues.length;
+
+        @SuppressWarnings("unchecked")
+        final BaseViewObjectMocker<V, R> voMocker =
+                (BaseViewObjectMocker<V, R>) this.voInstMockerMap
+                    .get(voInstance);
 
         final ViewObject viewObject = voMocker.getMock();
         assert viewObject != null;
@@ -256,7 +263,15 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
         if (isExisting) {
             row = viewObject.getRowAtRangeIndex(index);
         } else {
-            row = viewObject.createRow();
+            final Class<R> rowClass = voMocker.getRowClass();
+            final RowMocker<R, V> rowMocker =
+                    new RowMocker<R, V>(
+                        rowClass,
+                        voMocker.getAmFixture(),
+                        voMocker);
+            voMocker.getNewRowsMap().put(rowMocker.getMock(), rowMocker);
+            voMocker.callClient(rowMocker, true);
+            row = rowMocker.getMock();
         }
 
         for (int i = 0; i < pValues.length; i++) {

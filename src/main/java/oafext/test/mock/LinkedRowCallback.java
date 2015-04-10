@@ -37,13 +37,14 @@ public abstract class LinkedRowCallback<R extends ViewRowImpl, V extends ViewObj
     public final void callback(final RowMocker<R, V> rowMocker,
                                final boolean setUp)
     {
-        executeCallback(rowMocker);
+        executeCallback(rowMocker, setUp);
         if (this.nextCallback != null) {
             this.nextCallback.callback(rowMocker, setUp);
         }
     }
 
-    protected abstract void executeCallback(final RowMocker<R, V> rowMocker);
+    protected abstract void executeCallback(final RowMocker<R, V> rowMocker,
+                                            final boolean setUp);
 
 
     /**
