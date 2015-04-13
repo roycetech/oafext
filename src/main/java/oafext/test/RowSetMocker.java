@@ -68,11 +68,11 @@ public class RowSetMocker<V extends ViewObjectImpl, R extends ViewRowImpl>
      * actually inserted in the VO.
      */
     private final transient Map<Row, RowMocker<R, V>> newRowsMap =
-            new HashMap<>();
+            new HashMap<Row, RowMocker<R, V>>();
 
     /** */
     private final transient List<RowMocker<R, V>> rowMockerList =
-            new ArrayList<>();
+            new ArrayList<RowMocker<R, V>>();
 
 
     /** Non-null for Row-based RowSet. */

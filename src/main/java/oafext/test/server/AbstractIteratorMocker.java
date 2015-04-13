@@ -30,7 +30,8 @@ public abstract class AbstractIteratorMocker<M> implements Mocker<M> {
 
 
     /** */
-    private final transient Map<String, RowSetIteratorMocker> rowSetIterMap = new HashMap<>();
+    private final transient Map<String, RowSetIteratorMocker> rowSetIterMap =
+            new HashMap<String, RowSetIteratorMocker>();
 
 
     public Map<String, RowSetIteratorMocker> getRowSetIterMap()
