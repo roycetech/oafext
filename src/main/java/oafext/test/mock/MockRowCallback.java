@@ -30,6 +30,9 @@ public interface MockRowCallback<M extends ViewRowImpl, V extends ViewObjectImpl
 
 
     /**
+     * Client must call {@link RowMocker#checkPulse()} to defend against Dead
+     * Row access exception.
+     *
      * @param rowMocker row mocker instance.
      * @param setUp distinguish call back to test setup or actual execution.
      */

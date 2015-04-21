@@ -252,10 +252,10 @@ public abstract class BaseViewObjectResponder<V extends ViewObjectImpl, R extend
 
                 final StringBuilder strBuilder = new StringBuilder();
                 strBuilder
-                    .append("Mock for OafExt, hashCode: ")
+                    .append("View Object Mock for OafExt, hashCode: ")
                     .append(voMocker.getMock().hashCode())
                     .append('\n')
-                    .append("VO Type: ")
+                    .append("Type: ")
                     .append(voMocker.getViewObjectType())
                     .append('\n');
 

@@ -22,6 +22,7 @@ import oafext.test.RowSetMocker;
 import oafext.test.mock.Mocker;
 import oafext.test.server.responder.BaseRowResponder;
 import oafext.test.server.responder.RowResponder;
+import oracle.jbo.DeadViewRowAccessException;
 import oracle.jbo.server.ViewObjectImpl;
 import oracle.jbo.server.ViewRowImpl;
 
@@ -137,6 +138,16 @@ public class RowMocker<R extends ViewRowImpl, V extends ViewObjectImpl>
     public Class<R> getRowClass()
     {
         return this.rowClass;
+    }
+
+    public void checkPulse()
+    {
+        if (isRemoved()) {
+            throw new DeadViewRowAccessException(getAttrValueMap()
+                .values()
+                .iterator()
+                .next());
+        }
     }
 
     public boolean isRemoved()

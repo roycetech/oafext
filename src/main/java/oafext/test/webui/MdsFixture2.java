@@ -29,6 +29,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import oafext.util.StringUtil;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 import oracle.apps.fnd.framework.webui.beans.form.OASubmitButtonBean;
 import oracle.apps.fnd.framework.webui.beans.layout.OAPageLayoutBean;
@@ -49,8 +50,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import ph.rye.common.lang.StringUtil;
 
 /**
  *
@@ -255,9 +254,10 @@ public class MdsFixture2 {
 
             final URL resource = getClass().getResource(mdsFilename);
 
-            final Document document = docBuilder.parse(new File(resource
-                .getFile()
-                .replaceAll("%20", " ")));
+            final Document document =
+                    docBuilder.parse(new File(resource.getFile().replaceAll(
+                        "%20",
+                        " ")));
             final Element root = document.getDocumentElement();
 
             if (extRegionId != null) {
@@ -281,7 +281,7 @@ public class MdsFixture2 {
      * @param extRegionId extended regions web bean ID.
      */
     final void processNode(final Node pNode, final int level,
-            final String extRegionId)
+                           final String extRegionId)
     {
         final NodeList nodes = pNode.getChildNodes();
         if (nodes != null) {
@@ -310,7 +310,7 @@ public class MdsFixture2 {
      * @param level p
      */
     void processChildNode(final Node childNode, final String containerId,
-            final List<String> children, final int level)
+                          final List<String> children, final int level)
     {
         final String nodeName = childNode.getNodeName();
         if (nodeName.startsWith("oa:")) {
@@ -365,7 +365,7 @@ public class MdsFixture2 {
      * @param level Recursion level.
      */
     final void processOAElement(final Element elem, final String nodeName,
-            final int level)
+                                final int level)
     {
         //        LOGGER.info("*** " + nodeName + " -> "
         //                + elem.getParentNode().getParentNode().getNodeName());
@@ -373,9 +373,9 @@ public class MdsFixture2 {
         final String webBeanId = elem.getAttribute("id");
 
 
-        final String parentWebBeanId = ((Element) elem
-                .getParentNode()
-                .getParentNode()).getAttribute("id");
+        final String parentWebBeanId =
+                ((Element) elem.getParentNode().getParentNode())
+                    .getAttribute("id");
 
         //        LOGGER.info(webBeanId + " -> " + parentWebBeanId);
         if ("".equals(parentWebBeanId)) {
@@ -408,9 +408,8 @@ public class MdsFixture2 {
         //LOGGER.info(getStrUtil().space(level) + nodeName + " - " + webBeanId);
 
         if ("oa:pageLayout".equals(nodeName)) {
-            this.pageLayout = (OAPageLayoutBean) mockBean(
-                webBeanId,
-                this.mdsPath);
+            this.pageLayout =
+                    (OAPageLayoutBean) mockBean(webBeanId, this.mdsPath);
         }
 
         output
@@ -458,8 +457,8 @@ public class MdsFixture2 {
         if (this.beanIdChildrenMap.get(parentBeanId) == null) {
             this.beanIdChildrenMap.put(parentBeanId, new ArrayList<String>());
         }
-        final List<String> childWebBeans = this.beanIdChildrenMap
-                .get(parentBeanId);
+        final List<String> childWebBeans =
+                this.beanIdChildrenMap.get(parentBeanId);
         childWebBeans.add(childBeanId);
     }
 
@@ -497,7 +496,7 @@ public class MdsFixture2 {
      * @param webBeanId web bean ID to find.
      */
     Element recurseFindElement(final MdsFixture2 mdsFixture,
-            final String webBeanId)
+                               final String webBeanId)
     {
         Element retval = mdsFixture.beanIdElementMap.get(webBeanId);
         if (retval == null) {
@@ -531,7 +530,8 @@ public class MdsFixture2 {
                 //                Assert.fail("WebBeanId [" + webBeanId + "]  was not found in "
                 //                        + this.mdsPath);
             } else {
-                final String webBeanMdsPath = getWebBeanMdsPath(this, webBeanId);
+                final String webBeanMdsPath =
+                        getWebBeanMdsPath(this, webBeanId);
                 if (webBeanMdsPath == null) {
 
                     /**
@@ -576,12 +576,11 @@ public class MdsFixture2 {
         assert fixture != null;
 
         OAWebBean mockBean;
-        final String elemName = fixture.beanIdElementMap
-                .get(webBeanId)
-                .getNodeName();
+        final String elemName =
+                fixture.beanIdElementMap.get(webBeanId).getNodeName();
         final String oaWebBeanType = buildOaWebBeanType(elemName);
-        final Class<? extends OAWebBean> oaClass = OABeanUtil
-                .getOABeanClass(oaWebBeanType);
+        final Class<? extends OAWebBean> oaClass =
+                OABeanUtil.getOABeanClass(oaWebBeanType);
 
         if (READONLY_TYPES.contains(oaClass)) {
             this.beanIdLockMap.put(webBeanId, true);
@@ -608,7 +607,7 @@ public class MdsFixture2 {
      * @param webBeanMdsPath Web Bean MDS path.
      */
     void mockWebBeanBehavior(final OAWebBean mockBean, final String webBeanId,
-            final String webBeanMdsPath)
+                             final String webBeanMdsPath)
     {
         Mockito.when(mockBean.getID()).thenReturn(webBeanId);
         Mockito.doAnswer(new Answer<Object>() {
@@ -735,7 +734,7 @@ public class MdsFixture2 {
      * @param webBeanId web bean ID to find.
      */
     MdsFixture2 recurseFindMdsFixture(final MdsFixture2 mdsFixture,
-            final String webBeanId)
+                                      final String webBeanId)
     {
         MdsFixture2 retval = null;
 

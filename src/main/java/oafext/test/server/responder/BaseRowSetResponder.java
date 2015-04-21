@@ -403,7 +403,7 @@ public class BaseRowSetResponder<V extends ViewObjectImpl, R extends ViewRowImpl
             {
                 final StringBuilder strBuilder = new StringBuilder();
                 strBuilder
-                    .append("Mock for OafExt, hashCode: ")
+                    .append("RowSet Mock for OafExt, hashCode: ")
                     .append(rowSetMocker.getMock().hashCode())
                     .append('\n');
 

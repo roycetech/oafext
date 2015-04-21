@@ -29,7 +29,6 @@ import oafext.test.server.BaseViewObjectMocker;
 import oafext.test.server.RowMocker;
 import oafext.test.server.ViewObjectHGridMocker;
 import oafext.util.ReflectUtil;
-import oracle.jbo.DeadViewRowAccessException;
 import oracle.jbo.Key;
 import oracle.jbo.RowSet;
 import oracle.jbo.ViewObject;
@@ -82,45 +81,26 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
                 amFixture.getVoDefAttrListMap().get(voDefFull);
 
 
-        /* remove(). */
         mockRemove(rowMocker).remove();
-
-        /* getViewObj() - anti zombie/final. */
         mockGetViewObj(rowMocker);
-
-        /* getAttributeCount() - anti zombie/final.  */
         mockGetAttributeCount(attrList, rowMocker);
-
-        /* getAttribute(int) */
         mockGetAttributeInt(attrList, rowMocker)
             .getAttribute(Matchers.anyInt());
-
-        /* getAttribute(String) */
         mockGetAttributeString(rowMocker).getAttribute(Matchers.anyString());
-
-        /* getKey() */
         mockGetKey(rowMocker).getKey();
-
-        /* setAttribute(int) */
         mockSetAttributeInt(attrList, rowMocker).setAttribute(
             Matchers.anyInt(),
             Matchers.any());
-
-        /* setAttribute(String) */
         mockSetAttributeString(rowMocker).setAttribute(
             Matchers.anyString(),
             Matchers.any());
-
         /* set*(Object) */
         mockSetter(pRowClass, attrList, rowMocker);
-
         /* get*() */
         mockGetter(attrList, rowMocker);
-
-        /* getAttributeNames() */
         mockGetAttributeNames(attrList, rowMocker).getAttributeNames();
+        mockIsDead(rowMocker).isDead();
 
-        /* toString() */
         mockToString(attrList, rowMocker).toString();
     }
 
@@ -483,22 +463,24 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
             public String[] answer(final InvocationOnMock invocation)
                     throws Throwable
             {
-                checkDead(rowMocker);
+                rowMocker.checkPulse();
                 return attrList.toArray(new String[attrList.size()]);
             }
         }).when(rowMocker.getMock());
     }
 
-    void checkDead(final RowMocker<R, V> rowMocker)
+    @Override
+    public R mockIsDead(final RowMocker<R, V> rowMocker)
     {
-        assert rowMocker != null;
-        if (rowMocker.isRemoved()) {
-            throw new DeadViewRowAccessException(rowMocker
-                .getAttrValueMap()
-                .values()
-                .iterator()
-                .next());
-        }
+        return Mockito.doAnswer(new Answer<Boolean>() {
+
+            @Override
+            public Boolean answer(final InvocationOnMock invocation)
+                    throws Throwable
+            {
+                return rowMocker.isRemoved();
+            }
+        }).when(rowMocker.getMock());
     }
 
     @Override
@@ -522,7 +504,7 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
                     throws Throwable
             {
                 final StringBuilder retval = new StringBuilder();
-                retval.append("Mock for OafExt, hashCode: "
+                retval.append("Row Mock for OafExt, hashCode: "
                         + rowMocker.getMock().hashCode() + "\n");
 
                 String methodName;
@@ -575,11 +557,7 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
                     retval.append(string);
                     retval.append('\n');
                 }
-
-                retval.append('\n');
                 return retval.toString();
-
-
             }
         })
             .when(rowMocker.getMock());

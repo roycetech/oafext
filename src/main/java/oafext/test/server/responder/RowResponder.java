@@ -113,6 +113,13 @@ public interface RowResponder<M extends ViewRowImpl, V extends ViewObjectImpl> {
     /**
      * rtfc.
      *
+     * @param rowMocker row mocker.
+     */
+    M mockIsDead(final RowMocker<M, V> rowMocker);
+
+    /**
+     * rtfc.
+     *
      * @param rowClass row class.
      * @param attrList row attribute list.
      * @param rowMocker row mocker.
