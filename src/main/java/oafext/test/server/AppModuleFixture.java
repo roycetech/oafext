@@ -17,7 +17,6 @@ package oafext.test.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,6 +29,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import oafext.logging.OafLogger;
 import oafext.test.mock.MockRowCallback;
+import oafext.util.XmlUtil;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.jbo.Row;
 import oracle.jbo.RowSet;
@@ -44,12 +44,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- * TODO: Nested AM.
+ * TODO: Nested AM. Break this down to separate view object components as list.
  *
  * Support one level VO inheritance only.
  *
@@ -61,9 +59,6 @@ import org.xml.sax.SAXException;
  *
  * @param <A> application module type.
  */
-@SuppressWarnings({
-        "PMD.GodClass",
-        "PMD.TooManyMethods" })
 public class AppModuleFixture<A extends OAApplicationModuleImpl> {
 
 
@@ -319,7 +314,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         DocumentBuilder docBuilder;
         try {
             docBuilder = dbf.newDocumentBuilder();
-            ignoreDtd(docBuilder);
+            XmlUtil.ignoreDtd(docBuilder, "jbo_03_01.dtd");
             getLogger().info("App Def Filename: " + path);
             final Document document =
                     docBuilder.parse(this.getClass().getResourceAsStream(path));
@@ -393,7 +388,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                 '/' + voDef.replaceAll("\\.", "/") + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-            ignoreDtd(docBuilder);
+            XmlUtil.ignoreDtd(docBuilder, "jbo_03_01.dtd");
 
             final Document document =
                     docBuilder.parse(this.getClass().getResourceAsStream(
@@ -448,7 +443,7 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                 '/' + superVoDef.replaceAll("\\.", "/") + ".xml";
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-            ignoreDtd(docBuilder);
+            XmlUtil.ignoreDtd(docBuilder, "jbo_03_01.dtd");
 
             final Document document =
                     docBuilder.parse(this.getClass().getResourceAsStream(
@@ -513,31 +508,6 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
                     + " attribute(s)");
 
         }
-    }
-
-    /**
-     * This will prevent the DocumentBuilder from validating the DTD. Saves us
-     * the trouble of dependence to online DTD resource.
-     *
-     * @param docBuilder DocumentBuilder instance.
-     */
-    private void ignoreDtd(final DocumentBuilder docBuilder)
-    {
-        docBuilder.setEntityResolver(new EntityResolver() {
-
-
-            @Override
-            public InputSource resolveEntity(final String publicId,
-                                             final String systemId)
-                    throws SAXException, IOException
-            {
-                InputSource retval = null; //NOPMD: null default, conditionally redefine.
-                if (systemId.contains("jbo_03_01.dtd")) {
-                    retval = new InputSource(new StringReader(""));
-                }
-                return retval;
-            }
-        });
     }
 
 

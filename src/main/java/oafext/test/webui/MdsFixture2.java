@@ -29,6 +29,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import oafext.ann.Revision;
 import oafext.util.StringUtil;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 import oracle.apps.fnd.framework.webui.beans.form.OASubmitButtonBean;
@@ -58,11 +59,8 @@ import org.xml.sax.SAXException;
  * @version $Date$
  * </pre>
  */
+@Revision("$Revision: $")
 public class MdsFixture2 {
-
-
-    /** Internal source control version. */
-    public static final String RCS_ID = "$Revision$";
 
 
     /** sl4j logger instance. */
@@ -802,12 +800,5 @@ public class MdsFixture2 {
         this.pageLayout = pageLayout;
     }
 
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString()
-    {
-        return super.toString() + " " + RCS_ID;
-    }
 
 }

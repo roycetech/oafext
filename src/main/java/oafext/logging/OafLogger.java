@@ -50,38 +50,38 @@ import oracle.jbo.server.DBTransaction;
 /**
  * Simple logger. Configuration via property file or via runtime. Will look for
  * log4oaf.properties in root classes directory.
- * 
+ *
  * WARNING: Not currently compatible with IDE's other than JDEV 10.1.3.3.
- * 
+ *
  * Example log4oaf.properties. Copy this to class folder (e.g.
  * U:\JDev\jdevhome\jdev\myclasses)
- * 
+ *
  * <pre>
  * #log4oaf.properties
- *  
- * #defaults to INFO 
+ *
+ * #defaults to INFO
  * log4oaf.defaultLevel=INFO
- * 
- * #defaults to yes 
+ *
+ * #defaults to yes
  * log4oaf.showMethod=yes
- * 
- * #defaults to yes 
+ *
+ * #defaults to yes
  * #log4oaf.showPackage=yes
- * 
- * #defaults to no 
+ *
+ * #defaults to no
  * log4oaf.printToConsole=yes
- * 
- * #defaults to yes 
+ *
+ * #defaults to yes
  * log4oaf.isDeployed=no
- * 
- * # log categories 
- * log4oaf.logger.adb.oracle.apps.pa.workout=DEBUG 
+ *
+ * # log categories
+ * log4oaf.logger.adb.oracle.apps.pa.workout=DEBUG
  * log4oaf.logger.adb.oracle.apps.pa.workplan=OFF
  * log4oaf.logger.adb.oracle.apps.pa.util.server=DEBUG
  * </pre>
- * 
+ *
  * <pre>
- * $Author$ 
+ * $Author$
  * $Date$
  * </pre>
  */
@@ -91,10 +91,6 @@ import oracle.jbo.server.DBTransaction;
         "PMD.ExcessivePublicCount",
         "PMD.TooManyMethods" })
 public class OafLogger {
-
-
-    /** Standard Oracle versioning. */
-    public static final String RCS_ID = "$Revision$";
 
 
     /** Allow System.out.println flag. */
@@ -170,7 +166,8 @@ public class OafLogger {
      */
     private transient boolean deployed = true;
     private transient int defaultLevel = Level.INFO;
-    private final transient Map<String, Integer> classLevel = new LinkedHashMap<String, Integer>();
+    private final transient Map<String, Integer> classLevel =
+            new LinkedHashMap<String, Integer>();
 
     /** Flag for initialize from properties file. */
     private static boolean initialized;
@@ -211,49 +208,56 @@ public class OafLogger {
 
     /**
      * Factory method.
-     * 
+     *
      * @return Singleton instance.
      */
     public static OafLogger getInstance()
     {
         if (!initialized) {
             try {
-                final ResourceBundle resBundle = ResourceBundle
-                    .getBundle(RESOURCE_NAME);
-                final String cfgDefaultLevel = resBundle
-                    .getString("log4oaf.defaultLevel");
-                final Map<String, Integer> levelToStr = new HashMap<String, Integer>();
+                final ResourceBundle resBundle =
+                        ResourceBundle.getBundle(RESOURCE_NAME);
+                final String cfgDefaultLevel =
+                        resBundle.getString("log4oaf.defaultLevel");
+                final Map<String, Integer> levelToStr =
+                        new HashMap<String, Integer>();
                 levelToStr.put("INFO", Level.INFO);
                 levelToStr.put("DEBUG", Level.DEBUG);
                 levelToStr.put("WARN", Level.WARN);
                 levelToStr.put("ERROR", Level.ERROR);
                 levelToStr.put("OFF", Level.OFF);
 
-                INSTANCE.defaultLevel = getUtil().nvl(
-                    levelToStr.get(cfgDefaultLevel),
-                    Level.INFO);
+                INSTANCE.defaultLevel =
+                        getUtil().nvl(
+                            levelToStr.get(cfgDefaultLevel),
+                            Level.INFO);
 
-                INSTANCE.showMethod = getResourceValue(
-                    resBundle,
-                    "log4oaf.showMethod",
-                    INSTANCE.showMethod);
-                INSTANCE.showPackage = getResourceValue(
-                    resBundle,
-                    "log4oaf.showPackage",
-                    INSTANCE.showPackage);
-                INSTANCE.shortPackage = getResourceValue(
-                    resBundle,
-                    "log4oaf.shortPackage",
-                    INSTANCE.shortPackage);
+                INSTANCE.showMethod =
+                        getResourceValue(
+                            resBundle,
+                            "log4oaf.showMethod",
+                            INSTANCE.showMethod);
+                INSTANCE.showPackage =
+                        getResourceValue(
+                            resBundle,
+                            "log4oaf.showPackage",
+                            INSTANCE.showPackage);
+                INSTANCE.shortPackage =
+                        getResourceValue(
+                            resBundle,
+                            "log4oaf.shortPackage",
+                            INSTANCE.shortPackage);
                 INSTANCE.basePackage = resBundle.getString("log4oaf.basepkg");
-                INSTANCE.printToConsole = getResourceValue(
-                    resBundle,
-                    "log4oaf.printToConsole",
-                    INSTANCE.printToConsole);
-                INSTANCE.deployed = getResourceValue(
-                    resBundle,
-                    "log4oaf.isDeployed",
-                    INSTANCE.deployed);
+                INSTANCE.printToConsole =
+                        getResourceValue(
+                            resBundle,
+                            "log4oaf.printToConsole",
+                            INSTANCE.printToConsole);
+                INSTANCE.deployed =
+                        getResourceValue(
+                            resBundle,
+                            "log4oaf.isDeployed",
+                            INSTANCE.deployed);
 
                 for (final Enumeration<String> enu = resBundle.getKeys(); enu
                     .hasMoreElements();) {
@@ -289,13 +293,14 @@ public class OafLogger {
 
     /**
      * Retrieve key values from resource.
-     * 
+     *
      * @param resBundle resource bundle.
      * @param resourceKey resource key.
      * @param defaultValue default value to use if resource key do not exist.
      */
     private static boolean getResourceValue(final ResourceBundle resBundle,
-            final String resourceKey, final boolean defaultValue)
+                                            final String resourceKey,
+                                            final boolean defaultValue)
     {
         boolean retval; //NOPMD: false default, conditionally redefine.
         try {
@@ -306,10 +311,11 @@ public class OafLogger {
                 resValue = resBundle.getString(resourceKey).trim();
             }
 
-            retval = Arrays.asList(new String[] { //NOPMD: FP.
-                        "yes",
-                        "true" }).contains(
-                resValue.toLowerCase(Locale.getDefault()));
+            retval =
+                    Arrays.asList(new String[] { //NOPMD: FP.
+                                "yes",
+                                "true" }).contains(
+                        resValue.toLowerCase(Locale.getDefault()));
         } catch (final MissingResourceException mre) { //NOPMD Reviewed.
             retval = defaultValue;
         }
@@ -318,7 +324,7 @@ public class OafLogger {
 
     /**
      * Factory method.
-     * 
+     *
      * @return Singleton instance.
      * @param clazz class.
      * @param <T> class type.
@@ -341,7 +347,7 @@ public class OafLogger {
 
     /**
      * Add to list of prefix that will not print in the console.
-     * 
+     *
      * @deprecated Use {@link #setLevel(String, int)}.
      * @param string prefix of objects to be excluded.
      */
@@ -356,7 +362,7 @@ public class OafLogger {
     /**
      * @param source source class.
      * @param level log level.
-     * 
+     *
      * @param <T> source class type.
      */
     public <T> void setLevel(final Class<T> source, final int level)
@@ -382,8 +388,9 @@ public class OafLogger {
 
     public void info(final OAPageContext pageContext, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         if (pageContext == null) {
             log(message, ste, Level.INFO);
         } else {
@@ -393,8 +400,9 @@ public class OafLogger {
 
     public void debug(final OAPageContext pageContext, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         if (pageContext == null) {
             log(message, ste, Level.DEBUG);
         } else {
@@ -404,8 +412,9 @@ public class OafLogger {
 
     public void warn(final OAPageContext pageContext, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         if (pageContext == null) {
             log(message, ste, Level.WARN);
         } else {
@@ -415,29 +424,32 @@ public class OafLogger {
 
     public void error(final OAPageContext pageContext, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(pageContext, message, ste, Level.ERROR);
     }
 
     /**
      * For controller code or object with access to page context.
-     * 
+     *
      * @param pageContext the current OA page context.
      * @param message
      */
     public void log(final OAPageContext pageContext, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(pageContext, message, ste, this.defaultLevel);
     }
 
     private void log(final OAPageContext pageContext, final Object pMessage,
-            final StackTraceElement ste, final int level)
+                     final StackTraceElement ste, final int level)
     {
-        final String message = pMessage instanceof RowSet ? getVOValues((RowSet) pMessage)
-                : pMessage.toString();
+        final String message =
+                pMessage instanceof RowSet ? getVOValues((RowSet) pMessage)
+                        : pMessage.toString();
         final String className = getClassNameDisp(ste);
         final String methName = getMethodDisp(ste);
         final int lineNo = ste.getLineNumber();
@@ -445,21 +457,21 @@ public class OafLogger {
         if (pageContext.isDiagnosticMode()) {
 
             final String rcs = getClassRevision(ste);
-            final String logStr = rcs + methName + "(" + lineNo + "): "
-                    + message;
+            final String logStr =
+                    rcs + methName + "(" + lineNo + "): " + message;
             pageContext.writeDiagnostics(
                 className,
                 logStr,
                 OAFwkConstants.STATEMENT);
 
-            final String htmlLog = new SimpleDateFormat(
-                "HH:mm:ss",
-                Locale.getDefault()).format(new Date())
-                    + " "
-                    + padSpace(LOG_PREFIX[level - 1])
-                    + " "
-                    + className
-                    + logStr;
+            final String htmlLog =
+                    new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                        .format(new Date())
+                            + " "
+                            + padSpace(LOG_PREFIX[level - 1])
+                            + " "
+                            + className
+                            + logStr;
             if (isProcessRequest()) {
                 writeHtmlComment(pageContext, htmlLog);
             } else {
@@ -480,14 +492,14 @@ public class OafLogger {
 
 
     private void addDeferredLog(final OAApplicationModuleImpl appModule,
-            final String htmlLog)
+                                final String htmlLog)
     {
         if (appModule.getTransientValue(DEFERRED_LOGS) == null) {
             appModule.putTransientValue(DEFERRED_LOGS, new ArrayList<String>());
         }
         @SuppressWarnings("unchecked")
-        final List<String> logList = (List<String>) appModule
-            .getTransientValue(DEFERRED_LOGS);
+        final List<String> logList =
+                (List<String>) appModule.getTransientValue(DEFERRED_LOGS);
         logList.add(htmlLog);
     }
 
@@ -511,31 +523,32 @@ public class OafLogger {
      * @param logStr actual string to log.
      */
     private void writeHtmlComment(final OAPageContext pageContext,
-            final String logStr)
+                                  final String logStr)
     {
 
         OARawTextBean rawTextBean;
         if (pageContext.getPageLayoutBean().findChildRecursive(RESOURCE_NAME) == null) {
-            rawTextBean = (OARawTextBean) pageContext
-                .getWebBeanFactory()
-                .createWebBean(
-                    pageContext,
-                    OAWebBeanConstants.RAW_TEXT_BEAN,
-                    "VARCHAR2",
-                    RESOURCE_NAME);
+            rawTextBean =
+                    (OARawTextBean) pageContext
+                        .getWebBeanFactory()
+                        .createWebBean(
+                            pageContext,
+                            OAWebBeanConstants.RAW_TEXT_BEAN,
+                            "VARCHAR2",
+                            RESOURCE_NAME);
             pageContext.getPageLayoutBean().addIndexedChild(rawTextBean);
         } else {
-            rawTextBean = (OARawTextBean) pageContext
-                .getPageLayoutBean()
-                .findChildRecursive(RESOURCE_NAME);
+            rawTextBean =
+                    (OARawTextBean) pageContext
+                        .getPageLayoutBean()
+                        .findChildRecursive(RESOURCE_NAME);
         }
 
         final StringBuilder strBuilder = new StringBuilder();
 
         if (rawTextBean.getValue(pageContext) != null) {
-            final String existingValue = rawTextBean
-                .getValue(pageContext)
-                .toString();
+            final String existingValue =
+                    rawTextBean.getValue(pageContext).toString();
             final int newLine = existingValue.indexOf('\n');
             final int endIdx = existingValue.lastIndexOf('\n') + 1;
             strBuilder.append(existingValue.substring(newLine, endIdx));
@@ -543,12 +556,13 @@ public class OafLogger {
         strBuilder.append(logStr);
         strBuilder.append('\n');
 
-        final OAApplicationModuleImpl appModule = (OAApplicationModuleImpl) pageContext
-            .getRootApplicationModule();
+        final OAApplicationModuleImpl appModule =
+                (OAApplicationModuleImpl) pageContext
+                    .getRootApplicationModule();
         if (appModule.getTransientValue(DEFERRED_LOGS) != null) {
             @SuppressWarnings("unchecked")
-            final List<String> logList = (List<String>) appModule
-                .getTransientValue(DEFERRED_LOGS);
+            final List<String> logList =
+                    (List<String>) appModule.getTransientValue(DEFERRED_LOGS);
             appModule.removeTransientValue(DEFERRED_LOGS);
 
             for (final String string : logList) {
@@ -563,15 +577,16 @@ public class OafLogger {
 
     /**
      * For controller code or object with access to page context.
-     * 
+     *
      * @param pageContext the current OA page context.
      * @param message
      */
     public void log(final OAPageContext pageContext, final Object message,
-            final Throwable exception)
+                    final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(pageContext, dispMessage, ste, this.defaultLevel);
@@ -580,14 +595,15 @@ public class OafLogger {
 
     /**
      * For controller code or object with access to page context.
-     * 
+     *
      * @param pageContext the current OA page context.
      * @param message
      */
     public void log(final OAPageContext pageContext, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(null, exception);
         log(pageContext, dispMessage, ste, this.defaultLevel);
@@ -595,40 +611,44 @@ public class OafLogger {
 
 
     public void info(final OAPageContext pageContext, final Object message,
-            final Throwable exception)
+                     final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(pageContext, dispMessage, ste, Level.INFO);
     }
 
     public void debug(final OAPageContext pageContext, final Object message,
-            final Throwable exception)
+                      final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(pageContext, dispMessage, ste, Level.DEBUG);
     }
 
     public void warn(final OAPageContext pageContext, final Object message,
-            final Throwable exception)
+                     final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(pageContext, dispMessage, ste, Level.WARN);
     }
 
     public void error(final OAPageContext pageContext, final Object message,
-            final Throwable exception)
+                      final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(pageContext, dispMessage, ste, Level.ERROR);
@@ -636,8 +656,9 @@ public class OafLogger {
 
     public void error(final OAPageContext pageContext, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(null, exception);
         log(pageContext, dispMessage, ste, Level.ERROR);
@@ -647,7 +668,8 @@ public class OafLogger {
     /* 2. Logger method: OAApplicationModule */
 
     private void log(final OAApplicationModuleImpl appModule,
-            final Object pMessage, final StackTraceElement ste, final int level)
+                     final Object pMessage, final StackTraceElement ste,
+                     final int level)
     {
 
         Object message = pMessage;
@@ -665,13 +687,15 @@ public class OafLogger {
 
                 final String logStr = methName + "(" + lineNo + "): " + message;
 
-                final String htmlLog = new SimpleDateFormat(
-                    "HH:mm:ss",
-                    Locale.getDefault()).format(new Date())
-                        + " "
-                        + padSpace(LOG_PREFIX[level - 1])
-                        + " "
-                        + classNameDisp + getClassRevision(ste) + logStr;
+                final String htmlLog =
+                        new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                            .format(new Date())
+                                + " "
+                                + padSpace(LOG_PREFIX[level - 1])
+                                + " "
+                                + classNameDisp
+                                + getClassRevision(ste)
+                                + logStr;
 
                 addDeferredLog(appModule, htmlLog);
 
@@ -695,10 +719,11 @@ public class OafLogger {
      * @param message
      */
     public void log(final OAApplicationModuleImpl appModule,
-            final Object message)
+                    final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (appModule == null) {
             log(message, ste, this.defaultLevel);
@@ -708,10 +733,11 @@ public class OafLogger {
     }
 
     public void info(final OAApplicationModuleImpl appModule,
-            final Object message)
+                     final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (appModule == null) {
             log(message, ste, Level.INFO);
@@ -721,10 +747,11 @@ public class OafLogger {
     }
 
     public void debug(final OAApplicationModuleImpl appModule,
-            final Object message)
+                      final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (appModule == null) {
             log(message, ste, Level.DEBUG);
@@ -734,10 +761,11 @@ public class OafLogger {
     }
 
     public void warn(final OAApplicationModuleImpl appModule,
-            final Object message)
+                     final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (appModule == null) {
             log(message, ste, Level.WARN);
@@ -747,10 +775,11 @@ public class OafLogger {
     }
 
     public void error(final OAApplicationModuleImpl appModule,
-            final Object message)
+                      final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (appModule == null) {
             log(message, ste, Level.ERROR);
@@ -764,10 +793,11 @@ public class OafLogger {
      * @param message
      */
     public void log(final OAApplicationModuleImpl appModule,
-            final Object message, final Throwable exception)
+                    final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         final String dispMessage = getDispMessage(message, exception);
 
         if (appModule == null) {
@@ -778,10 +808,11 @@ public class OafLogger {
     }
 
     public void info(final OAApplicationModuleImpl appModule,
-            final Object message, final Throwable exception)
+                     final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         final String dispMessage = getDispMessage(message, exception);
         if (appModule == null) {
             log(dispMessage, ste, Level.INFO);
@@ -791,10 +822,11 @@ public class OafLogger {
     }
 
     public void debug(final OAApplicationModuleImpl appModule,
-            final Object message, final Throwable exception)
+                      final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         final String dispMessage = getDispMessage(message, exception);
         if (appModule == null) {
             log(dispMessage, ste, Level.DEBUG);
@@ -804,10 +836,11 @@ public class OafLogger {
     }
 
     public void warn(final OAApplicationModuleImpl appModule,
-            final Object message, final Throwable exception)
+                     final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         final String dispMessage = getDispMessage(message, exception);
         if (appModule == null) {
             log(dispMessage, ste, Level.WARN);
@@ -817,10 +850,11 @@ public class OafLogger {
     }
 
     public void error(final OAApplicationModuleImpl appModule,
-            final Object message, final Throwable exception)
+                      final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         final String dispMessage = getDispMessage(message, exception);
         if (appModule == null) {
             log(dispMessage, ste, Level.ERROR);
@@ -834,8 +868,9 @@ public class OafLogger {
 
     public void log(final OADBTransaction trx, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (trx == null) {
             log(message, ste, this.defaultLevel);
@@ -846,8 +881,9 @@ public class OafLogger {
 
     public void info(final OADBTransaction trx, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (trx == null) {
             log(message, ste, Level.INFO);
@@ -858,8 +894,9 @@ public class OafLogger {
 
     public void debug(final OADBTransaction trx, final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (trx == null) {
             log(message, ste, Level.DEBUG);
@@ -870,8 +907,9 @@ public class OafLogger {
 
     public void warn(final OADBTransaction trx, final String message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (trx == null) {
             log(message, ste, Level.WARN);
@@ -883,8 +921,9 @@ public class OafLogger {
 
     public void error(final OADBTransaction trx, final String message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (trx == null) {
             log(message, ste, Level.ERROR);
@@ -894,20 +933,22 @@ public class OafLogger {
     }
 
     public void debug(final OADBTransaction trx, final Object message,
-            final Throwable exception)
+                      final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(trx, dispMessage, ste, Level.DEBUG);
     }
 
     public void error(final OADBTransaction trx, final Object message,
-            final Throwable exception)
+                      final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(trx, dispMessage, ste, Level.ERROR);
@@ -915,8 +956,9 @@ public class OafLogger {
 
     public void error(final DBTransaction trx, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(null, exception);
         if (trx instanceof OADBTransaction) {
@@ -928,7 +970,7 @@ public class OafLogger {
 
 
     private void log(final OADBTransaction trx, final Object pMessage,
-            final StackTraceElement ste, final int level)
+                     final StackTraceElement ste, final int level)
     {
         Object message;
         if (pMessage instanceof ViewObject) {
@@ -948,13 +990,13 @@ public class OafLogger {
 
                 final String logStr = methName + "(" + lineNo + ")" + message;
 
-                final String htmlLog = new SimpleDateFormat(
-                    "HH:mm:ss",
-                    Locale.getDefault()).format(new Date())
-                        + " "
-                        + padSpace(LOG_PREFIX[level - 1])
-                        + " "
-                        + classNameDisp + logStr;
+                final String htmlLog =
+                        new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                            .format(new Date())
+                                + " "
+                                + padSpace(LOG_PREFIX[level - 1])
+                                + " "
+                                + classNameDisp + logStr;
                 addDeferredLog(
                     (OAApplicationModuleImpl) trx.getRootApplicationModule(),
                     htmlLog);
@@ -982,7 +1024,7 @@ public class OafLogger {
     /* 4. Logger method: ViewObject ==========================================*/
 
     private void log(final ViewObject viewObject, final StackTraceElement ste,
-            final int level)
+                     final int level)
     {
         if (viewObject == null) {
             log((Object) viewObject, ste, level);
@@ -994,8 +1036,9 @@ public class OafLogger {
 
             boolean devMode = false;
             if (viewObject.getApplicationModule() instanceof OAApplicationModuleImpl) {
-                final OAApplicationModuleImpl appModule = (OAApplicationModuleImpl) viewObject
-                    .getApplicationModule();
+                final OAApplicationModuleImpl appModule =
+                        (OAApplicationModuleImpl) viewObject
+                            .getApplicationModule();
                 devMode = appModule.getOADBTransaction().isDeveloperMode();
                 if (appModule.getOADBTransaction().isDiagnosticMode()) {
                     appModule.writeDiagnostics(classNameDisp, methName + "("
@@ -1013,8 +1056,9 @@ public class OafLogger {
 
     public void log(final ViewObject viewObject)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (viewObject == null) {
             log(viewObject, ste, this.defaultLevel);
@@ -1025,8 +1069,9 @@ public class OafLogger {
 
     public void info(final ViewObject viewObject)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (viewObject == null) {
             log((Object) viewObject, ste, Level.INFO);
@@ -1037,8 +1082,9 @@ public class OafLogger {
 
     public void debug(final ViewObject viewObject)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         if (viewObject == null) {
             log((Object) viewObject, ste, Level.DEBUG);
@@ -1050,7 +1096,7 @@ public class OafLogger {
     /* 5. Logger method: Object */
 
     private void log(final Object pMessage, final StackTraceElement ste,
-            final int level)
+                     final int level)
     {
         Object message;
         if (pMessage instanceof ViewObject) {
@@ -1075,29 +1121,32 @@ public class OafLogger {
 
     public void log(final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, this.defaultLevel);
     }
 
     public void info(final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.INFO);
     }
 
     public void ignore(final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.IGNORE);
     }
 
     /**
      * Note changes are for testing purpose on eclipse only in case I
      * accidentally commit.
-     * 
+     *
      * @param message debug message.
      */
     public void debug(final Object message)
@@ -1111,8 +1160,9 @@ public class OafLogger {
         } else if (IDX_LOCAL_CALL > lastIdx) {
             ste = Thread.currentThread().getStackTrace()[lastIdx];
         } else {
-            ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                    : IDX_LOCAL_CALL];
+            ste =
+                    Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                            : IDX_LOCAL_CALL];
         }
 
         log(message, ste, Level.DEBUG);
@@ -1120,22 +1170,25 @@ public class OafLogger {
 
     public void warn(final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.WARN);
     }
 
     public void error(final Object message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.ERROR);
     }
 
     public void log(final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(dispMessage, ste, this.defaultLevel);
@@ -1143,8 +1196,9 @@ public class OafLogger {
 
     public void info(final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(dispMessage, ste, Level.INFO);
@@ -1152,8 +1206,9 @@ public class OafLogger {
 
     public void debug(final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(dispMessage, ste, Level.DEBUG);
@@ -1161,8 +1216,9 @@ public class OafLogger {
 
     public void warn(final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(dispMessage, ste, Level.WARN);
@@ -1170,8 +1226,9 @@ public class OafLogger {
 
     public void error(final Object message, final Throwable exception)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
 
         final String dispMessage = getDispMessage(message, exception);
         log(dispMessage, ste, Level.ERROR);
@@ -1179,41 +1236,46 @@ public class OafLogger {
 
     public void log(final Throwable message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, this.defaultLevel);
     }
 
     public void info(final Throwable message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.INFO);
     }
 
     public void debug(final Throwable message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.DEBUG);
     }
 
     public void warn(final Throwable message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.WARN);
     }
 
     public void error(final Throwable message)
     {
-        final StackTraceElement ste = Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
-                : IDX_LOCAL_CALL];
+        final StackTraceElement ste =
+                Thread.currentThread().getStackTrace()[this.deployed ? IDX_DEPLOYED_CALL
+                        : IDX_LOCAL_CALL];
         log(message, ste, Level.ERROR);
     }
 
     private void log(final Throwable message, final StackTraceElement ste,
-            final int level)
+                     final int level)
     {
         if (isPrintToConsole() && isPrinted(getClassName(ste), level)) {
 
@@ -1228,7 +1290,7 @@ public class OafLogger {
 
     /**
      * Converts the stack trace to a string object.
-     * 
+     *
      * @param exception - the throwable instance of which to translate.
      * @return String representation of the stack trace.
      * @exception IllegalArgumentException when the e parameter is null.
@@ -1262,14 +1324,15 @@ public class OafLogger {
     }
 
     private boolean isUnIgnoredPrinted(final boolean pCurrVal,
-            final String className, final int level)
+                                       final String className, final int level)
     {
         boolean retval = pCurrVal; //NOPMD: init default, conditionally redefine.
         boolean isIdentified = false; //NOPMD: false default, conditionally redefine.
         for (final String nextClsLvl : this.classLevel.keySet()) {
             if (className.startsWith(nextClsLvl)) {
-                retval = level >= this.classLevel.get(nextClsLvl)
-                        && this.classLevel.get(nextClsLvl) != Level.OFF;
+                retval =
+                        level >= this.classLevel.get(nextClsLvl)
+                                && this.classLevel.get(nextClsLvl) != Level.OFF;
                 isIdentified = true;
             }
         }
@@ -1304,8 +1367,8 @@ public class OafLogger {
 
     String getClassNameDisp(final StackTraceElement ste)
     {
-        final String className = "".equals(activeClass) ? ste.getClassName()
-                : activeClass;
+        final String className =
+                "".equals(activeClass) ? ste.getClassName() : activeClass;
         String retval = null;
         if (isShowPackage()) {
             retval = className;
@@ -1438,7 +1501,7 @@ public class OafLogger {
 
     /**
      * NOTE: Recursive!
-     * 
+     *
      * @param rowSet
      */
     public String getVOValues(final RowSet rowSet, final boolean doExecute)
@@ -1463,7 +1526,8 @@ public class OafLogger {
      * @param strBuilder output String Builder.
      */
     StringBuilder traverseRowSet(final RowIterator rowSet,
-            final boolean doExecute, final StringBuilder strBuilder)
+                                 final boolean doExecute,
+                                 final StringBuilder strBuilder)
     {
         assert rowSet != null;
 
@@ -1503,7 +1567,7 @@ public class OafLogger {
 
     /**
      * Get class revision by static field RCS_ID.
-     * 
+     *
      * @param errObj current offending class.
      */
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
@@ -1513,14 +1577,14 @@ public class OafLogger {
         Class<?> klass;
         try {
             klass = Class.forName(errObj.getClassName());
-            final String rcsRaw = (String) klass
-                .getDeclaredField("RCS_ID")
-                .get(null);
+            final String rcsRaw =
+                    (String) klass.getDeclaredField("RCS_ID").get(null);
             if (rcsRaw.length() < MAX_RCSLEN) {
-                rcs = "(r"
-                        + rcsRaw.substring(
-                            rcsRaw.indexOf(' ') + 1,
-                            rcsRaw.lastIndexOf(' ')) + ")";
+                rcs =
+                        "(r"
+                                + rcsRaw.substring(
+                                    rcsRaw.indexOf(' ') + 1,
+                                    rcsRaw.lastIndexOf(' ')) + ")";
             }
         } catch (final Exception ignore) {
             INSTANCE.ignore(ignore);
