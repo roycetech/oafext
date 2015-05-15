@@ -17,6 +17,7 @@ package oafext.test.webui;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ import oafext.ann.Revision;
 import oafext.lang.Return;
 import oafext.logging.OafLogger;
 import oafext.util.StringUtil;
-import oracle.apps.fnd.framework.webui.beans.layout.OAPageLayoutBean;
+import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -39,6 +40,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
+ * Root MDS is single, while external MDS can be multiple.
  *
  * <pre>
  * @author $Author$
@@ -59,10 +61,18 @@ public class MdsFixture {
     private final transient List<MdsFixture> childFixtures =
             new ArrayList<MdsFixture>();
 
+
+    /** Temporary placeholder for external MDS' web bean Id. */
+    private final transient String extWbId;
+    /** For display only. */
+    private transient String mdsPath;
+
+
     /** */
-    private transient WebBeanMocker<OAPageLayoutBean> webBeanMocker;
+    private transient WebBeanMocker<? extends OAWebBean> rootWbMocker;
     /** */
     private transient PageContextMocker pageContextMocker;
+
 
     /** */
     private transient Element rootElement;
@@ -70,12 +80,21 @@ public class MdsFixture {
 
     /** @param pMdsPath (e.g. "/xxx/oracle/apps/xx/module/webui/SomePG". */
     public MdsFixture(final String pMdsPath) {
-        this(pMdsPath, null);
+        this(pMdsPath, null, null);
+        assert pMdsPath.endsWith("PG") : "Root MDS constructor can be used for PG only.";
     }
 
-    MdsFixture(final String pMdsPath, final MdsFixture pParent) {
+    /**
+     * @param pMdsPath MDS path.
+     * @param pParent parent MDS fixture.
+     * @param pWebBeanId web bean ID.
+     */
+    MdsFixture(final String pMdsPath, final MdsFixture pParent,
+            final String pWebBeanId) {
         assert StringUtil.hasValue(pMdsPath);
+        this.mdsPath = pMdsPath;
         this.parent = pParent;
+        this.extWbId = pWebBeanId;
         processMds(pMdsPath, pParent);
     }
 
@@ -89,7 +108,7 @@ public class MdsFixture {
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             final String mdsFilename = pMdsPath + ".xml";
-            LOGGER.info("mdsFilename: " + mdsFilename);
+            //LOGGER.info("mdsFilename: " + mdsFilename);
 
             final URL resource = getClass().getResource(mdsFilename);
 
@@ -99,7 +118,7 @@ public class MdsFixture {
                         " ")));
             this.rootElement = document.getDocumentElement();
 
-            debugDisplayNodes(this.rootElement, 1);
+            recurseNode(this.rootElement, 1);
 
         } catch (final SAXException e) {
             throw new OafExtException(e);
@@ -116,36 +135,45 @@ public class MdsFixture {
      * @param level track recursive level.
      * @param extRegionId extended regions web bean ID.
      */
-    final void debugDisplayNodes(final Node pNode, final int level)
+    final void recurseNode(final Node pNode, final int level)
     {
 
         if (pNode.getNodeName().startsWith("oa:")) {
 
-            if (pNode.getNodeName().startsWith("oa:pageLayout")) {
-                initPageContextWebBean();
-            }
-
-            final Element element = (Element) pNode;
-            LOGGER.debug(String.format("%-" + level + "s", " ") + "Name: "
-                    + pNode.getNodeName() + " "
-                    + element.getAttribute("extends"));
+            processOaNode(pNode);
         }
 
         final NodeList nodes = pNode.getChildNodes();
         if (nodes != null) {
 
             for (int i = 0; i < nodes.getLength(); i++) {
-                debugDisplayNodes(nodes.item(i), level + 2);
+                recurseNode(nodes.item(i), level + 2);
             }
 
         }
     }
 
-    void initPageContextWebBean()
+    /**
+     * @param pNode
+     */
+    void processOaNode(final Node pNode)
     {
-        this.webBeanMocker =
-                new WebBeanMocker<OAPageLayoutBean>(OAPageLayoutBean.class);
-        this.pageContextMocker = new PageContextMocker(this.webBeanMocker);
+        final Element element = (Element) pNode;
+        if (getRootWbMocker() == null) {
+            this.rootWbMocker = createTopMocker(this.extWbId, element);
+
+            if (pNode.getNodeName().startsWith("oa:pageLayout")) {
+                this.pageContextMocker = new PageContextMocker(this);
+            }
+        }
+
+        final String extension = element.getAttribute("extends");
+
+        if (StringUtil.hasValue(extension)) {
+            final String beanId = element.getAttribute("id");
+            final MdsFixture extMds = new MdsFixture(extension, this, beanId);
+            this.childFixtures.add(extMds);
+        }
     }
 
     Element findElement(final Node pNode, final String id)
@@ -161,7 +189,7 @@ public class MdsFixture {
         }
 
         final NodeList nodes = pNode.getChildNodes();
-        if (nodes != null) {
+        if (retval.get() == null && nodes != null) {
 
             for (int i = 0; i < nodes.getLength(); i++) {
                 final Element childEl = findElement(nodes.item(i), id);
@@ -180,6 +208,26 @@ public class MdsFixture {
         return findElement(this.rootElement, id);
     }
 
+    public Element findElRecursive(final String id)
+    {
+        final Return<Element> retval = new Return<>();
+        final Element currentEl = findElement(this.rootElement, id);
+        if (currentEl == null) {
+            for (final MdsFixture mdsFixture : this.childFixtures) {
+                final Element childEl = mdsFixture.findElRecursive(id);
+                if (childEl != null) {
+                    retval.set(childEl);
+                    retval.toString();
+                    break;
+                }
+            }
+        } else {
+            retval.set(currentEl);
+        }
+        return retval.get();
+    }
+
+
     /**
      * @return the pageContextMocker
      */
@@ -189,11 +237,88 @@ public class MdsFixture {
     }
 
     /**
-     * @return the webBeanMocker
+     * @return the rootWbMocker
      */
-    public WebBeanMocker<OAPageLayoutBean> getWebBeanMocker()
+    public WebBeanMocker<? extends OAWebBean> getRootWbMocker()
     {
-        return this.webBeanMocker;
+        return this.rootWbMocker;
+    }
+
+    /**
+     * @return the parent
+     */
+    public MdsFixture getParent()
+    {
+        return this.parent;
+    }
+
+    WebBeanMocker<? extends OAWebBean> createTopMocker(final String webBeanId,
+                                                       final Element element)
+    {
+        final String elemId = element.getAttribute("id");
+
+        LOGGER.debug("WBID: " + webBeanId + ", ELID: " + elemId + ", "
+                + element.getNodeName());
+
+        final String oaWebBeanType =
+                OABeanUtil.buildOaWebBeanType(element.getNodeName());
+
+        final Class<? extends OAWebBean> oaClass =
+                OABeanUtil.getOABeanClass(oaWebBeanType);
+
+        WebBeanMocker<? extends OAWebBean> retval;
+        if (Modifier.isFinal(oaClass.getModifiers())) {
+            retval =
+                    new WebBeanMocker<>(this, webBeanId, OAWebBean.class, false);
+        } else {
+            retval = new WebBeanMocker<>(this, webBeanId, oaClass, false);
+        }
+        return retval;
+    }
+
+    public WebBeanMocker<? extends OAWebBean> mockWebBean(final String webBeanId)
+    {
+        final Element element = findElRecursive(webBeanId);
+
+        final Return<WebBeanMocker<? extends OAWebBean>> retval =
+                new Return<>();
+        if (element == null) {
+            OafLogger.getInstance().warn("Element not found for: " + webBeanId);
+        } else {
+            retval.set(createTopMocker(webBeanId, element));
+            getRootWbMocker().addChildMocker(webBeanId, retval.get());
+        }
+
+        return retval.get();
+    }
+
+
+    public void addChild(final MdsFixture createdMds)
+    {
+        this.childFixtures.add(createdMds);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        return new StringBuilder()
+            .append(getClass().getSimpleName())
+            .append('\n')
+            .append("Bean Id: ")
+            .append(this.extWbId)
+            .append('\n')
+            .append("Path: ")
+            .append(this.mdsPath)
+            .append('\n')
+            .append("PCM: ")
+            .append(this.pageContextMocker)
+            .append('\n')
+            .append("RWM: ")
+            .append(this.rootWbMocker)
+            .append('\n')
+            .append(this.childFixtures)
+            .toString();
     }
 
 }

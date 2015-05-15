@@ -57,4 +57,12 @@ public class Return<T> {
         this.value = value;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName() + '('
+                + (this.value == null ? null : this.value) + ')';
+    }
+
 }
