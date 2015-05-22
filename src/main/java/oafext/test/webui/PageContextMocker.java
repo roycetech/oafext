@@ -22,6 +22,7 @@ import oafext.ann.Revision;
 import oafext.test.mock.Mocker;
 import oafext.test.webui.responder.PageContextResponder;
 import oracle.apps.fnd.framework.webui.OAPageContext;
+import oracle.apps.fnd.framework.webui.beans.layout.OAPageLayoutBean;
 
 import org.junit.After;
 import org.mockito.Mockito;
@@ -50,13 +51,17 @@ public class PageContextMocker implements Mocker<OAPageContext> {
 
 
     /** */
-    private final transient WebBeanFactoryMocker wbFocker =
-            new WebBeanFactoryMocker();
+    private final transient WebBeanFactoryMocker wbFocker;
 
 
+    @SuppressWarnings("unchecked")
     PageContextMocker(final MdsFixture mdsFixture) {
         this.mockPageContext = Mockito.mock(OAPageContext.class);
 
+        this.wbFocker =
+                new WebBeanFactoryMocker(
+                    (WebBeanMocker<OAPageLayoutBean>) mdsFixture
+                        .getTopWbMocker());
         new PageContextResponder().mockMethods(mdsFixture, this);
     }
 

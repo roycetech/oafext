@@ -24,7 +24,6 @@ import java.util.Map;
 
 import oafext.OafExtException;
 import oafext.test.RowSetMocker;
-import oafext.test.server.AppModuleFixture;
 import oafext.test.server.BaseViewObjectMocker;
 import oafext.test.server.RowMocker;
 import oafext.test.server.ViewObjectHGridMocker;
@@ -70,17 +69,10 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
 
     /** {@inheritDoc} */
     @Override
-    public void mockMethods(final AppModuleFixture<?> amFixture,
+    public void mockMethods(final List<String> attrList,
                             final RowMocker<R, V> rowMocker,
                             final Class<R> pRowClass)
     {
-        final String voDefFull = amFixture.getRowClsVoDefMap().get(pRowClass);
-        assert voDefFull != null;
-
-        final List<String> attrList =
-                amFixture.getVoDefAttrListMap().get(voDefFull);
-
-
         mockRemove(rowMocker).remove();
         mockGetViewObj(rowMocker);
         mockGetAttributeCount(attrList, rowMocker);
@@ -108,18 +100,13 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
     @Override
     public R mockRemove(final RowMocker<R, V> rowMocker)
     {
-        return Mockito.doAnswer(new Answer<Object>() {
-
-            @Override
-            public Object answer(final InvocationOnMock invocation)
-                    throws Throwable
-            {
+        return Mockito.doAnswer(
+            invocation -> {
                 final BaseViewObjectMocker<V, R> voMocker =
                         rowMocker.getVoMocker();
                 voMocker.remove(rowMocker);
                 return null;
-            }
-        }).when(rowMocker.getMock());
+            }).when(rowMocker.getMock());
     }
 
 
@@ -144,15 +131,8 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
                     .when(
                         getAttrCountMeth.invoke(
                             rowMocker.getMock(),
-                            new Object[0])).thenAnswer(new Answer<Integer>() {
-
-                        @Override
-                        public Integer answer(final InvocationOnMock invocation)
-                                throws Throwable
-                        {
-                            return attrList.size();
-                        }
-                    });
+                            new Object[0])).thenAnswer(
+                        invocation -> attrList.size());
             }
 
         } catch (final SecurityException e1) {

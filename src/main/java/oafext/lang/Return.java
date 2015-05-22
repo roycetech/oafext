@@ -24,6 +24,7 @@ import oafext.ann.Revision;
  * @author $Author: $
  * @version $Date: $
  *
+ * @param <T> return type.
  */
 @Revision("$Revision: $")
 public class Return<T> {
@@ -33,10 +34,18 @@ public class Return<T> {
     private transient T value;
 
 
+    /**
+     * Defaults to null value.
+     */
     public Return() {
         this(null);
     }
 
+    /**
+     * Initialize to a default value.
+     *
+     * @param defaultValue default value.
+     */
     public Return(final T defaultValue) {
         this.value = defaultValue;
     }
@@ -50,11 +59,11 @@ public class Return<T> {
     }
 
     /**
-     * @param value the value to set
+     * @param pValue the value to set
      */
-    public void set(final T value)
+    public void set(final T pValue)
     {
-        this.value = value;
+        this.value = pValue;
     }
 
     /** {@inheritDoc} */

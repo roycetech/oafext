@@ -16,6 +16,7 @@
 package oafext.test.server;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import oafext.test.RowSetMocker;
@@ -90,7 +91,14 @@ public class RowMocker<R extends ViewRowImpl, V extends ViewObjectImpl>
 
         this.attrValueMap = new LinkedHashMap<String, Object>();
 
-        getResponder().mockMethods(this.amFixture, this, pRowClass);
+        final String voDefFull =
+                this.amFixture.getRowClsVoDefMap().get(pRowClass);
+        assert voDefFull != null;
+
+        final List<String> attrList =
+                this.amFixture.getVoDefAttrListMap().get(voDefFull);
+
+        getResponder().mockMethods(attrList, this, pRowClass);
 
     }
 
@@ -140,6 +148,7 @@ public class RowMocker<R extends ViewRowImpl, V extends ViewObjectImpl>
         return this.rowClass;
     }
 
+    /** Throw an exception if client attempts to access a dead row. */
     public void checkPulse()
     {
         if (isRemoved()) {

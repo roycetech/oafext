@@ -17,7 +17,6 @@ package oafext.test.server.responder;
 
 import java.util.List;
 
-import oafext.test.server.AppModuleFixture;
 import oafext.test.server.RowMocker;
 import oracle.jbo.server.ViewObjectImpl;
 import oracle.jbo.server.ViewRowImpl;
@@ -36,12 +35,12 @@ public interface RowResponder<M extends ViewRowImpl, V extends ViewObjectImpl> {
     /**
      * rtfc.
      *
-     * @param amFixture application module code fixture.
+     * @param attrList attribute list.
      * @param rowMocker row mocker.
      * @param pRowClass row class.
      */
-    void mockMethods(final AppModuleFixture<?> amFixture,
-                     final RowMocker<M, V> rowMocker, final Class<M> pRowClass);
+    void mockMethods(List<String> attrList, final RowMocker<M, V> rowMocker,
+                     final Class<M> pRowClass);
 
 
     /**

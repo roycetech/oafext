@@ -15,32 +15,23 @@
  */
 package oafext.test.webui;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import oafext.OafExtException;
 import oafext.ann.Revision;
 import oafext.lang.Return;
 import oafext.logging.OafLogger;
 import oafext.util.StringUtil;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 
-import org.w3c.dom.Document;
+import org.junit.After;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * Root MDS is single, while external MDS can be multiple.
+ *
+ * Interfaces Mocker with the DOM via DOMManager field.
  *
  * <pre>
  * @author $Author$
@@ -52,7 +43,7 @@ public class MdsFixture {
 
 
     /** */
-    private static final OafLogger LOGGER = OafLogger.getInstance();
+    //private static final OafLogger LOGGER = OafLogger.getInstance();
 
 
     /** */
@@ -68,14 +59,16 @@ public class MdsFixture {
     private transient String mdsPath;
 
 
+    /** Helper class instance for DOM retrieval operations. */
+    private final transient DOMManager domManager;
+
     /** */
-    private transient WebBeanMocker<? extends OAWebBean> rootWbMocker;
+    private transient WebBeanMocker<? extends OAWebBean> topWbMocker;
     /** */
     private transient PageContextMocker pageContextMocker;
 
-
-    /** */
-    private transient Element rootElement;
+    //    /** */
+    //    private transient Element rootElement;
 
 
     /** @param pMdsPath (e.g. "/xxx/oracle/apps/xx/module/webui/SomePG". */
@@ -89,142 +82,23 @@ public class MdsFixture {
      * @param pParent parent MDS fixture.
      * @param pWebBeanId web bean ID.
      */
-    MdsFixture(final String pMdsPath, final MdsFixture pParent,
+    public MdsFixture(final String pMdsPath, final MdsFixture pParent,
             final String pWebBeanId) {
+
         assert StringUtil.hasValue(pMdsPath);
+
         this.mdsPath = pMdsPath;
         this.parent = pParent;
         this.extWbId = pWebBeanId;
-        processMds(pMdsPath, pParent);
-    }
-
-    /**
-     * @param pMdsPath MDS path.
-     * @param extRegionId extended regions web bean ID.
-     */
-    final void processMds(final String pMdsPath, final MdsFixture parent)
-    {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        try {
-            final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-            final String mdsFilename = pMdsPath + ".xml";
-            //LOGGER.info("mdsFilename: " + mdsFilename);
-
-            final URL resource = getClass().getResource(mdsFilename);
-
-            final Document document =
-                    docBuilder.parse(new File(resource.getFile().replaceAll(
-                        "%20",
-                        " ")));
-            this.rootElement = document.getDocumentElement();
-
-            recurseNode(this.rootElement, 1);
-
-        } catch (final SAXException e) {
-            throw new OafExtException(e);
-        } catch (final IOException e) {
-            throw new OafExtException(e);
-        } catch (final ParserConfigurationException e) {
-            throw new OafExtException(e);
-        }
-
-    }
-
-    /**
-     * @param pNode XML node to process.
-     * @param level track recursive level.
-     * @param extRegionId extended regions web bean ID.
-     */
-    final void recurseNode(final Node pNode, final int level)
-    {
-
-        if (pNode.getNodeName().startsWith("oa:")) {
-
-            processOaNode(pNode);
-        }
-
-        final NodeList nodes = pNode.getChildNodes();
-        if (nodes != null) {
-
-            for (int i = 0; i < nodes.getLength(); i++) {
-                recurseNode(nodes.item(i), level + 2);
-            }
-
-        }
-    }
-
-    /**
-     * @param pNode
-     */
-    void processOaNode(final Node pNode)
-    {
-        final Element element = (Element) pNode;
-        if (getRootWbMocker() == null) {
-            this.rootWbMocker = createTopMocker(this.extWbId, element);
-
-            if (pNode.getNodeName().startsWith("oa:pageLayout")) {
-                this.pageContextMocker = new PageContextMocker(this);
-            }
-        }
-
-        final String extension = element.getAttribute("extends");
-
-        if (StringUtil.hasValue(extension)) {
-            final String beanId = element.getAttribute("id");
-            final MdsFixture extMds = new MdsFixture(extension, this, beanId);
-            this.childFixtures.add(extMds);
-        }
-    }
-
-    Element findElement(final Node pNode, final String id)
-    {
-        assert id != null;
-        final Return<Element> retval = new Return<Element>();
-        if (pNode.getNodeName().startsWith("oa:")) {
-
-            final Element element = (Element) pNode;
-            if (id.equals(element.getAttribute("id"))) {
-                retval.set(element);
-            }
-        }
-
-        final NodeList nodes = pNode.getChildNodes();
-        if (retval.get() == null && nodes != null) {
-
-            for (int i = 0; i < nodes.getLength(); i++) {
-                final Element childEl = findElement(nodes.item(i), id);
-                retval.set(childEl);
-                if (retval.get() != null) {
-                    break;
-                }
-            }
-        }
-        return retval.get();
+        this.domManager = new DOMManager(pMdsPath);
+        this.domManager.initializeDOM(this);
     }
 
 
-    public Element findElement(final String id)
+    @After
+    public void tearDown()
     {
-        return findElement(this.rootElement, id);
-    }
-
-    public Element findElRecursive(final String id)
-    {
-        final Return<Element> retval = new Return<>();
-        final Element currentEl = findElement(this.rootElement, id);
-        if (currentEl == null) {
-            for (final MdsFixture mdsFixture : this.childFixtures) {
-                final Element childEl = mdsFixture.findElRecursive(id);
-                if (childEl != null) {
-                    retval.set(childEl);
-                    retval.toString();
-                    break;
-                }
-            }
-        } else {
-            retval.set(currentEl);
-        }
-        return retval.get();
+        getTopWbMocker().tearDown();
     }
 
 
@@ -239,9 +113,9 @@ public class MdsFixture {
     /**
      * @return the rootWbMocker
      */
-    public WebBeanMocker<? extends OAWebBean> getRootWbMocker()
+    public WebBeanMocker<? extends OAWebBean> getTopWbMocker()
     {
-        return this.rootWbMocker;
+        return this.topWbMocker;
     }
 
     /**
@@ -252,50 +126,141 @@ public class MdsFixture {
         return this.parent;
     }
 
-    WebBeanMocker<? extends OAWebBean> createTopMocker(final String webBeanId,
-                                                       final Element element)
+    /**
+     * Creates a top web bean mocker. Mapped to MDS fixture.
+     *
+     * @param webBeanId can be null or the ID assigned by the extending MDS. //
+     *            * @param element DOM element instance.
+     */
+    @SuppressWarnings({
+            "unchecked",
+            "rawtypes",
+            "PMD.NullAssignment" })
+    private WebBeanMocker<? extends OAWebBean> createMocker(final String webBeanId,
+                                                            final String pOaWbType,
+                                                            final boolean isRoot,
+                                                            final WebBeanMocker<? extends OAWebBean> pParent)
     {
-        final String elemId = element.getAttribute("id");
-
-        LOGGER.debug("WBID: " + webBeanId + ", ELID: " + elemId + ", "
-                + element.getNodeName());
-
-        final String oaWebBeanType =
-                OABeanUtil.buildOaWebBeanType(element.getNodeName());
+        //assert isRoot && topOrChild || !isRoot : "Impossible to be non-top, root";
 
         final Class<? extends OAWebBean> oaClass =
-                OABeanUtil.getOABeanClass(oaWebBeanType);
+                OABeanUtil.getOABeanClass(pOaWbType);
 
-        WebBeanMocker<? extends OAWebBean> retval;
-        if (Modifier.isFinal(oaClass.getModifiers())) {
-            retval =
-                    new WebBeanMocker<>(this, webBeanId, OAWebBean.class, false);
-        } else {
-            retval = new WebBeanMocker<>(this, webBeanId, oaClass, false);
-        }
-        return retval;
+        final boolean isMockableClass =
+                !Modifier.isFinal(oaClass.getModifiers());
+
+        return new WebBeanMocker(this, webBeanId, isMockableClass ? oaClass
+                : OAWebBean.class, isRoot, isRoot ? null : pParent);
     }
 
+
+    /**
+     * This is on MDS domain because MDS has the handle for the DOM needed to
+     * initialize the mocker. Determine if this element should be passed to the
+     * mocker to have it perform the initialization there.
+     *
+     * @param webBeanId web bean ID to mock on this MDS, not on dependent MDS.
+     */
     public WebBeanMocker<? extends OAWebBean> mockWebBean(final String webBeanId)
     {
         final Element element = findElRecursive(webBeanId);
-
         final Return<WebBeanMocker<? extends OAWebBean>> retval =
                 new Return<>();
         if (element == null) {
             OafLogger.getInstance().warn("Element not found for: " + webBeanId);
+
+
         } else {
-            retval.set(createTopMocker(webBeanId, element));
-            getRootWbMocker().addChildMocker(webBeanId, retval.get());
+            final String oaWebBeanType =
+                    OABeanUtil.buildOaWebBeanType(element.getNodeName());
+            retval.set(createMocker(
+                webBeanId,
+                oaWebBeanType,
+                false,
+                this.topWbMocker));
+            //getTopWbMocker().addMember(webBeanId, retval.get());
+            getTopWbMocker().addMember(retval.get());
         }
 
         return retval.get();
     }
 
-
+    /**
+     * Add new child MDS.
+     *
+     * @param childMds add child MDS via created web bean factory or through
+     *            extended regions.
+     */
     public void addChild(final MdsFixture createdMds)
     {
+        createdMds.getTopWbMocker().setParent(getTopWbMocker());
         this.childFixtures.add(createdMds);
+    }
+
+    /**
+     * Add new child MDS.
+     *
+     */
+    public void giveBirth(final String extension, final String beanId)
+    {
+        this.childFixtures.add(new MdsFixture(extension, this, beanId));
+    }
+
+    /**
+     * @return the mdsPath
+     */
+    String getMdsPath()
+    {
+        return this.mdsPath;
+    }
+
+    void initRootMocker(final String pOaWbType)
+    {
+        if ("OAPageLayoutBean".equals(pOaWbType)) {
+
+            this.topWbMocker =
+                    createMocker(this.extWbId, pOaWbType, true, null);
+            this.pageContextMocker = new PageContextMocker(this);
+
+        } else {
+
+            final boolean transientMds = this.parent == null; //Created by WebBeanFactory/
+            this.topWbMocker =
+                    createMocker(
+                        this.extWbId,
+                        pOaWbType,
+                        false,
+                        transientMds ? null : this.parent.getTopWbMocker());
+        }
+    }
+
+
+    /**
+     * @return the domManager
+     */
+    public DOMManager getDomManager()
+    {
+        return this.domManager;
+    }
+
+    public Element findElRecursive(final String id)
+    {
+        final Return<Element> retval = new Return<>();
+        //final Element currentEl = getDomManager().findElement(this.rootElement, id);
+        final Element currentEl = getDomManager().findElement(id);
+        if (currentEl == null) {
+            for (final MdsFixture mdsFixture : this.childFixtures) {
+                final Element childEl = mdsFixture.findElRecursive(id);
+                if (childEl != null) {
+                    retval.set(childEl);
+                    retval.toString();
+                    break;
+                }
+            }
+        } else {
+            retval.set(currentEl);
+        }
+        return retval.get();
     }
 
     /** {@inheritDoc} */
@@ -314,8 +279,8 @@ public class MdsFixture {
             .append("PCM: ")
             .append(this.pageContextMocker)
             .append('\n')
-            .append("RWM: ")
-            .append(this.rootWbMocker)
+            .append("TWM: ")
+            .append(this.topWbMocker)
             .append('\n')
             .append(this.childFixtures)
             .toString();

@@ -19,11 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import oafext.test.mock.Mocker;
-import oracle.apps.fnd.framework.webui.OAPageContext;
+import oafext.test.webui.responder.WebBeanFactoryResponder;
 import oracle.apps.fnd.framework.webui.OAWebBeanFactory;
-import oracle.apps.fnd.framework.webui.beans.OAWebBean;
+import oracle.apps.fnd.framework.webui.beans.layout.OAPageLayoutBean;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -37,62 +36,57 @@ public class WebBeanFactoryMocker implements Mocker<OAWebBeanFactory> {
     /** */
     private final transient OAWebBeanFactory mock;
 
-    private final transient Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> createdBeans =
-            new HashMap<>();
+    private final transient WebBeanMocker<OAPageLayoutBean> pgLayoutMocker;
+
+    //    /** Mock webBean to Mocker Map. */
+    //    private final transient Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> createdBeans =
+    //            new HashMap<>();
 
     /** Path to Fixture. */
     private final transient Map<String, MdsFixture> mdsMap =
             new HashMap<String, MdsFixture>();
 
 
-    WebBeanFactoryMocker() {
-        this.mock = Mockito.mock(OAWebBeanFactory.class);
-
-        Mockito
-            .doAnswer(
-                invocation -> {
-
-                    final String mdsPath =
-                            invocation.getArguments()[1].toString();
-
-                    final String beanId =
-                            invocation.getArguments()[2].toString();
-
-                    if (this.mdsMap.get(beanId) == null) {
-                        this.mdsMap.put(beanId, new MdsFixture(
-                            mdsPath,
-                            null,
-                            beanId));
-                    }
-
-                    final MdsFixture extMds = this.mdsMap.get(beanId);
-                    this.createdBeans.put(
-                        extMds.getRootWbMocker().getMock(),
-                        extMds.getRootWbMocker());
-
-                    return extMds.getRootWbMocker().getMock();
-                })
-            .when(getMock())
-            .createWebBean(
-                (OAPageContext) Matchers.any(),
-                Matchers.anyString(),
-                Matchers.anyString(),
-                Matchers.anyBoolean());
-    }
-
-
-    public WebBeanMocker<? extends OAWebBean> remove(final OAWebBean webBean)
-    {
-        return this.createdBeans.remove(webBean);
-    }
+    //    private final transient WebBeanFactoryResponder responder;
 
     /**
-     * @return the createdBeans
+     * Retain reference to pageLayout mocker.
      */
-    public Map<? extends OAWebBean, WebBeanMocker<? extends OAWebBean>> getCreatedBeans()
-    {
-        return this.createdBeans;
+    WebBeanFactoryMocker(final WebBeanMocker<OAPageLayoutBean> pPgLayoutMocker) {
+        this.mock = Mockito.mock(OAWebBeanFactory.class);
+        this.pgLayoutMocker = pPgLayoutMocker;
+
+        new WebBeanFactoryResponder().mockMethods(this);
     }
+
+
+    //    /**
+    //     * Remove transient created bean.s
+    //     *
+    //     * @param webBean transient created bean to remove.
+    //     * */
+    //    public WebBeanMocker<? extends OAWebBean> remove(final OAWebBean webBean)
+    //    {
+    //        return this.createdBeans.remove(webBean);
+    //    }
+
+    //    /**
+    //     * Remove transient created beans.
+    //     *
+    //     * @param pMocker WebBeanMocker instance.
+    //     */
+    //    public void addTransient(final WebBeanMocker<? extends OAWebBean> pMocker)
+    //    {
+    //        this.createdBeans.put(pMocker.getMock(), pMocker);
+    //    }
+
+    //    /**
+    //     * @return the createdBeans
+    //     */
+    //    public Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> getCreatedBeans()
+    //    {
+    //        return this.createdBeans;
+    //    }
 
     @Override
     public final OAWebBeanFactory getMock()
@@ -109,15 +103,25 @@ public class WebBeanFactoryMocker implements Mocker<OAWebBeanFactory> {
     }
 
 
+    /**
+     * Needed by responder.
+     *
+     * @return the pgLayoutMocker
+     */
+    public WebBeanMocker<OAPageLayoutBean> getPgLayoutMocker()
+    {
+        return this.pgLayoutMocker;
+    }
+
+
     /** {@inheritDoc} */
     @Override
     public String toString()
     {
-        return new StringBuilder()
-            .append(getClass().getSimpleName())
-            .append('\n')
-            .append("Created: ")
-            .append(getCreatedBeans())
+        return new StringBuilder().append(getClass().getSimpleName())
+        //            .append('\n')
+        //            .append("Created: ")
+        //            .append(this.createdBeans)
             .append('\n')
             .append("MDS Map: ")
             .append(this.mdsMap)
