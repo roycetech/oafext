@@ -33,6 +33,24 @@ public class ObjectUtil {
 
 
     /**
+     * To avoid having to null check boolean values, nulls are false. Non
+     * Booleans are also false. Remember that auto boxing null values results in
+     * NullPointerException.
+     *
+     * @param object Boolean instance.
+     */
+    public static boolean asBoolean(final Object object)
+    {
+        final Return<Boolean> retval = new Return<>(false);
+        if (object instanceof Boolean) {
+            final Boolean bool = (Boolean) object;
+            retval.set(bool);
+        }
+        return retval.get();
+    }
+
+
+    /**
      * Get value from map and initialize when empty.
      *
      * @param map target map.
@@ -81,7 +99,7 @@ public class ObjectUtil {
      * @param elseObj return if null.
      * @param <T> generic method, any type of object.
      */
-    public <T> T nvl(final T ifObj, final T elseObj)
+    public static <T> T nvl(final T ifObj, final T elseObj)
     {
         T retval;
 

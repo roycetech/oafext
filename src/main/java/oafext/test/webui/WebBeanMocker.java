@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import oafext.lang.ObjectUtil;
 import oafext.lang.Return;
 import oafext.logging.OafLogger;
 import oafext.test.mock.Mocker;
@@ -65,48 +66,46 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
     /** */
     private final transient String webBeanId;
     /** */
-    private transient boolean idxChildPrepared;
+    transient boolean idxChildPrepared;
 
     /** Used for locating corresponding mocker when working with web beans. */
     private transient Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> globBeanMockerMap;
 
 
-    /** Web Bean Attributes. */
-    private final Map<String, Object> attrMap = new HashMap<String, Object>();
+    /** Web Bean Attributes. Transient */
+    private final transient Map<Object, Object> attrTransientMap =
+            new HashMap<>();
+
+    /** Web Bean Attributes. Element Based. */
+    private final transient Map<Object, Object> attrStaticMap = new HashMap<>();
+
 
     /**
      * Not final because parent can adopt later on, see setPageButton for
      * example.
      */
-    private transient WebBeanMocker<? extends OAWebBean> parent;
-
-    //    /** If is top, then return itself. Top mocker in an MDS scope. */
-    //    private transient WebBeanMocker<? extends OAWebBean> topMocker;
+    transient WebBeanMocker<? extends OAWebBean> parent;
 
     /** These are mockers under the same fixture. */
-    private final transient Map<String, WebBeanMocker<? extends OAWebBean>> memberMockers =
+    final transient Map<String, WebBeanMocker<? extends OAWebBean>> memberMockers =
             new HashMap<>();
 
 
-    /** These are mockers under the same fixture. */
+    /** These are mockers reference from another fixture. */
     private final transient List<WebBeanMocker<? extends OAWebBean>> memberTopMockers =
             new ArrayList<>();
 
 
     /** Indexed child Mockers. The will also exist under the member mockers. */
-    private final transient List<WebBeanMocker<? extends OAWebBean>> idxChildMockers =
+    final transient List<WebBeanMocker<? extends OAWebBean>> idxChildMockers =
             new ArrayList<>();
-
-    //    /**
-    //     * Temporary place holder for created Web Bean. TODO: Move to
-    //     * WebBeanFactoryMocker.
-    //     */
-    //    private final transient Map<String, WebBeanMocker<? extends OAWebBean>> createdWebBeanMap =
-    //            new HashMap<>();
 
 
     /** Identifies this mocker as the root Web Bean mocker. */
     private final transient boolean rootLevel;
+
+    /** Identifies this mocker as the root Web Bean mocker. */
+    private final transient Class<W> webBeanClass;
 
 
     /** MdsFixture used to lazy load indexed children of the mocked web bean. */
@@ -125,10 +124,10 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
      * Instantiate a top level(PG or RN) WebBeanMocker.
      *
      * @param mdsFixture PG fixture where the web bean belongs.
-     * @param webBeanClass type of web bean.
+     * @param pWebBeanClass type of web bean.
      */
-    WebBeanMocker(final MdsFixture mdsFixture, final Class<W> webBeanClass) {
-        this(mdsFixture, null, webBeanClass, true, null);
+    WebBeanMocker(final MdsFixture mdsFixture, final Class<W> pWebBeanClass) {
+        this(mdsFixture, null, pWebBeanClass, true, null);
     }
 
     /**
@@ -141,7 +140,7 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
      *
      * @param pMdsFixture MDS fixture instance.
      * @param pWebBeanId bean ID of this mocker.
-     * @param webBeanClass type of web bean.
+     * @param pWebBeanClass type of web bean.
      * @param pRootLevel flag to indicate this is Root mocker.
      * @param pTopMocker null if top level mocker, else the top mocker.
      */
@@ -149,36 +148,31 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
             "unchecked",
             "PMD.NullAssignment" })
     WebBeanMocker(final MdsFixture pMdsFixture, final String pWebBeanId,
-            final Class<W> webBeanClass, final boolean pRootLevel,
+            final Class<W> pWebBeanClass, final boolean pRootLevel,
             final WebBeanMocker<? extends OAWebBean> pParent) {
 
         this.rootLevel = pRootLevel;
 
         this.parent = pParent;
         if (this.rootLevel) {
-            //            this.parent = null;
             this.globBeanMockerMap = new HashMap<>();
-            //        } else {
-            //            if (pMdsFixture.getTopWbMocker() == this) {
-            //                this.parent = pMdsFixture.getParent().getTopWbMocker();
-            //            } else {
-            //                this.parent = pMdsFixture.getTopWbMocker();
-            //            }
         }
 
         this.mdsFixture = pMdsFixture;
-        this.mock = Mockito.mock(webBeanClass);
+        this.mock = Mockito.mock(pWebBeanClass);
         this.webBeanId = pWebBeanId;
+        this.webBeanClass = pWebBeanClass;
 
         WebBeanResponder<W> responder;
-        if (BEAN_RESP_MAP.get(webBeanClass) == null) {
+        if (BEAN_RESP_MAP.get(this.webBeanClass) == null) {
             responder =
                     (WebBeanResponder<W>) BEAN_RESP_MAP
                         .values()
                         .iterator()
                         .next();
         } else {
-            responder = (WebBeanResponder<W>) BEAN_RESP_MAP.get(webBeanClass);
+            responder =
+                    (WebBeanResponder<W>) BEAN_RESP_MAP.get(this.webBeanClass);
         }
         responder.mockMethods(this.mdsFixture, this);
     }
@@ -186,9 +180,7 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
     @After
     public void tearDown()
     {
-        if (this.globBeanMockerMap != null) {
-            this.globBeanMockerMap.clear();
-        }
+        this.attrTransientMap.clear();
     }
 
     @Override
@@ -206,52 +198,35 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
             .getTopWbMocker() == this;
     }
 
-    /**
-     * @return the attrMap
-     */
-    public Map<String, Object> getAttrMap()
-    {
-        return this.attrMap;
-    }
 
-    //    /**
-    //     * Add a child WebBeanMocker.
-    //     */
-    //    public void addMember(final String webBeanId,
-    //                          final WebBeanMocker<? extends OAWebBean> childMocker)
-    //    {
-    //        childMocker.setParent(this);
-    //        this.memberMockers.put(webBeanId, childMocker);
-    //        registerMocker(childMocker);
-    //    }
-
-    /**
-     * Add a child WebBeanMocker.
-     */
+    /** Add a child WebBeanMocker. */
     public void addMember(//final String pWebBeanId,
     final WebBeanMocker<? extends OAWebBean> childMocker)
     {
-        LOGGER.debug((this.rootLevel ? "Root" : "")
-                + childMocker.getWebBeanId());
         childMocker.setParent(this);
         this.memberMockers.put(childMocker.getWebBeanId(), childMocker);
         registerMocker(childMocker);
     }
+
+    /** Add a top external child WebBeanMocker. */
+    public void addTopExtMember(final WebBeanMocker<? extends OAWebBean> childMocker)
+    {
+        addMember(childMocker);
+        this.memberTopMockers.add(childMocker);
+    }
+
 
     /**
      * Add a child WebBeanMocker.
      */
     public void addIndexedChild(final int index, final OAWebBean child)
     {
-        LOGGER.debug("Index: " + index + ", ID: " + child.getNodeID());
-
         final WebBeanMocker<? extends OAWebBean> childMocker =
                 findGlobBeanMockerMap().get(child);
         assert childMocker != null : "Child mocker was not found in GLOBAL registry. ";
 
         this.idxChildMockers.add(index, childMocker);
         this.addMember(childMocker);
-        //this.memberMockers.put(child.getNodeID(), childMocker);
     }
 
     /**
@@ -294,11 +269,11 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
                     domManager.getChildrenIDS(isTopLevel() ? null
                             : getWebBeanId());
 
-            for (final String string : childrenIDs) {
+            for (int i = 0; i < childrenIDs.length; i++) {
                 final WebBeanMocker<? extends OAWebBean> childBeanMocker =
-                        getMdsFixture().mockWebBean(string);
-                //addMember(string, childBeanMocker);
-                addMember(childBeanMocker);
+                        getMdsFixture().mockWebBean(childrenIDs[i]);
+                addIndexedChild(i, childBeanMocker.getMock());
+                registerMocker(childBeanMocker);
             }
             this.idxChildPrepared = true;
         }
@@ -333,20 +308,26 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
     }
 
     /**
-     * @return the globBeanMockerMap
+     * Register the mocker to the global mocker map.
+     *
+     * @param pMocker mocker to register.
      */
-    public void registerMocker(final WebBeanMocker<? extends OAWebBean> mocker)
+    public void registerMocker(final WebBeanMocker<? extends OAWebBean> pMocker)
     {
-        LOGGER
-            .debug(getMdsFixture().getMdsPath() + ' ' + mocker.getWebBeanId());
+        LOGGER.info(pMocker.getWebBeanId());
 
         final Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> globBnMockerMap =
                 findGlobBeanMockerMap();
         assert globBnMockerMap != null;
 
-        globBnMockerMap.put(mocker.getMock(), mocker);
+        globBnMockerMap.put(pMocker.getMock(), pMocker);
     }
 
+    @SuppressWarnings("unchecked")
+    public final <T extends OAWebBean> WebBeanMocker<T> getMocker(final T mockWebBean)
+    {
+        return (WebBeanMocker<T>) findGlobBeanMockerMap().get(mockWebBean);
+    }
 
     /** Locate the global mocker map. */
     public Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> findGlobBeanMockerMap()
@@ -381,67 +362,41 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
         this.parent = parent;
     }
 
+    /**
+     * @return the webBeanClass
+     */
+    public Class<W> getWebBeanClass()
+    {
+        return this.webBeanClass;
+    }
+
+    /** @return the attrTransientMap */
+    void setStaticAttribute(final Object key, final Object value)
+    {
+        this.attrStaticMap.put(key, value);
+    }
+
+    /** @return the attrTransientMap */
+    public void setTransientAttribute(final Object key, final Object value)
+    {
+        this.attrTransientMap.put(key, value);
+    }
+
+    /**
+     * @return the attrStaticMap
+     */
+    public Object getAttrValue(final Object key)
+    {
+        return ObjectUtil.nvl(
+            this.attrTransientMap.get(key),
+            this.attrStaticMap.get(key));
+    }
+
     /** {@inheritDoc} */
     @Override
     public String toString()
     {
-        final StringBuilder strBuilder = new StringBuilder();
-
-        String paddedNewline;
-        if (isTopLevel()) {
-            paddedNewline = "\n";
-        } else {
-            paddedNewline = "\n" + String.format("%4s", "");
-        }
-
-        strBuilder
-            .append(getClass().getSimpleName())
-            .append(paddedNewline)
-            .append("Type: ")
-            .append(getMock().getClass().getSimpleName())
-            .append(paddedNewline)
-            .append("ID: ")
-            .append(this.webBeanId)
-            .append(paddedNewline)
-            .append("MDS: ")
-            .append(
-                getMdsFixture() == null ? null : getMdsFixture().getMdsPath())
-            .append(paddedNewline)
-            .append("ICP: ")
-            .append(this.idxChildPrepared)
-            .append(paddedNewline)
-            .append("TOP: ")
-            .append(this.isTopLevel())
-            .append(paddedNewline)
-            .append("Children Size: ")
-            .append(this.idxChildMockers.size());
-
-        if (!this.idxChildMockers.isEmpty()) {
-            strBuilder.append(this.idxChildMockers);
-        }
-
-        if (this.parent != null) {
-            strBuilder
-                .append(paddedNewline)
-                .append("Parent: ")
-                .append(
-                    this.parent == null ? null : this.parent
-                        .getMdsFixture()
-                        .getMdsPath());
-        }
-
-        strBuilder
-            .append(paddedNewline)
-            .append("Members Size: ")
-            .append(this.memberMockers.size())
-            .append(paddedNewline);
-
-        if (!this.memberMockers.isEmpty()) {
-            strBuilder.append(this.memberMockers);
-        }
-
-        return strBuilder.toString();
-
+        return WebBeanMockerHelper.toString(this);
     }
 
 }

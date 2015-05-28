@@ -15,10 +15,13 @@
  */
 package oafext.test.webui.responder;
 
+import oafext.lang.ObjectUtil;
 import oafext.lang.Return;
+import oafext.logging.OafLogger;
 import oafext.test.webui.MdsFixture;
 import oafext.test.webui.WebBeanMocker;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
+import oracle.cabo.ui.UIConstants;
 import oracle.cabo.ui.UINode;
 
 import org.mockito.Matchers;
@@ -32,6 +35,8 @@ import org.mockito.Mockito;
  */
 public class WebBeanResponder<T extends OAWebBean> {
 
+
+    private final static OafLogger LOGGER = OafLogger.getInstance();
 
     /**
      * @param mdsFixture owner MDS fixture of the web bean mocker.
@@ -49,6 +54,51 @@ public class WebBeanResponder<T extends OAWebBean> {
 
         mockFindChildRecursive(mdsFixture, pMocker).findChildRecursive(
             Matchers.anyString());
+
+        mockSetRendered(pMocker).setRendered(Matchers.anyBoolean());
+        mockIsRendered(pMocker).isRendered();
+
+        mockToString(pMocker).toString();
+    }
+
+    OAWebBean mockIsRendered(final WebBeanMocker<T> pMocker)
+    {
+        return Mockito.doAnswer(
+            p -> {
+                return ObjectUtil.asBoolean(pMocker
+                    .getAttrValue(UIConstants.RENDERED_ATTR.toString()));
+            }).when(pMocker.getMock());
+    }
+
+
+    OAWebBean mockSetRendered(final WebBeanMocker<T> pMocker)
+    {
+        return Mockito.doAnswer(
+            p -> {
+
+                final Object param = p.getArguments()[0];
+                pMocker.setTransientAttribute(
+                    UIConstants.RENDERED_ATTR.toString(),
+                    param);
+                return null;
+            }).when(pMocker.getMock());
+    }
+
+    OAWebBean mockToString(final WebBeanMocker<T> pMocker)
+    {
+        return Mockito.doAnswer(
+            p -> {
+                final StringBuilder strBuilder = new StringBuilder();
+                strBuilder
+                    .append("Mock for ")
+                    .append(pMocker.getWebBeanClass())
+                    .append(", hashCode: ")
+                    .append(p.getMock().hashCode())
+                    .append('\n')
+                    .append("ID: ")
+                    .append(pMocker.getMock().getID());
+                return strBuilder.toString();
+            }).when(pMocker.getMock());
     }
 
     OAWebBean mockAddIndexedChild(final WebBeanMocker<T> pMocker)
@@ -77,31 +127,21 @@ public class WebBeanResponder<T extends OAWebBean> {
     OAWebBean mockFindChildRecursive(final MdsFixture mdsFixture,
                                      final WebBeanMocker<T> pMocker)
     {
-        return Mockito.doAnswer(p -> {
+        return Mockito.doAnswer(
+            p -> {
 
-            final String webBeanId = (String) p.getArguments()[0];
-            assert webBeanId != null;
-            //                OafLogger.getInstance().debug(
-            //                    "findChildRecursive(" + webBeanId + ')');
+                final String webBeanId = (String) p.getArguments()[0];
+                assert webBeanId != null;
 
-            final WebBeanMocker<? extends OAWebBean> existingMocker =
-                    pMocker.findMockerRecursive(webBeanId);
+                final WebBeanMocker<? extends OAWebBean> existingMocker =
+                        pMocker.findMockerRecursive(webBeanId);
 
-            final Return<WebBeanMocker<? extends OAWebBean>> retval =
-                    new Return<>();
+                final Return<WebBeanMocker<? extends OAWebBean>> retval =
+                        new Return<>();
+                retval.set(existingMocker == null ? mdsFixture
+                    .mockWebBean(webBeanId) : existingMocker);
+                return retval.get() == null ? null : retval.get().getMock();
 
-            final WebBeanMocker<T> lMocker = pMocker; //for debug.
-
-            if (existingMocker == null) {
-                final WebBeanMocker<? extends OAWebBean> wbMocker =
-                        mdsFixture.mockWebBean(webBeanId);
-                retval.set(wbMocker);
-            } else {
-                retval.set(existingMocker);
-            }
-
-            return retval.get() == null ? null : retval.get().getMock();
-
-        }).when(pMocker.getMock());
+            }).when(pMocker.getMock());
     }
 }

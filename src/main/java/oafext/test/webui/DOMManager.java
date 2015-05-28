@@ -57,7 +57,7 @@ public class DOMManager {
         try {
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             final String mdsFilename = pMdsPath + ".xml";
-            //LOGGER.info("mdsFilename: " + mdsFilename);
+            LOGGER.info("mdsFilename: " + mdsFilename);
 
             final URL resource = getClass().getResource(mdsFilename);
 
@@ -205,6 +205,15 @@ public class DOMManager {
     public Element findElement(final String id)
     {
         return findElement(this.rootElement, id);
+    }
+
+
+    /**
+     * @return the rootElement
+     */
+    Element getRootElement()
+    {
+        return this.rootElement;
     }
 
 
