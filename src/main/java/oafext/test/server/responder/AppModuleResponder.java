@@ -15,6 +15,7 @@
  */
 package oafext.test.server.responder;
 
+import oafext.OafExtException;
 import oafext.test.server.AppModuleMocker;
 import oafext.test.server.BaseViewObjectMocker;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
@@ -46,9 +47,14 @@ public final class AppModuleResponder<A extends OAApplicationModuleImpl> {
                     throws Throwable
             {
                 final String voInstName = (String) invocation.getArguments()[0];
-                final BaseViewObjectMocker<?, ?> voMocker = amMocker
-                    .getVoInstMockerMap()
-                    .get(voInstName);
+                final BaseViewObjectMocker<?, ?> voMocker =
+                        amMocker.getVoInstMockerMap().get(voInstName);
+
+                if (voMocker == null) {
+                    throw new OafExtException(
+                        "ViewObject not mocked, make sure you invoked mockViewObject* on your AM Fixture.");
+                }
+
                 return voMocker.getMock();
             }
         })

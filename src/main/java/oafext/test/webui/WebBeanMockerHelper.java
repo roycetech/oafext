@@ -109,24 +109,25 @@ public final class WebBeanMockerHelper {
     static void parentToString(final WebBeanMocker<? extends OAWebBean> pWbMocker,
                                final StringBuilder strBuilder)
     {
-        if (pWbMocker.parent != null) {
-            final String paddedNewline = getPadding(pWbMocker);
-            strBuilder
-                .append(paddedNewline)
-                .append("Parent: ")
-                .append(
-                    pWbMocker.parent == null ? null : pWbMocker.parent
-                        .getMdsFixture()
-                        .getMdsPath())
-                .append(paddedNewline);
-        }
+        final String paddedNewline = getPadding(pWbMocker);
+        strBuilder
+            .append(paddedNewline)
+            .append("Parent: ")
+            .append(
+                pWbMocker.parent == null ? null : pWbMocker.parent
+                    .getMdsFixture()
+                    .getMdsPath());
     }
 
     static void childrenToString(final WebBeanMocker<? extends OAWebBean> pWbMocker,
                                  final StringBuilder strBuilder)
     {
-        strBuilder.append("Children Size: ").append(
-            pWbMocker.idxChildMockers.size());
+        final String paddedNewline = getPadding(pWbMocker);
+        strBuilder
+            .append(paddedNewline)
+            .append("Children Size: ")
+            .append(pWbMocker.idxChildMockers.size())
+            .append(paddedNewline);
 
         if (!pWbMocker.idxChildMockers.isEmpty()) {
             strBuilder.append(pWbMocker.idxChildMockers);

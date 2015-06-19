@@ -314,8 +314,8 @@ public class WebBeanMocker<W extends OAWebBean> implements Mocker<W> {
      */
     public void registerMocker(final WebBeanMocker<? extends OAWebBean> pMocker)
     {
-        LOGGER.info(pMocker.getWebBeanId());
-
+        //        LOGGER.info(pMocker.getWebBeanId());
+        //
         final Map<OAWebBean, WebBeanMocker<? extends OAWebBean>> globBnMockerMap =
                 findGlobBeanMockerMap();
         assert globBnMockerMap != null;

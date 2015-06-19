@@ -369,7 +369,8 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
                         rowMocker.getMock().getClass(),
                         methodName);
 
-            assert method != null;
+            assert method != null : "Method not found for attribute:"
+                    + nextAttr;
 
             try {
 
