@@ -15,8 +15,14 @@
  */
 package oafext.test.server;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
+import oafext.lang.Return;
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
+import oracle.jbo.domain.Date;
 
 /**
  * Creates a String representation of the view object based on its rows and
@@ -33,6 +39,10 @@ public class ViewObjectFormatter<R extends Row> {
     private final transient int[] lengths;
     private final transient String rowSeparator;
     private final transient String attrSep;
+
+    private final DateFormat DATE_FMT = new SimpleDateFormat(
+        "yyyy/MM/dd",
+        Locale.getDefault());
 
     /**
      * @param pAttrs row attributes to include.
@@ -71,6 +81,7 @@ public class ViewObjectFormatter<R extends Row> {
     @SuppressWarnings("unchecked")
     public String format(final ViewObject viewObject)
     {
+        viewObject.setRangeSize(-1);
         final StringBuilder strBuilder = new StringBuilder();
         for (final Row nextRow : viewObject.getAllRowsInRange()) {
             final R row = (R) nextRow;
@@ -95,15 +106,30 @@ public class ViewObjectFormatter<R extends Row> {
                     && this.lengths.length == this.attributes.length) {
                 strBuilder.append(String.format(
                     "%-" + this.lengths[i] + "s",
-                    nextRow.getAttribute(this.attributes[i])));
+                    formatDate(nextRow.getAttribute(this.attributes[i]))));
             } else {
-                strBuilder.append(nextRow.getAttribute(this.attributes[i]));
+                strBuilder.append(formatDate(nextRow
+                    .getAttribute(this.attributes[i])));
             }
         }
 
         if (this.rowSeparator != null) {
             strBuilder.append(this.rowSeparator);
         }
-
     }
+
+    String formatDate(final Object object)
+    {
+        final Return<String> retval = new Return<>();
+        if (object == null) {
+            retval.set("null");
+        } else if (object instanceof Date) {
+            final Date date = (Date) object;
+            retval.set(this.DATE_FMT.format(date.getValue()));
+        } else {
+            retval.set(object.toString());
+        }
+        return retval.get();
+    }
+
 }

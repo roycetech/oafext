@@ -27,7 +27,7 @@ import oafext.test.server.responder.ViewObjectDefaultResponder;
 import oafext.util.ReflectUtil;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
 import oracle.apps.fnd.framework.server.OADBTransaction;
-import oracle.jbo.Row;
+import oracle.apps.fnd.framework.server.OAViewObjectImpl;
 import oracle.jbo.ViewObject;
 import oracle.jbo.domain.Number;
 import oracle.jbo.server.ViewObjectImpl;
@@ -112,13 +112,15 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
     void tearDown()
     {
         //Mockito.reset(this.mockAm);  //Don't reset.  App Module mocker is retained between calls.
-        //        for (final BaseViewObjectMocker voMocker : this.voInstMockerMap
-        //            .values()) {
-        //            Mockito.reset(voMocker.getMockVo());
-        //            voMocker.tearDown();
-        //        }
+        for (final BaseViewObjectMocker voMocker : this.voInstMockerMap
+            .values()) {
+            Mockito.reset(voMocker.getMock());
+            voMocker.tearDown();
+        }
+
         this.voInstMockerMap.clear();
-        //Mockito.reset((Object) mockAm); Doing this will wipe mocks, re-mock may be performance heavy
+
+        //Mockito.reset((Object) this.mockAm); //Doing this will wipe mocks, re-mock may be performance heavy
     }
 
     /**
@@ -127,9 +129,9 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * @param voInstance
      * @param <R> specific Row Type.
      */
-    <V extends ViewObjectImpl, R extends ViewRowImpl> void mockViewObjectSingle(final AppModuleFixture<?> amFixture,
-                                                                                final String voInstance,
-                                                                                final MockRowCallback<R, V> rowMockCallback)
+    <V extends ViewObjectImpl, R extends ViewRowImpl> OAViewObjectImpl mockViewObjectSingle(final AppModuleFixture<?> amFixture,
+                                                                                            final String voInstance,
+                                                                                            final MockRowCallback<R, V> rowMockCallback)
     {
         final BaseViewObjectMocker<V, R> voMocker =
                 new BaseViewObjectMocker<V, R>(
@@ -138,7 +140,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
                     BaseViewObjectMocker.ViewObjectType.Single,
                     new ViewObjectDefaultResponder<V, R>());
         voMocker.setRowMockCallback(rowMockCallback);
-        mockViewObjectInternal(voMocker);
+        return mockViewObjectInternal(voMocker);
     }
 
     /**
@@ -199,7 +201,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * @param voInstance
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    void mockViewObjectInternal(final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker)
+    OAViewObjectImpl mockViewObjectInternal(final BaseViewObjectMocker<? extends ViewObject, ? extends ViewRowImpl> voMocker)
     {
         final AppModuleFixture<?> amFixture = voMocker.getAmFixture();
         final String voInstance =
@@ -226,7 +228,7 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
         Mockito
             .when(ReflectUtil.invokeMethod(this.mockAm, methName))
             .thenReturn(voMocker.getMock());
-
+        return (OAViewObjectImpl) voMocker.getMock();
     }
 
 
@@ -238,10 +240,11 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
      * @param pAttrs attribute to set.
      * @param pValues values to set.
      */
-    public <V extends ViewObjectImpl, R extends ViewRowImpl> void initRowAtIndex(final String voInstance,
-                                                                                 final int index,
-                                                                                 final Integer[] pAttrs,
-                                                                                 final Object[] pValues)
+    @SuppressWarnings("unchecked")
+    public <V extends ViewObjectImpl, R extends ViewRowImpl> R initRowAtIndex(final String voInstance,
+                                                                              final int index,
+                                                                              final Integer[] pAttrs,
+                                                                              final Object[] pValues)
     {
         assert this.voInstMockerMap.get(voInstance) != null : "Invoke one of mockViewObject*("
                 + voInstance + ") before invoking this method.";
@@ -249,7 +252,6 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
         assert pAttrs.length == pValues.length : "Attribute Indeces must be equal to Values. "
                 + pAttrs.length + " != " + pValues.length;
 
-        @SuppressWarnings("unchecked")
         final BaseViewObjectMocker<V, R> voMocker =
                 (BaseViewObjectMocker<V, R>) this.voInstMockerMap
                     .get(voInstance);
@@ -259,9 +261,9 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
 
         final boolean isExisting =
                 index < viewObject.getAllRowsInRange().length;
-        Row row;
+        R row;
         if (isExisting) {
-            row = viewObject.getRowAtRangeIndex(index);
+            row = (R) viewObject.getRowAtRangeIndex(index);
         } else {
             final Class<R> rowClass = voMocker.getRowClass();
             final RowMocker<R, V> rowMocker =
@@ -285,7 +287,9 @@ public class AppModuleMocker<A extends OAApplicationModuleImpl> implements
                     (Number) row.getAttribute(voHgridMocker.getParentAttrIdx());
             voHgridMocker.registerChild(parentId, row);
         }
+
         viewObject.insertRowAtRangeIndex(index, row);
+        return row;
     }
 
     /**

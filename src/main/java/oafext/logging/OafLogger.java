@@ -58,22 +58,22 @@ import oracle.jbo.server.DBTransaction;
  *
  * <pre>
  * #log4oaf.properties
- *
+ * 
  * #defaults to INFO
  * log4oaf.defaultLevel=INFO
- *
+ * 
  * #defaults to yes
  * log4oaf.showMethod=yes
- *
+ * 
  * #defaults to yes
  * #log4oaf.showPackage=yes
- *
+ * 
  * #defaults to no
  * log4oaf.printToConsole=yes
- *
+ * 
  * #defaults to yes
  * log4oaf.isDeployed=no
- *
+ * 
  * # log categories
  * log4oaf.logger.adb.oracle.apps.pa.workout=DEBUG
  * log4oaf.logger.adb.oracle.apps.pa.workplan=OFF
@@ -94,7 +94,7 @@ public class OafLogger {
 
 
     /** Allow System.out.println flag. */
-    private static final boolean ENABLE_SYSOUT = false;
+    private static final boolean ENABLE_SYSOUT = true;
 
     /** Maximum length of RCS_ID for display. */
     static final int MAX_RCSLEN = 20;
@@ -227,8 +227,9 @@ public class OafLogger {
                 levelToStr.put("ERROR", Level.ERROR);
                 levelToStr.put("OFF", Level.OFF);
 
+                getUtil();
                 INSTANCE.defaultLevel =
-                        getUtil().nvl(
+                        ObjectUtil.nvl(
                             levelToStr.get(cfgDefaultLevel),
                             Level.INFO);
 

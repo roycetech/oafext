@@ -518,7 +518,14 @@ public class BaseRowResponder<R extends ViewRowImpl, V extends ViewObjectImpl>
                                     if (object instanceof RowSet) {
                                         paramValPair.append("$RowSet");
                                     } else {
-                                        paramValPair.append(object);
+                                        paramValPair
+                                        //                                            .append('(')
+                                        //                                            .append(
+                                        //                                                object
+                                        //                                                    .getClass()
+                                        //                                                    .getSimpleName())
+                                        //                                            .append(')')
+                                            .append(object);
                                     }
                                     param.add(paramValPair.toString());
                                 }

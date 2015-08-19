@@ -31,6 +31,7 @@ import oafext.logging.OafLogger;
 import oafext.test.mock.MockRowCallback;
 import oafext.util.XmlUtil;
 import oracle.apps.fnd.framework.server.OAApplicationModuleImpl;
+import oracle.apps.fnd.framework.server.OAViewObjectImpl;
 import oracle.jbo.Row;
 import oracle.jbo.RowSet;
 import oracle.jbo.server.ViewObjectImpl;
@@ -182,10 +183,14 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * @param pValues values to set.
      */
     @SuppressWarnings("PMD.UseVarargs")
-    public void initRowAtIndex(final String voInstance, final int index,
-                               final Integer[] pAttrs, final Object[] pValues)
+    public Row initRowAtIndex(final String voInstance, final int index,
+                              final Integer[] pAttrs, final Object[] pValues)
     {
-        this.appModuleMocker.initRowAtIndex(voInstance, index, pAttrs, pValues);
+        return this.appModuleMocker.initRowAtIndex(
+            voInstance,
+            index,
+            pAttrs,
+            pValues);
     }
 
     /**
@@ -231,9 +236,9 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
     /**
      * @param voInstName view object instance.
      */
-    public void mockViewObjectSingle(final String voInstName)
+    public OAViewObjectImpl mockViewObjectSingle(final String voInstName)
     {
-        mockViewObjectSingle(voInstName, null);
+        return mockViewObjectSingle(voInstName, null);
     }
 
     /**
@@ -241,8 +246,8 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
      * @param callback optional allow optional mocking for client codes.
      * @param <R> specific Row Type.
      */
-    public <V extends ViewObjectImpl & RowSet, R extends ViewRowImpl> void mockViewObjectSingle(final String voInstName,
-                                                                                                final MockRowCallback<R, V> callback)
+    public <V extends ViewObjectImpl & RowSet, R extends ViewRowImpl> OAViewObjectImpl mockViewObjectSingle(final String voInstName,
+                                                                                                            final MockRowCallback<R, V> callback)
     {
         if (this.voNameClassMap.get(voInstName) == null) {
             LOGGER.info("Initializing view object from xml: " + voInstName);
@@ -254,7 +259,10 @@ public class AppModuleFixture<A extends OAApplicationModuleImpl> {
         }
 
         assert this.voNameClassMap.get(voInstName) != null;
-        this.appModuleMocker.mockViewObjectSingle(this, voInstName, callback);
+        return this.appModuleMocker.mockViewObjectSingle(
+            this,
+            voInstName,
+            callback);
     }
 
     /**
