@@ -40,7 +40,7 @@ public class ViewObjectFormatter<R extends Row> {
     private final transient String rowSeparator;
     private final transient String attrSep;
 
-    private final DateFormat DATE_FMT = new SimpleDateFormat(
+    private static final DateFormat DATE_FMT = new SimpleDateFormat(
         "yyyy/MM/dd",
         Locale.getDefault());
 
@@ -125,7 +125,7 @@ public class ViewObjectFormatter<R extends Row> {
             retval.set("null");
         } else if (object instanceof Date) {
             final Date date = (Date) object;
-            retval.set(this.DATE_FMT.format(date.getValue()));
+            retval.set(ViewObjectFormatter.DATE_FMT.format(date.getValue()));
         } else {
             retval.set(object.toString());
         }
