@@ -26,6 +26,7 @@ import oafext.util.StringUtil;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 
 import org.junit.After;
+import org.mockito.Mockito;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -246,6 +247,11 @@ public class MdsFixture {
             this.topWbMocker =
                     createMocker(this.extWbId, pOaWbType, true, null);
             this.pageContextMocker = new PageContextMocker(this);
+
+            Mockito
+                .doReturn(this.topWbMocker.getMock())
+                .when(this.pageContextMocker.getMock())
+                .getPageLayoutBean();
 
         } else {
 

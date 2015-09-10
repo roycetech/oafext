@@ -15,8 +15,11 @@
  */
 package oafext.test.webui;
 
+import oracle.apps.fnd.framework.webui.beans.OAFormattedTextBean;
 import oracle.apps.fnd.framework.webui.beans.OAWebBean;
 import oracle.apps.fnd.framework.webui.beans.form.OASubmitButtonBean;
+import oracle.apps.fnd.framework.webui.beans.layout.OAFlowLayoutBean;
+import oracle.apps.fnd.framework.webui.beans.layout.OASpacerBean;
 
 /**
  * Factory for creating mocker. May decide later to create more granular mocker,
@@ -55,7 +58,7 @@ public interface WbMockerFactory {
          * @param mdsFixture MDS fixture to which this instance will belong.
          *            This can be null for created web beans via
          *            OAWebBeanFactory.
-         * 
+         *
          * @param pWebBeanId web bean ID.
          */
         public static WebBeanMocker<OASubmitButtonBean> newInstance(final MdsFixture mdsFixture,
@@ -70,5 +73,81 @@ public interface WbMockerFactory {
         }
 
     }
+
+    /** */
+    class FlowLayout {
+
+        private FlowLayout() {}
+
+        /**
+         * @param mdsFixture MDS fixture to which this instance will belong.
+         *            This can be null for created web beans via
+         *            OAWebBeanFactory.
+         *
+         * @param pWebBeanId web bean ID.
+         */
+        public static WebBeanMocker<OAFlowLayoutBean> newInstance(final MdsFixture mdsFixture,
+                                                                  final String pWebBeanId)
+        {
+            return new WebBeanMocker<OAFlowLayoutBean>(
+                mdsFixture,
+                pWebBeanId,
+                OAFlowLayoutBean.class,
+                false,
+                mdsFixture == null ? null : mdsFixture.getTopWbMocker());
+        }
+
+    }
+
+    /** */
+    class FormattedText {
+
+        private FormattedText() {}
+
+        /**
+         * @param mdsFixture MDS fixture to which this instance will belong.
+         *            This can be null for created web beans via
+         *            OAWebBeanFactory.
+         *
+         * @param pWebBeanId web bean ID.
+         */
+        public static WebBeanMocker<OAFormattedTextBean> newInstance(final MdsFixture mdsFixture,
+                                                                     final String pWebBeanId)
+        {
+            return new WebBeanMocker<OAFormattedTextBean>(
+                mdsFixture,
+                pWebBeanId,
+                OAFormattedTextBean.class,
+                false,
+                mdsFixture == null ? null : mdsFixture.getTopWbMocker());
+        }
+
+    }
+
+    /** */
+    class Spacer {
+
+        private Spacer() {}
+
+        /**
+         * @param mdsFixture MDS fixture to which this instance will belong.
+         *            This can be null for created web beans via
+         *            OAWebBeanFactory.
+         *
+         * @param pWebBeanId web bean ID.
+         */
+        public static WebBeanMocker<OASpacerBean> newInstance(final MdsFixture mdsFixture,
+                                                              final String pWebBeanId)
+        {
+            return new WebBeanMocker<OASpacerBean>(
+                mdsFixture,
+                pWebBeanId,
+                OASpacerBean.class,
+                false,
+                mdsFixture == null ? null : mdsFixture.getTopWbMocker());
+        }
+
+    }
+
 
 }

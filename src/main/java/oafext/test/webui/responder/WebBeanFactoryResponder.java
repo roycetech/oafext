@@ -26,7 +26,10 @@ import oafext.test.webui.WebBeanMocker;
 import oracle.apps.fnd.framework.webui.OAPageContext;
 import oracle.apps.fnd.framework.webui.OAWebBeanConstants;
 import oracle.apps.fnd.framework.webui.OAWebBeanFactory;
+import oracle.apps.fnd.framework.webui.beans.OAFormattedTextBean;
 import oracle.apps.fnd.framework.webui.beans.form.OASubmitButtonBean;
+import oracle.apps.fnd.framework.webui.beans.layout.OAFlowLayoutBean;
+import oracle.apps.fnd.framework.webui.beans.layout.OASpacerBean;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -49,6 +52,17 @@ public class WebBeanFactoryResponder {
         STYLE_TYPE_MAP.put(
             OAWebBeanConstants.BUTTON_SUBMIT_BEAN,
             OASubmitButtonBean.class);
+
+        STYLE_TYPE_MAP.put(
+            OAWebBeanConstants.FLOW_LAYOUT_BEAN,
+            OAFlowLayoutBean.class);
+
+        STYLE_TYPE_MAP.put(
+            OAWebBeanConstants.FORMATTED_TEXT_BEAN,
+            OAFormattedTextBean.class);
+
+        STYLE_TYPE_MAP.put(OAWebBeanConstants.SPACER_BEAN, OASpacerBean.class);
+
     }
 
     /**
@@ -102,8 +116,27 @@ public class WebBeanFactoryResponder {
                                     WbMockerFactory.SubmitButton.newInstance(
                                         null,
                                         beanId);
-                            wbFacker.getPgLayoutMocker().registerMocker(
-                                webBeanMocker);
+                            break;
+
+                        case OAWebBeanConstants.FLOW_LAYOUT_BEAN:
+                            webBeanMocker =
+                                    WbMockerFactory.FlowLayout.newInstance(
+                                        null,
+                                        beanId);
+                            break;
+
+                        case OAWebBeanConstants.FORMATTED_TEXT_BEAN:
+                            webBeanMocker =
+                                    WbMockerFactory.FormattedText.newInstance(
+                                        null,
+                                        beanId);
+                            break;
+
+                        case OAWebBeanConstants.SPACER_BEAN:
+                            webBeanMocker =
+                                    WbMockerFactory.Spacer.newInstance(
+                                        null,
+                                        beanId);
                             break;
 
                         default:
@@ -111,6 +144,9 @@ public class WebBeanFactoryResponder {
                                 "Define mapping/implementation for style: "
                                         + style);
                     }
+
+                    wbFacker.getPgLayoutMocker().registerMocker(webBeanMocker);
+
 
                     //                    wbFacker.addTransient(webBeanMocker);
                     return webBeanMocker.getMock();
